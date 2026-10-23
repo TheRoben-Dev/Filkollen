@@ -57,6 +57,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         DispatchQueue.main.async { [weak self] in self?.hideIfPending() }
         // Unit tests run inside the app; keep them free of scheduled scans and network.
         guard !AppEnvironment.isRunningTests else { return }
+        #if DEBUG
+        // Screenshots run on fixtures only: no scheduled scans or watchers.
+        if SnapshotRunner.isActive { SnapshotRunner.runIfRequested(app: self); return }
+        #endif
         scheduler.start()
         protection.startBackgroundWatchers()
     }

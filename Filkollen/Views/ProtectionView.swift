@@ -3,11 +3,18 @@ import SwiftUI
 struct ProtectionView: View {
     @EnvironmentObject private var protection: ProtectionModel
     @AppStorage("abuseChAuthKey") private var abuseChAuthKey = ""
-    @State private var tab = Tab.scan
+    @State private var tab = ProtectionView.startTab
     @State private var pendingDelete: [Threat] = []
     @State private var pendingQuarantineDelete: [Quarantine.Entry] = []
 
     enum Tab: String, CaseIterable { case scan = "Scan", quarantine = "Quarantine", trust = "App Trust" }
+
+    #if DEBUG
+    /// SnapshotRunner sets this to open a specific tab.
+    @MainActor static var startTab = Tab.scan
+    #else
+    static let startTab = Tab.scan
+    #endif
 
     var body: some View {
         VStack(spacing: 0) {
