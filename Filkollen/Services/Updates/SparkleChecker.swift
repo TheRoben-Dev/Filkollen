@@ -117,12 +117,11 @@ final class AppcastParser: NSObject, XMLParserDelegate {
                 qualifiedName: String?, attributes: [String: String] = [:]) {
         text = ""
         if name == "item" { current = Item() }
-        guard current != nil else { return }
-        if name == "enclosure" {
-            current?.version = current?.version ?? attributes["sparkle:version"]
-            current?.shortVersion = current?.shortVersion ?? attributes["sparkle:shortVersionString"]
-            if let u = attributes["url"] { current?.downloadURL = URL(string: u) }
-        }
+        guard name == "enclosure", var item = current else { return }
+        item.version = item.version ?? attributes["sparkle:version"]
+        item.shortVersion = item.shortVersion ?? attributes["sparkle:shortVersionString"]
+        if let u = attributes["url"] { item.downloadURL = URL(string: u) }
+        current = item
     }
 
     func parser(_ parser: XMLParser, foundCharacters string: String) { text += string }
