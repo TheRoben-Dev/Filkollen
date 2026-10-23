@@ -60,8 +60,8 @@ final class AppModel: ObservableObject {
                 if Task.isCancelled { break }
                 scanningCategory = category
                 scanStatus = category.scanningMessage
-                let items = await Self.runScanner(for: category) { [weak self] path in
-                    Task { @MainActor in self?.scanStatus = path }
+                let items = await Self.runScanner(for: category) { path in
+                    Task { @MainActor in self.scanStatus = path }
                 }
                 results[category] = CategoryResult(category: category, items: items)
             }

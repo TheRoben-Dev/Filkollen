@@ -132,7 +132,7 @@ final class ThreatDatabase: @unchecked Sendable {
         let data = sorted.withUnsafeBufferPointer { Data(buffer: $0) }
         try data.write(to: storeURL, options: .atomic)
 
-        lock.lock(); digests = sorted; lock.unlock()
+        lock.withLock { digests = sorted }
         return sorted.count
     }
 

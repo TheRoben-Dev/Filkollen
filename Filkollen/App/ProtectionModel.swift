@@ -33,8 +33,8 @@ final class ProtectionModel: ObservableObject {
         errorMessage = nil
         Task {
             do {
-                let count = try await ThreatDatabase.shared.update { [weak self] msg in
-                    Task { @MainActor in self?.status = msg }
+                let count = try await ThreatDatabase.shared.update { msg in
+                    Task { @MainActor in self.status = msg }
                 }
                 ThreatDatabase.shared.unload()
                 databaseCount = count
