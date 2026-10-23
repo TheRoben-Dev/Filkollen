@@ -165,7 +165,8 @@ final class SafetyGuardTests: XCTestCase {
         assertRefused(h + "/library/caches")
         assertRefused(h + "/Library/mobile documents/com~apple~CloudDocs/file.txt")
         assertRefused(h + "/Pictures/Photos Library.PHOTOSLIBRARY/originals/a.heic")
-        assertRefused(h + "/Library/Caches/COM.APPLE.Safari")
+        assertRefused(h + "/Library/Caches/COM.APPLE.finder")
+        assertRefused(h + "/Library/Caches/COM.APPLE.Safari/Cache.db")
         assertRefused(h + "/.trash/x")
     }
 
@@ -210,7 +211,7 @@ final class SafetyGuardTests: XCTestCase {
 
     func testMailStoreAndOtherAppDataRefused() {
         for rel in ["Library/Mail/V10/x.emlx", "Library/Messages/chat.db", "Library/Safari/History.db",
-                    "Library/Application Support/AddressBook/x", "Library/Application Support/MobileSync/Backup/x",
+                    "Library/Application Support/AddressBook/x", "Library/Application Support/MobileSync/Backup/x/Manifest.db", "Library/Application Support/MobileSync/x",
                     "Library/Autosave Information/doc.rtf", ".ssh/id_ed25519", ".Trash/old.zip", ".Trash"] {
             assertRefused(fx.home.appendingPathComponent(rel))
         }
@@ -221,12 +222,43 @@ final class SafetyGuardTests: XCTestCase {
     }
 
     func testAppleItemsAreRefused() {
-        for rel in ["Library/Caches/com.apple.Safari", "Library/Preferences/com.apple.finder.plist",
+        for rel in ["Library/Caches/com.apple.finder", "Library/Preferences/com.apple.finder.plist",
                     "Library/Containers/com.apple.mail/Data/x", "Library/Group Containers/group.com.apple.notes",
                     "Library/Group Containers/UBF8T346G9.com.apple.office", "Library/Logs/com.apple.xpc.launchd/x"] {
             assertRefused(fx.home.appendingPathComponent(rel))
         }
         assertAllowed(fx.home.appendingPathComponent("Library/Caches/com.spotify.client"))
+    }
+
+    func testExactAppleExceptionsAllowOnlyThoseFolders() {
+        let h = fx.home.path
+        for allowed in ["/Library/Caches/com.apple.Safari",
+                        "/Library/Containers/com.apple.Safari/Data/Library/Caches",
+                        "/Library/Containers/com.apple.mail/Data/Library/Mail Downloads",
+                        "/library/caches/COM.APPLE.SAFARI"] {
+            assertAllowed(fx.raw(h + allowed))
+        }
+        for refused in ["/Library/Caches/com.apple.Safari/Cache.db",
+                        "/Library/Caches/com.apple.Safari.SafeBrowsing",
+                        "/Library/Containers/com.apple.Safari/Data/Library/Safari/History.db",
+                        "/Library/Containers/com.apple.Safari/Data/Library/Caches/x",
+                        "/Library/Containers/com.apple.Safari/Data/Library",
+                        "/Library/Containers/com.apple.Safari",
+                        "/Library/Containers/com.apple.mail/Data/Library/Mail Downloads/abc/file.pdf",
+                        "/Library/Containers/com.apple.mail/Data/Library/Mail",
+                        "/Library/Containers/com.apple.mail",
+                        "/Library/Mail/V10",
+                        "/Library/Safari/History.db",
+                        "/Library/Caches/com.apple.Safari/../com.apple.finder"] {
+            assertRefused(h + refused)
+        }
+    }
+
+    func testExceptionReachedThroughSymlinkIsJudgedByTarget() throws {
+        let target = try fx.file("x", in: fx.outside)
+        let dir = try fx.dir("Library/Containers/com.apple.mail/Data/Library")
+        try fx.symlink("Mail Downloads", to: target.deletingLastPathComponent(), in: dir)
+        assertRefused(dir.appendingPathComponent("Mail Downloads"))
     }
 
     func testAppBundleInternalsRefusedButWholeBundleAllowed() {
