@@ -14,56 +14,65 @@ struct DiskUsageView: View {
     private var shown: [DiskUsage.Entry] { Array(entries.prefix(40)) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 16) {
-                GradientIcon(symbol: "square.grid.3x3.square", gradient: Theme.gradient(.blue, .purple), size: 56)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Disk Usage").font(.system(size: 26, weight: .bold, design: .rounded))
-                    Text("What takes up space in your home folder").foregroundStyle(.white.opacity(0.65))
-                }
-                Spacer()
-                Button { load() } label: { Label("Refresh", systemImage: "arrow.clockwise") }
-                    .buttonStyle(GhostButtonStyle())
+        VStack(alignment: .leading, spacing: DS.Space.md) {
+            DSPageHeader(title: String(localized: "Disk Usage"),
+                         subtitle: String(localized: "What takes up space in your home folder"),
+                         tile: DSTile(symbol: AppModel.SystemPage.diskUsage.symbol, tint: DS.Color.brand, size: .large)) {
+                Button { load() } label: { Label("Refresh", systemImage: DS.Icon.refresh) }
+                    .buttonStyle(.dsSecondary)
+                    .disabled(loading)
             }
             breadcrumbs
             ZStack {
                 if loading && entries.isEmpty {
-                    ProgressView("Measuring \(current.lastPathComponent)…")
+                    DS.shape(DS.Radius.card).fill(DS.Color.surfaceSunken)
+                        .dsShimmer()
+                        .overlay {
+                            Text(String(localized: "Measuring \(current.lastPathComponent)…"))
+                                .font(DS.Font.callout).foregroundStyle(DS.Color.textSecondary)
+                        }
                 } else if entries.isEmpty {
-                    Text("Empty, or Filkollen can't read this folder.").foregroundStyle(.white.opacity(0.6))
+                    DSEmptyState(symbol: "folder", tint: DS.Color.textTertiary,
+                                 title: String(localized: "Nothing to show"),
+                                 message: String(localized: "Empty, or Filkollen can't read this folder."))
                 } else {
                     map
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            Text(footer).font(.caption).foregroundStyle(.white.opacity(0.6)).lineLimit(1).truncationMode(.middle)
+            Text(footer).font(DS.Font.path).foregroundStyle(DS.Color.textSecondary).lineLimit(1).truncationMode(.middle)
         }
-        .padding(28)
-        .foregroundStyle(.white)
+        .padding(DS.Inset.page)
         .onAppear { if entries.isEmpty { load() } }
         .onDisappear { task?.cancel() }
     }
 
     private var footer: String {
         if let hovered, let e = entries.first(where: { $0.url == hovered }) {
-            return "\(e.url.abbreviatedPath) · \(e.size.formattedBytes)" + (e.isFolder ? " · click to open" : "")
+            return "\(e.url.abbreviatedPath) · \(e.size.formattedBytes)" + (e.isFolder ? String(localized: " · click to open") : "")
         }
         let total = entries.reduce(0) { $0 + $1.size }
-        return "\(current.abbreviatedPath) · \(total.formattedBytes) in \(entries.count) items"
+        return String(localized: "\(current.abbreviatedPath) · \(total.formattedBytes) in \(entries.count) items")
     }
 
     private var breadcrumbs: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: DS.Space.xs) {
             ForEach(Array(path.enumerated()), id: \.offset) { i, url in
-                if i > 0 { Image(systemName: "chevron.right").font(.caption2).foregroundStyle(.white.opacity(0.4)) }
-                Button(i == 0 ? "Home" : url.lastPathComponent) {
+                if i > 0 {
+                    Image(systemName: "chevron.right").font(DS.Font.badge).foregroundStyle(DS.Color.textTertiary)
+                        .accessibilityHidden(true)
+                }
+                Button(i == 0 ? String(localized: "Home") : url.lastPathComponent) {
                     path = Array(path.prefix(i + 1)); load()
                 }
-                .buttonStyle(.plain)
-                .font(.callout.weight(i == path.count - 1 ? .semibold : .regular))
+                .buttonStyle(.dsPlain)
+                .font(DS.Font.callout.weight(i == path.count - 1 ? .semibold : .regular))
+                .foregroundStyle(i == path.count - 1 ? DS.Color.textPrimary : Color.accentColor)
                 .disabled(i == path.count - 1)
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(String(localized: "Path"))
     }
 
     private var map: some View {
@@ -77,22 +86,32 @@ struct DiskUsageView: View {
         }
     }
 
+    /// Calm, tested tints (white text ≥ 4:1) instead of a rainbow; files are a step quieter than folders.
+    private static let palette: [Color] = JunkCategory.allCases.map(\.dsTint)
+
     private func tile(_ entry: DiskUsage.Entry, rect: CGRect, index: Int) -> some View {
-        let hue = Double(index % 12) / 12.0
-        return RoundedRectangle(cornerRadius: 6, style: .continuous)
-            .fill(Color(hue: hue, saturation: 0.55, brightness: hovered == entry.url ? 0.85 : 0.65).opacity(entry.isFolder ? 0.9 : 0.6))
+        let isHovered = hovered == entry.url
+        return DS.shape(DS.Radius.small)
+            .fill(Self.palette[index % Self.palette.count].opacity(entry.isFolder ? 1 : 0.75))
+            .overlay(DS.shape(DS.Radius.small).fill(.white.opacity(isHovered ? 0.16 : 0)))
+            .overlay(DS.shape(DS.Radius.small).strokeBorder(.white.opacity(isHovered ? 0.6 : 0), lineWidth: 1.5))
             .overlay(alignment: .topLeading) {
                 if rect.width > 70 && rect.height > 34 {
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(entry.name).font(.caption.weight(.semibold)).lineLimit(1)
-                        Text(entry.size.formattedBytes).font(.caption2).opacity(0.8)
+                    VStack(alignment: .leading, spacing: DS.Space.xxs) {
+                        HStack(spacing: DS.Space.xs) {
+                            Image(systemName: entry.isFolder ? "folder.fill" : "doc.fill").font(DS.Font.badge)
+                            Text(entry.name).font(DS.Font.captionEmphasized).lineLimit(1)
+                        }
+                        Text(entry.size.formattedBytes).font(DS.Font.numericCaption).opacity(0.85)
                     }
+                    .foregroundStyle(DS.Color.textOnFill)
                     .padding(6)
                 }
             }
             .frame(width: max(rect.width - 3, 0), height: max(rect.height - 3, 0))
             .offset(x: rect.minX, y: rect.minY)
             .onHover { hovered = $0 ? entry.url : (hovered == entry.url ? nil : hovered) }
+            .dsAnimation(.snappy, value: isHovered)
             .onTapGesture { if entry.isFolder { path.append(entry.url); load() } }
             .contextMenu {
                 Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([entry.url]) }
