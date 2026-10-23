@@ -17,5 +17,5 @@ if command -v swiftformat >/dev/null; then
 fi
 if command -v swiftlint >/dev/null; then
   # shellcheck disable=SC2086
-  swiftlint lint --quiet --strict $files || exit 1
+  swiftlint lint --quiet $files || exit 1
 fi

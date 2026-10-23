@@ -119,7 +119,7 @@ struct SidebarView: View {
 
             Section("Maintenance") {
                 ForEach(AppModel.SystemPage.allCases, id: \.self) { page in
-                    Label(page.rawValue, systemImage: page.symbol)
+                    Label(page.title, systemImage: page.symbol)
                         .tag(AppModel.Section.system(page))
                 }
                 HStack {

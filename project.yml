@@ -4,6 +4,7 @@ options:
   deploymentTarget:
     macOS: "13.0"
   createIntermediateGroups: true
+  developmentLanguage: en
 packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
@@ -25,6 +26,8 @@ targets:
       path: Filkollen/Resources/Info.plist
       properties:
         CFBundleDisplayName: Filkollen
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, sv]
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         LSApplicationCategoryType: public.app-category.utilities

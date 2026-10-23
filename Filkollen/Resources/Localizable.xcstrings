@@ -1,0 +1,1886 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "1 GB": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 GB"
+          }
+        }
+      }
+    },
+    "1 year": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 år"
+          }
+        }
+      }
+    },
+    "100 MB": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "100 MB"
+          }
+        }
+      }
+    },
+    "2 GB": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 GB"
+          }
+        }
+      }
+    },
+    "2 years": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 år"
+          }
+        }
+      }
+    },
+    "250 MB": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "250 MB"
+          }
+        }
+      }
+    },
+    "500 MB": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "500 MB"
+          }
+        }
+      }
+    },
+    "6 months": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 månader"
+          }
+        }
+      }
+    },
+    "About Filkollen": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Om Filkollen"
+          }
+        }
+      }
+    },
+    "Access granted, you're all set!": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Åtkomst beviljad, allt är klart!"
+          }
+        }
+      }
+    },
+    "Add Folder…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lägg till mapp…"
+          }
+        }
+      }
+    },
+    "Also look for folders named after removed apps": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leta även efter mappar som heter som borttagna appar"
+          }
+        }
+      }
+    },
+    "Also scan with ClamAV when installed": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök även med ClamAV när det är installerat"
+          }
+        }
+      }
+    },
+    "Also show files not opened for": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa även filer som inte öppnats på"
+          }
+        }
+      }
+    },
+    "Always Ignore Its Folder": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignorera alltid dess mapp"
+          }
+        }
+      }
+    },
+    "Always Ignore This Item": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignorera alltid det här objektet"
+          }
+        }
+      }
+    },
+    "Always start hidden (menu bar only)": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starta alltid dold (bara i menyraden)"
+          }
+        }
+      }
+    },
+    "App Leftovers": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apprester"
+          }
+        }
+      }
+    },
+    "App Uninstaller": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avinstallera appar"
+          }
+        }
+      }
+    },
+    "App Updates": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appuppdateringar"
+          }
+        }
+      }
+    },
+    "Apps that open when you log in are managed in System Settings.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appar som öppnas när du loggar in hanteras i Systeminställningar."
+          }
+        }
+      }
+    },
+    "Apps that update themselves (Sparkle)": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appar som uppdaterar sig själva (Sparkle)"
+          }
+        }
+      }
+    },
+    "Automatic Smart Scan": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisk smart genomsökning"
+          }
+        }
+      }
+    },
+    "Background": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bakgrund"
+          }
+        }
+      }
+    },
+    "Background scans only look; nothing is cleaned without your review.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bakgrundssökningar tittar bara; inget rensas utan att du granskat det."
+          }
+        }
+      }
+    },
+    "Big files in your home folder you may not need": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stora filer i din hemmapp som du kanske inte behöver"
+          }
+        }
+      }
+    },
+    "Browser & Mail Caches": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Webbläsar- och e-postcache"
+          }
+        }
+      }
+    },
+    "Cached web content and opened attachments. Never history, cookies, passwords or mail": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cachat webbinnehåll och öppnade bilagor. Aldrig historik, cookies, lösenord eller e-post"
+          }
+        }
+      }
+    },
+    "Caches, logs and temporary files": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cacheminnen, loggar och tillfälliga filer"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avbryt"
+          }
+        }
+      }
+    },
+    "Check Now": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrollera nu"
+          }
+        }
+      }
+    },
+    "Check daily in the background and notify me": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrollera dagligen i bakgrunden och meddela mig"
+          }
+        }
+      }
+    },
+    "Check for Filkollen Updates…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök efter Filkollen-uppdateringar…"
+          }
+        }
+      }
+    },
+    "Check for Updates": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök efter uppdateringar"
+          }
+        }
+      }
+    },
+    "Check for new versions of Filkollen automatically": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök automatiskt efter nya versioner av Filkollen"
+          }
+        }
+      }
+    },
+    "Check for updates from": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök efter uppdateringar från"
+          }
+        }
+      }
+    },
+    "Check new downloads as they arrive": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrollera nya hämtningar när de kommer"
+          }
+        }
+      }
+    },
+    "Checking…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrollerar…"
+          }
+        }
+      }
+    },
+    "Checks downloads, apps and launch items against known threats": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jämför hämtningar, appar och startobjekt med kända hot"
+          }
+        }
+      }
+    },
+    "Cleanup": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rensning"
+          }
+        }
+      }
+    },
+    "Cleanup History": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rensningshistorik"
+          }
+        }
+      }
+    },
+    "Compares each new file in Downloads with the local threat database and notifies you on a match. Nothing is moved automatically.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jämför varje ny fil i Hämtade filer med den lokala hotdatabasen och meddelar dig vid träff. Inget flyttas automatiskt."
+          }
+        }
+      }
+    },
+    "Continue without Full Disk Access": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortsätt utan full skivåtkomst"
+          }
+        }
+      }
+    },
+    "Daily": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dagligen"
+          }
+        }
+      }
+    },
+    "Delete": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radera"
+          }
+        }
+      }
+    },
+    "Delete All Quarantined…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radera allt i karantän…"
+          }
+        }
+      }
+    },
+    "Delete All…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radera alla…"
+          }
+        }
+      }
+    },
+    "Delete Permanently": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radera permanent"
+          }
+        }
+      }
+    },
+    "Delete from Trash": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radera från papperskorgen"
+          }
+        }
+      }
+    },
+    "Deleted from the Trash": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raderad från papperskorgen"
+          }
+        }
+      }
+    },
+    "Details": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detaljer"
+          }
+        }
+      }
+    },
+    "Developer Junk": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utvecklarskräp"
+          }
+        }
+      }
+    },
+    "Disk images and packages in Downloads you've already used": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skivavbilder och paket i Hämtade filer som du redan använt"
+          }
+        }
+      }
+    },
+    "Done": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klar"
+          }
+        }
+      }
+    },
+    "Download the threat database first.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hämta hotdatabasen först."
+          }
+        }
+      }
+    },
+    "Duplicate Files": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dubbla filer"
+          }
+        }
+      }
+    },
+    "Duplicate Photos": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dubbla bilder"
+          }
+        }
+      }
+    },
+    "Empty Filkollen's Items from Trash…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Töm Filkollens objekt från papperskorgen…"
+          }
+        }
+      }
+    },
+    "Empty Trash": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Töm papperskorgen"
+          }
+        }
+      }
+    },
+    "Empty Trash…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Töm papperskorgen…"
+          }
+        }
+      }
+    },
+    "Every 12 hours": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Var 12:e timme"
+          }
+        }
+      }
+    },
+    "Every 6 hours": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Var 6:e timme"
+          }
+        }
+      }
+    },
+    "Every app is signed by Apple, notarized, or from the App Store.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alla appar är signerade av Apple, notariserade eller från App Store."
+          }
+        }
+      }
+    },
+    "Everything is up to date": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allt är uppdaterat"
+          }
+        }
+      }
+    },
+    "Export Diagnostics…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportera diagnostik…"
+          }
+        }
+      }
+    },
+    "Export Report…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportera rapport…"
+          }
+        }
+      }
+    },
+    "Files left behind by apps you removed": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filer som lämnats kvar av appar du tagit bort"
+          }
+        }
+      }
+    },
+    "Filkollen updates": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filkollen-uppdateringar"
+          }
+        }
+      }
+    },
+    "Filter by name or folder": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtrera på namn eller mapp"
+          }
+        }
+      }
+    },
+    "Find out what's out of date": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta reda på vad som är inaktuellt"
+          }
+        }
+      }
+    },
+    "Full Disk Access": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full skivåtkomst"
+          }
+        }
+      }
+    },
+    "General": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allmänt"
+          }
+        }
+      }
+    },
+    "Granted it and nothing happens? macOS sometimes needs a relaunch.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Har du gett åtkomst men inget händer? macOS behöver ibland en omstart av appen."
+          }
+        }
+      }
+    },
+    "History": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historik"
+          }
+        }
+      }
+    },
+    "Homebrew formulae and casks": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Homebrew-formler och casks"
+          }
+        }
+      }
+    },
+    "Homebrew isn't installed": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Homebrew är inte installerat"
+          }
+        }
+      }
+    },
+    "How your Mac is doing right now": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hur din Mac mår just nu"
+          }
+        }
+      }
+    },
+    "IN USE": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ANVÄNDS"
+          }
+        }
+      }
+    },
+    "Identical copies of documents, videos, music and downloads": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identiska kopior av dokument, video, musik och hämtningar"
+          }
+        }
+      }
+    },
+    "Identical copies of the same image": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identiska kopior av samma bild"
+          }
+        }
+      }
+    },
+    "Install ClamAV with Homebrew (brew install clamav) for a second opinion.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installera ClamAV med Homebrew (brew install clamav) för en andra bedömning."
+          }
+        }
+      }
+    },
+    "KEEP": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BEHÅLL"
+          }
+        }
+      }
+    },
+    "Keep running in the menu bar when the window is closed": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortsätt köra i menyraden när fönstret stängs"
+          }
+        }
+      }
+    },
+    "Known threats": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kända hot"
+          }
+        }
+      }
+    },
+    "LOW CONFIDENCE": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OSÄKER"
+          }
+        }
+      }
+    },
+    "Large & Old Files": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stora och gamla filer"
+          }
+        }
+      }
+    },
+    "Last checked": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Senast kontrollerad"
+          }
+        }
+      }
+    },
+    "Last updated": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Senast uppdaterad"
+          }
+        }
+      }
+    },
+    "Let's tidy up your Mac": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dags att städa din Mac"
+          }
+        }
+      }
+    },
+    "Local snapshots on your startup disk": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokala ögonblicksbilder på startskivan"
+          }
+        }
+      }
+    },
+    "Login Items": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inloggningsobjekt"
+          }
+        }
+      }
+    },
+    "MISSING": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SAKNAS"
+          }
+        }
+      }
+    },
+    "Mac App Store": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac App Store"
+          }
+        }
+      }
+    },
+    "Maintenance": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Underhåll"
+          }
+        }
+      }
+    },
+    "Malware Scan": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skanna efter skadlig kod"
+          }
+        }
+      }
+    },
+    "Menu bar": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menyrad"
+          }
+        }
+      }
+    },
+    "Move to Trash": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flytta till papperskorgen"
+          }
+        }
+      }
+    },
+    "Moved to the Trash per month": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flyttat till papperskorgen per månad"
+          }
+        }
+      }
+    },
+    "Moving files to Trash…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flyttar filer till papperskorgen…"
+          }
+        }
+      }
+    },
+    "Needs an administrator to change": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kräver en administratör för att ändras"
+          }
+        }
+      }
+    },
+    "Never opened": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aldrig öppnad"
+          }
+        }
+      }
+    },
+    "Never touch these folders": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rör aldrig de här mapparna"
+          }
+        }
+      }
+    },
+    "No local snapshots right now.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inga lokala ögonblicksbilder just nu."
+          }
+        }
+      }
+    },
+    "No threats found": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inga hot hittades"
+          }
+        }
+      }
+    },
+    "Not scanned yet": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inte genomsökt än"
+          }
+        }
+      }
+    },
+    "Nothing cleaned yet. Cleanups show up here so you can put things back.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inget rensat än. Rensningar visas här så att du kan lägga tillbaka saker."
+          }
+        }
+      }
+    },
+    "Nothing to clean here": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inget att rensa här"
+          }
+        }
+      }
+    },
+    "Notify me about junk, threats and updates": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meddela mig om skräp, hot och uppdateringar"
+          }
+        }
+      }
+    },
+    "Off": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Av"
+          }
+        }
+      }
+    },
+    "Old Installers": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gamla installerare"
+          }
+        }
+      }
+    },
+    "Old files are only listed from 50 MB up.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gamla filer visas bara från 50 MB och uppåt."
+          }
+        }
+      }
+    },
+    "One folder per line. Scans skip these and everything inside them.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En mapp per rad. Genomsökningar hoppar över dem och allt i dem."
+          }
+        }
+      }
+    },
+    "Open App Store": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öppna App Store"
+          }
+        }
+      }
+    },
+    "Open Filkollen": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öppna Filkollen"
+          }
+        }
+      }
+    },
+    "Open Filkollen at login": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öppna Filkollen vid inloggning"
+          }
+        }
+      }
+    },
+    "Open Login Items": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öppna Inloggningsobjekt"
+          }
+        }
+      }
+    },
+    "Open Quarantine Folder": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öppna karantänmappen"
+          }
+        }
+      }
+    },
+    "Open Settings": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öppna inställningar"
+          }
+        }
+      }
+    },
+    "Open System Settings": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öppna Systeminställningar"
+          }
+        }
+      }
+    },
+    "Open Time Machine Settings": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öppna Time Machine-inställningar"
+          }
+        }
+      }
+    },
+    "Open Trash": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öppna papperskorgen"
+          }
+        }
+      }
+    },
+    "Or drop an app here": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eller släpp en app här"
+          }
+        }
+      }
+    },
+    "Permissions": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Behörigheter"
+          }
+        }
+      }
+    },
+    "Protection": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skydd"
+          }
+        }
+      }
+    },
+    "Put Back": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lägg tillbaka"
+          }
+        }
+      }
+    },
+    "Put Back All": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lägg tillbaka alla"
+          }
+        }
+      }
+    },
+    "Put back": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tillbakalagd"
+          }
+        }
+      }
+    },
+    "Quarantine": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Karantän"
+          }
+        }
+      }
+    },
+    "Quarantine All": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sätt alla i karantän"
+          }
+        }
+      }
+    },
+    "Quarantine is empty": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Karantänen är tom"
+          }
+        }
+      }
+    },
+    "Quarantined files are locked so they can't run, and can be restored if it was a false alarm.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filer i karantän är låsta så att de inte kan köras, och kan återställas om det var falsklarm."
+          }
+        }
+      }
+    },
+    "Quick Look": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snabbtitt"
+          }
+        }
+      }
+    },
+    "Ready to clean": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redo att rensa"
+          }
+        }
+      }
+    },
+    "Refresh": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uppdatera"
+          }
+        }
+      }
+    },
+    "Refresh Homebrew's package list first (brew update)": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uppdatera Homebrews paketlista först (brew update)"
+          }
+        }
+      }
+    },
+    "Relaunch Filkollen": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starta om Filkollen"
+          }
+        }
+      }
+    },
+    "Remove": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta bort"
+          }
+        }
+      }
+    },
+    "Restore": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Återställ"
+          }
+        }
+      }
+    },
+    "Scan Again": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök igen"
+          }
+        }
+      }
+    },
+    "Scanning": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Söker"
+          }
+        }
+      }
+    },
+    "Scans will miss most of your Library. Click to turn it back on.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genomsökningar missar det mesta av ditt bibliotek. Klicka för att slå på det igen."
+          }
+        }
+      }
+    },
+    "Schedule": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schema"
+          }
+        }
+      }
+    },
+    "Search apps": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök appar"
+          }
+        }
+      }
+    },
+    "Select All": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markera alla"
+          }
+        }
+      }
+    },
+    "Select None": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avmarkera alla"
+          }
+        }
+      }
+    },
+    "Shortcuts": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genvägar"
+          }
+        }
+      }
+    },
+    "Show": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa"
+          }
+        }
+      }
+    },
+    "Show Filkollen in Finder": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa Filkollen i Finder"
+          }
+        }
+      }
+    },
+    "Show Filkollen in the menu bar": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa Filkollen i menyraden"
+          }
+        }
+      }
+    },
+    "Show Onboarding Again": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa introduktionen igen"
+          }
+        }
+      }
+    },
+    "Show all apps": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa alla appar"
+          }
+        }
+      }
+    },
+    "Show files larger than": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa filer större än"
+          }
+        }
+      }
+    },
+    "Show in Finder": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa i Finder"
+          }
+        }
+      }
+    },
+    "Smart Scan": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smart genomsökning"
+          }
+        }
+      }
+    },
+    "Smart Scan checks for system junk, app leftovers and duplicate photos in one go.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smart genomsökning letar efter systemskräp, apprester och dubbla bilder på en gång."
+          }
+        }
+      }
+    },
+    "Sort": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sortera"
+          }
+        }
+      }
+    },
+    "Start Over": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Börja om"
+          }
+        }
+      }
+    },
+    "Startup": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        }
+      }
+    },
+    "Startup Items": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startobjekt"
+          }
+        }
+      }
+    },
+    "Stop": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stoppa"
+          }
+        }
+      }
+    },
+    "Stop and Move to Trash": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stoppa och flytta till papperskorgen"
+          }
+        }
+      }
+    },
+    "System Junk": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systemskräp"
+          }
+        }
+      }
+    },
+    "System Overview": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systemöversikt"
+          }
+        }
+      }
+    },
+    "The app itself is in a system folder": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Själva appen ligger i en systemmapp"
+          }
+        }
+      }
+    },
+    "The launch agent is unloaded and its file moved to the Trash. You can put it back from the Trash if something stops working.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startagenten stoppas och dess fil flyttas till papperskorgen. Du kan lägga tillbaka den från papperskorgen om något slutar fungera."
+          }
+        }
+      }
+    },
+    "The threat database is more than a week old. Update it before scanning to catch recent malware.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hotdatabasen är mer än en vecka gammal. Uppdatera den innan du söker för att hitta ny skadlig kod."
+          }
+        }
+      }
+    },
+    "They skip the Trash and can't be recovered. Quarantine is the safer choice if you're unsure.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De hoppar över papperskorgen och kan inte återställas. Karantän är säkrare om du är osäker."
+          }
+        }
+      }
+    },
+    "This Mac": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den här datorn"
+          }
+        }
+      }
+    },
+    "Threat database": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hotdatabas"
+          }
+        }
+      }
+    },
+    "Time Machine Snapshots": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time Machine-ögonblicksbilder"
+          }
+        }
+      }
+    },
+    "Trash": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Papperskorg"
+          }
+        }
+      }
+    },
+    "Undo": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ångra"
+          }
+        }
+      }
+    },
+    "Untick All": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avmarkera alla"
+          }
+        }
+      }
+    },
+    "Update All": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uppdatera alla"
+          }
+        }
+      }
+    },
+    "Update Now": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uppdatera nu"
+          }
+        }
+      }
+    },
+    "Update automatically in the background (weekly)": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uppdatera automatiskt i bakgrunden (varje vecka)"
+          }
+        }
+      }
+    },
+    "Updates": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uppdateringar"
+          }
+        }
+      }
+    },
+    "Verify All Files": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifiera alla filer"
+          }
+        }
+      }
+    },
+    "Weekly": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varje vecka"
+          }
+        }
+      }
+    },
+    "Welcome to Filkollen": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Välkommen till Filkollen"
+          }
+        }
+      }
+    },
+    "What these are": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vad det här är"
+          }
+        }
+      }
+    },
+    "When opened at login, Filkollen starts quietly in the menu bar with no window.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "När Filkollen öppnas vid inloggning startar den tyst i menyraden utan fönster."
+          }
+        }
+      }
+    },
+    "Xcode, simulator and package-manager caches": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cacheminnen för Xcode, simulatorer och pakethanterare"
+          }
+        }
+      }
+    },
+    "iOS Backups & Firmware": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS-säkerhetskopior och firmware"
+          }
+        }
+      }
+    },
+    "iPhone and iPad backups and leftover update files": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Säkerhetskopior av iPhone och iPad och överblivna uppdateringsfiler"
+          }
+        }
+      }
+    },
+    "macOS needs you to allow Filkollen in Login Items.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS behöver att du tillåter Filkollen i Inloggningsobjekt."
+          }
+        }
+      }
+    },
+    "macOS software updates": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS-programuppdateringar"
+          }
+        }
+      }
+    },
+    "of junk found": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "skräp hittat"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

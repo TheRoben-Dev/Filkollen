@@ -19,29 +19,29 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
 
     var title: String {
         switch self {
-        case .systemJunk: return "System Junk"
-        case .appLeftovers: return "App Leftovers"
-        case .duplicatePhotos: return "Duplicate Photos"
-        case .duplicateFiles: return "Duplicate Files"
-        case .largeFiles: return "Large & Old Files"
-        case .developerJunk: return "Developer Junk"
-        case .oldInstallers: return "Old Installers"
-        case .iosBackups: return "iOS Backups & Firmware"
-        case .browserCaches: return "Browser & Mail Caches"
+        case .systemJunk: return String(localized: "System Junk")
+        case .appLeftovers: return String(localized: "App Leftovers")
+        case .duplicatePhotos: return String(localized: "Duplicate Photos")
+        case .duplicateFiles: return String(localized: "Duplicate Files")
+        case .largeFiles: return String(localized: "Large & Old Files")
+        case .developerJunk: return String(localized: "Developer Junk")
+        case .oldInstallers: return String(localized: "Old Installers")
+        case .iosBackups: return String(localized: "iOS Backups & Firmware")
+        case .browserCaches: return String(localized: "Browser & Mail Caches")
         }
     }
 
     var subtitle: String {
         switch self {
-        case .systemJunk: return "Caches, logs and temporary files"
-        case .appLeftovers: return "Files left behind by apps you removed"
-        case .duplicatePhotos: return "Identical copies of the same image"
-        case .duplicateFiles: return "Identical copies of documents, videos, music and downloads"
-        case .largeFiles: return "Big files in your home folder you may not need"
-        case .developerJunk: return "Xcode, simulator and package-manager caches"
-        case .oldInstallers: return "Disk images and packages in Downloads you've already used"
-        case .iosBackups: return "iPhone and iPad backups and leftover update files"
-        case .browserCaches: return "Cached web content and opened attachments. Never history, cookies, passwords or mail"
+        case .systemJunk: return String(localized: "Caches, logs and temporary files")
+        case .appLeftovers: return String(localized: "Files left behind by apps you removed")
+        case .duplicatePhotos: return String(localized: "Identical copies of the same image")
+        case .duplicateFiles: return String(localized: "Identical copies of documents, videos, music and downloads")
+        case .largeFiles: return String(localized: "Big files in your home folder you may not need")
+        case .developerJunk: return String(localized: "Xcode, simulator and package-manager caches")
+        case .oldInstallers: return String(localized: "Disk images and packages in Downloads you've already used")
+        case .iosBackups: return String(localized: "iPhone and iPad backups and leftover update files")
+        case .browserCaches: return String(localized: "Cached web content and opened attachments. Never history, cookies, passwords or mail")
         }
     }
 

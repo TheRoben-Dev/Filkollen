@@ -19,6 +19,8 @@ final class AppModel: ObservableObject {
         case startupItems = "Startup Items"
         case snapshots = "Time Machine Snapshots"
 
+        var title: String { String(localized: String.LocalizationValue(rawValue)) }
+
         var symbol: String {
             switch self {
             case .overview: return "gauge.with.dots.needle.50percent"
