@@ -7,7 +7,7 @@ import SwiftUI
 /// System Settings › Accessibility › Display, so toggle it there to check it.
 struct DesignGalleryView: View {
     enum Page: String, CaseIterable, Identifiable {
-        case color = "Colour", type = "Type", space = "Spacing", shape = "Shape & Depth", motion = "Motion", icons = "Icons"
+        case color = "Colour", type = "Type", space = "Spacing", shape = "Shape & Depth", motion = "Motion", icons = "Icons", components = "Components"
         var id: String { rawValue }
     }
 
