@@ -187,6 +187,29 @@ final class DuplicatePhotoScannerTests: XCTestCase {
         XCTAssertTrue(DuplicatePhotoScanner(context: fx.context()).scan(progress: noProgress).isEmpty)
     }
 
+    func testSameHeadAndTailButDifferentMiddleAreNotDuplicates() throws {
+        var a = image(400_000), b = image(400_000)
+        a[200_000] = 1
+        b[200_000] = 2
+        try fx.file("Pictures/a.png", contents: a)
+        try fx.file("Pictures/b.png", contents: b)
+        XCTAssertTrue(DuplicatePhotoScanner(context: fx.context()).scan(progress: noProgress).isEmpty)
+    }
+
+    func testRescanWithCacheGivesTheSameGroups() throws {
+        let photo = image(150_000)
+        try fx.file("Pictures/a.jpg", contents: photo)
+        try fx.file("Downloads/a.jpg", contents: photo)
+        try fx.file("Desktop/other.jpg", contents: image(150_000, seed: 9))
+        var context = fx.context()
+        context.cacheDirectory = fx.root
+        let first = DuplicatePhotoScanner(context: context).scan(progress: noProgress)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: fx.root.appendingPathComponent("photo-hash-cache.plist").path))
+        let second = DuplicatePhotoScanner(context: context).scan(progress: noProgress)
+        XCTAssertEqual(first.map(\.url), second.map(\.url))
+        XCTAssertEqual(first.count, 2)
+    }
+
     func testSameSizeDifferentContentAreNotDuplicates() throws {
         try fx.file("Pictures/a.heic", contents: image(10_000, seed: 1))
         try fx.file("Pictures/b.heic", contents: image(10_000, seed: 2))

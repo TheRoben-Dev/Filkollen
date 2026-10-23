@@ -1,8 +1,7 @@
-import CryptoKit
 import Foundation
 
-/// Finds byte-identical image files. Size → quick head hash → full SHA-256,
-/// so most files are never fully read.
+/// Finds byte-identical image files. Size → head hash → tail hash → full
+/// SHA-256, so most files are never fully read.
 ///
 /// The Photos library package is skipped on purpose: deleting files inside it
 /// corrupts the library. Photos has its own duplicate detection for that.
@@ -44,21 +43,43 @@ struct DuplicatePhotoScanner {
             }
         }
 
-        // 2. Narrow down with a cheap hash of the first 64 KB, then confirm with a full hash.
+        // 2. Same size → same first 64 KB → same last 64 KB → same full SHA-256.
+        //    Most files drop out after reading 64 KB; hashes are cached by inode,
+        //    size and modification time, so a re-scan reads only what changed.
+        let cache = ContentHashCache(url: context.cacheDirectory?.appendingPathComponent("photo-hash-cache.plist"))
+        var seen = Set<String>()
         var items: [JunkItem] = []
-        for (size, urls) in bySize where urls.count > 1 {
+        let candidates = bySize.filter { $0.value.count > 1 }
+        var compared = 0
+        for (size, urls) in candidates {
             if Task.isCancelled { return [] }
-            let byHead = Dictionary(grouping: urls) { Self.hash($0, limit: 65_536) ?? UUID().uuidString }
-            for (_, headGroup) in byHead where headGroup.count > 1 {
-                let byFull = Dictionary(grouping: headGroup) { url -> String in
-                    throttle.report("Comparing \(url.lastPathComponent)")
-                    return Self.hash(url, limit: nil) ?? UUID().uuidString
+            let files = urls.compactMap { url in FileIdentity(url).map { (url, $0) } }
+            seen.formUnion(files.map(\.1.key))
+            compared += files.count
+            throttle.report("Comparing \(compared.formatted()) photos…")
+
+            var groups = [files]
+            let tiers: [ContentHashCache.Kind] = size <= Int64(ContentHashCache.chunk) ? [.head] : [.head, .tail, .full]
+            for tier in tiers {
+                groups = groups.flatMap { group -> [[(URL, FileIdentity)]] in
+                    let hashes = parallelMap(group) { cache.hash(tier, of: $0.0, identity: $0.1) }
+                    var byHash: [String: [(URL, FileIdentity)]] = [:]
+                    for (file, hash) in zip(group, hashes) {
+                        guard let hash else { continue } // unreadable: can't prove it's a duplicate
+                        byHash[hash, default: []].append(file)
+                    }
+                    return byHash.values.filter { $0.count > 1 }
                 }
-                for (digest, group) in byFull where group.count > 1 {
-                    items += makeGroup(group, size: size, digest: digest)
-                }
+                if groups.isEmpty || Task.isCancelled { break }
+            }
+            if Task.isCancelled { return [] }
+            for group in groups {
+                let digest = cache.hash(tiers.last!, of: group[0].0, identity: group[0].1) ?? UUID().uuidString
+                items += makeGroup(group.map(\.0), size: size, digest: digest)
             }
         }
+        cache.save(keeping: seen)
+        Log.scan.info("Duplicates: \(candidates.count) size groups, hash cache \(cache.hits) hits / \(cache.misses) misses")
         return items.sorted { $0.group != $1.group ? $0.group < $1.group : ($0.isKeeper && !$1.isKeeper) }
     }
 
@@ -95,17 +116,4 @@ struct DuplicatePhotoScanner {
         }
     }
 
-    static func hash(_ url: URL, limit: Int?) -> String? {
-        guard let handle = try? FileHandle(forReadingFrom: url) else { return nil }
-        defer { try? handle.close() }
-        var hasher = SHA256()
-        var remaining = limit ?? .max
-        while remaining > 0 {
-            let chunk = min(1 << 20, remaining)
-            guard let data = try? handle.read(upToCount: chunk), !data.isEmpty else { break }
-            hasher.update(data: data)
-            remaining -= data.count
-        }
-        return hasher.finalize().map { String(format: "%02x", $0) }.joined()
-    }
 }

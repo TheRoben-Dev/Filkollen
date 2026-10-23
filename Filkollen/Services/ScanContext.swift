@@ -24,6 +24,8 @@ struct ScanContext: @unchecked Sendable {
     var tempMinAge: TimeInterval = 3 * 24 * 3600
     /// Large & Old Files threshold.
     var largeFileMinBytes: Int64 = 500 * 1_048_576
+    /// Where scanners may keep caches between runs; nil keeps them in memory.
+    var cacheDirectory: URL? = nil
 
     static var live: ScanContext {
         let home = FileManager.default.homeDirectoryForCurrentUser
@@ -39,7 +41,8 @@ struct ScanContext: @unchecked Sendable {
             ],
             isRegisteredApp: { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0) != nil },
             tempMinAge: TimeInterval(max(1, Pref.defaults.integer(forKey: Pref.tempMinAgeDays))) * 24 * 3600,
-            largeFileMinBytes: Int64(max(50, Pref.defaults.integer(forKey: Pref.largeFileMB))) * 1_048_576
+            largeFileMinBytes: Int64(max(50, Pref.defaults.integer(forKey: Pref.largeFileMB))) * 1_048_576,
+            cacheDirectory: ThreatDatabase.supportDirectory
         )
     }
 
