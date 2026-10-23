@@ -521,6 +521,16 @@
         }
       }
     },
+    "Disk Usage": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diskanvändning"
+          }
+        }
+      }
+    },
     "Disk images and packages in Downloads you've already used": {
       "localizations": {
         "sv": {
@@ -597,6 +607,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Töm papperskorgen…"
+          }
+        }
+      }
+    },
+    "Empty, or Filkollen can't read this folder.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tom, eller så kan Filkollen inte läsa mappen."
           }
         }
       }
@@ -737,6 +757,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Historik"
+          }
+        }
+      }
+    },
+    "Home": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hem"
           }
         }
       }
@@ -1117,6 +1147,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "En mapp per rad. Genomsökningar hoppar över dem och allt i dem."
+          }
+        }
+      }
+    },
+    "Open": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öppna"
           }
         }
       }
@@ -1797,6 +1837,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Välkommen till Filkollen"
+          }
+        }
+      }
+    },
+    "What takes up space in your home folder": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vad som tar plats i din hemmapp"
           }
         }
       }

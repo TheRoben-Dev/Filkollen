@@ -53,6 +53,7 @@ struct MainView: View {
         case .system(.overview): SystemOverviewView()
         case .system(.startupItems): StartupItemsView()
         case .system(.snapshots): TimeMachineView()
+        case .system(.diskUsage): DiskUsageView()
         }
     }
 
@@ -67,6 +68,7 @@ struct MainView: View {
         case .system(.overview): return .teal
         case .system(.startupItems): return .orange
         case .system(.snapshots): return .green
+        case .system(.diskUsage): return .blue
         }
     }
 }

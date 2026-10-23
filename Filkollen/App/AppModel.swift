@@ -18,6 +18,7 @@ final class AppModel: ObservableObject {
         case overview = "System Overview"
         case startupItems = "Startup Items"
         case snapshots = "Time Machine Snapshots"
+        case diskUsage = "Disk Usage"
 
         var title: String { String(localized: String.LocalizationValue(rawValue)) }
 
@@ -26,6 +27,7 @@ final class AppModel: ObservableObject {
             case .overview: return "gauge.with.dots.needle.50percent"
             case .startupItems: return "power.circle.fill"
             case .snapshots: return "clock.arrow.circlepath"
+            case .diskUsage: return "square.grid.3x3.square"
             }
         }
     }
