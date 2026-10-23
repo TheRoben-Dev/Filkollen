@@ -1,11 +1,14 @@
 import SwiftUI
 
+/// The hero page. One ring carries the whole story: a quiet outline at idle,
+/// one honest segment per category while scanning, a single settled Fjord ring
+/// with the total once results are in (DIRECTION.md › The signature moment).
 struct SmartScanView: View {
     @EnvironmentObject private var model: AppModel
     @State private var showReview = false
 
     var body: some View {
-        VStack(spacing: 28) {
+        VStack(spacing: DS.Space.xxl) {
             switch model.phase {
             case .idle: idle
             case .scanning: scanning
@@ -14,155 +17,225 @@ struct SmartScanView: View {
             case .done(let summary): done(summary)
             }
         }
-        .padding(40)
+        .padding(DS.Inset.hero)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .foregroundStyle(.white)
-        .animation(.spring(response: 0.5, dampingFraction: 0.85), value: model.phase)
+        .dsAnimation(.smooth, value: model.phase)
         .sheet(isPresented: $showReview) { ReviewSheet().environmentObject(model) }
+    }
+
+    // MARK: The ring
+
+    private var segments: [DSScanSegment] {
+        DSScanSegment.segments(for: JunkCategory.smartScan,
+                                       scanning: model.scanningCategories,
+                                       finished: Set(model.results.keys))
+    }
+
+    private func ring<Center: View>(working: Bool, settled: Bool, @ViewBuilder center: () -> Center) -> some View {
+        DSScanRing(segments: segments, isWorking: working, settled: settled, diameter: 220, lineWidth: 12, center: center)
     }
 
     // MARK: States
 
     private var idle: some View {
-        VStack(spacing: 28) {
-            Spacer()
-            VStack(spacing: 8) {
-                Text("Let's tidy up your Mac")
-                    .font(.system(size: 34, weight: .bold, design: .rounded))
-                Text("Smart Scan checks for system junk, app leftovers and duplicate photos in one go.")
-                    .foregroundStyle(.white.opacity(0.7))
+        VStack(spacing: DS.Space.xxl) {
+            Spacer(minLength: 0)
+            ring(working: false, settled: false) {
+                Image(systemName: DS.Icon.scan)
+                    .font(.system(size: 44, weight: .regular))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(DS.Color.brand)
             }
-            BigScanButton(title: "Scan") { model.startSmartScan() }
-            HStack(spacing: 14) {
+            VStack(spacing: DS.Space.sm) {
+                Text("Let's tidy up your Mac")
+                    .font(DS.Font.heroTitle)
+                    .foregroundStyle(DS.Color.textPrimary)
+                Text("Smart Scan checks for system junk, app leftovers, duplicate photos and browser caches in one go. Nothing is removed until you review it.")
+                    .font(DS.Font.body)
+                    .foregroundStyle(DS.Color.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: DS.Layout.readableWidth)
+            }
+            VStack(spacing: DS.Space.sm) {
+                Button("Smart Scan") { model.startSmartScan() }
+                    .buttonStyle(.ds(.primary, size: .large))
+                    .keyboardShortcut(.defaultAction)
+                Text("⌘R").font(DS.Font.caption).foregroundStyle(DS.Color.textTertiary)
+                    .accessibilityHidden(true)
+            }
+            HStack(spacing: DS.Space.md) {
                 ForEach(JunkCategory.smartScan) { category in
-                    HStack(spacing: 10) {
-                        GradientIcon(category, size: 30)
-                        Text(category.title).font(.callout.weight(.medium))
+                    HStack(spacing: DS.Space.sm) {
+                        DSTile(category, size: .small)
+                        Text(category.title).font(DS.Font.callout).foregroundStyle(DS.Color.textSecondary)
                     }
-                    .glassCard(padding: 10)
                 }
             }
-            Spacer()
+            .accessibilityElement(children: .combine)
+            Spacer(minLength: 0)
         }
     }
 
     private var scanning: some View {
-        VStack(spacing: 26) {
-            Spacer()
-            ZStack {
-                ScanningRing()
-                if let c = model.scanningCategory {
-                    VStack(spacing: 10) {
-                        GradientIcon(c, size: 54)
-                        Text(c.title).font(.headline)
+        VStack(spacing: DS.Space.xxl) {
+            Spacer(minLength: 0)
+            ring(working: true, settled: false) {
+                if let category = model.scanningCategory {
+                    VStack(spacing: DS.Space.sm) {
+                        DSTile(category, size: .large)
+                        Text(category.title).font(DS.Font.headline).foregroundStyle(DS.Color.textPrimary)
                     }
+                    .id(category)
+                    .dsTransition(.dsPop)
                 }
             }
-            Text(model.scanningCategory?.scanningMessage ?? "Scanning…")
-                .font(.title3.weight(.semibold))
-            Text(model.scanStatus)
-                .font(.caption.monospaced())
-                .foregroundStyle(.white.opacity(0.55))
-                .lineLimit(1).truncationMode(.middle)
-                .frame(maxWidth: 520)
+            .dsAnimation(.smooth, value: model.scanningCategory)
+            VStack(spacing: DS.Space.sm) {
+                Text(model.scanningCategory?.scanningMessage ?? String(localized: "Scanning…"))
+                    .font(DS.Font.sectionTitle)
+                    .foregroundStyle(DS.Color.textPrimary)
+                Text(model.scanStatus)
+                    .dsPath(DS.Font.pathBody)
+                    .frame(maxWidth: DS.Layout.readableWidth)
+                    .accessibilityLabel(String(localized: "Now checking \(model.scanStatus)"))
+            }
             Button("Stop") { model.cancelScan() }
-                .buttonStyle(GhostButtonStyle())
-            Spacer()
+                .buttonStyle(.dsSecondary)
+                .keyboardShortcut(.cancelAction)
+            Spacer(minLength: 0)
         }
     }
 
     private var results: some View {
-        VStack(spacing: 24) {
-            VStack(spacing: 6) {
-                Text(model.smartScanTotal.formattedBytes)
-                    .font(.system(size: 56, weight: .heavy, design: .rounded))
-                    .foregroundStyle(Theme.accent)
-                Text("of junk found")
-                    .font(.title3).foregroundStyle(.white.opacity(0.75))
+        VStack(spacing: DS.Space.xxl) {
+            ring(working: false, settled: true) {
+                VStack(spacing: DS.Space.xxs) {
+                    DSByteCount(model.smartScanTotal)
+                        .foregroundStyle(DS.Color.textPrimary)
+                    Text("found").font(DS.Font.callout).foregroundStyle(DS.Color.textSecondary)
+                }
+                .padding(.horizontal, DS.Space.xl)
+            }
+
+            VStack(spacing: DS.Space.xs) {
+                Text(model.smartScanSelected > 0
+                     ? String(localized: "\(model.smartScanSelected.formattedBytes) selected to clean")
+                     : String(localized: "Nothing selected yet"))
+                    .font(DS.Font.sectionTitle)
+                    .foregroundStyle(DS.Color.textPrimary)
                 if model.smartScanSelected > 0 {
                     Text(reclaimNote(selected: model.smartScanSelected, reclaimable: model.smartScanReclaimable))
-                        .font(.callout).foregroundStyle(.white.opacity(0.55))
+                        .font(DS.Font.callout).foregroundStyle(DS.Color.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: DS.Layout.readableWidth)
                 }
             }
-            .padding(.top, 20)
 
-            HStack(spacing: 16) {
-                ForEach(JunkCategory.smartScan) { category in
-                    ResultCard(category: category, result: model.result(for: category)) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: DS.Space.lg), count: JunkCategory.smartScan.count),
+                      spacing: DS.Space.lg) {
+                ForEach(Array(JunkCategory.smartScan.enumerated()), id: \.element) { index, category in
+                    let result = model.result(for: category)
+                    DSCategoryCard(category: category, size: result?.totalSize ?? 0, count: result?.items.count ?? 0,
+                                   status: .init(result: result, isScanning: model.scanningCategories.contains(category))) {
                         model.section = .category(category)
                     }
+                    .modifier(RiseIn(index: index))
                 }
             }
+            .frame(maxWidth: DS.Layout.contentMaxWidth)
 
-            Spacer()
+            Spacer(minLength: 0)
 
-            HStack(spacing: 14) {
+            HStack(spacing: DS.Space.md) {
                 Button("Start Over") { model.reset() }
-                    .buttonStyle(GhostButtonStyle())
-                Button {
-                    showReview = true
-                } label: {
-                    Text("Review & Clean \(model.smartScanSelected.formattedBytes)")
-                }
-                .buttonStyle(PillButtonStyle(large: true))
-                .disabled(model.smartScanSelected == 0)
+                    .buttonStyle(.dsSecondary)
+                Button(String(localized: "Review \(model.smartScanSelected.formattedBytes)…")) { showReview = true }
+                    .buttonStyle(.ds(.primary, size: .large))
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(model.smartScanSelected == 0)
             }
         }
     }
 
     private var cleaning: some View {
-        VStack(spacing: 22) {
-            Spacer()
-            ScanningRing(gradient: AngularGradient(colors: [.teal, .green, .teal], center: .center))
-            Text("Moving files to Trash…").font(.title3.weight(.semibold))
-            Spacer()
+        VStack(spacing: DS.Space.xxl) {
+            Spacer(minLength: 0)
+            DSScanRing(segments: [], isWorking: true, settled: false, diameter: 220, lineWidth: 12) {
+                Image(systemName: DS.Icon.trash)
+                    .font(.system(size: 40, weight: .regular))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(DS.Color.textSecondary)
+            }
+            .accessibilityLabel(String(localized: "Moving files to the Trash"))
+            Text("Moving files to the Trash…")
+                .font(DS.Font.sectionTitle)
+                .foregroundStyle(DS.Color.textPrimary)
+            Spacer(minLength: 0)
         }
     }
 
     private func done(_ summary: CleanupSummary) -> some View {
-        VStack(spacing: 20) {
-            Spacer()
-            GradientIcon(
-                symbol: summary.failures.isEmpty ? "checkmark" : "exclamationmark",
-                gradient: summary.failures.isEmpty ? Theme.safe : Theme.gradient(.orange, .pink), size: 110
-            )
-            Text(summary.failures.isEmpty ? "Nice and clean!" : (summary.trashedCount > 0 ? "Mostly clean" : "Nothing was moved"))
-                .font(.system(size: 34, weight: .bold, design: .rounded))
-            Text(summary.reclaimableBytes < summary.trashedBytes
-                 ? "\(summary.trashedBytes.formattedBytes) moved to the Trash. About \(summary.reclaimableBytes.formattedBytes) comes back once you empty it; the rest was shared with other files."
-                 : "\(summary.trashedBytes.formattedBytes) moved to the Trash. The space comes back once you empty it.")
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.white.opacity(0.75))
-            if !summary.failures.isEmpty {
+        let clean = summary.failures.isEmpty
+        return VStack(spacing: DS.Space.xl) {
+            Spacer(minLength: 0)
+            DSEmptyState(symbol: clean ? "checkmark.circle.fill" : "exclamationmark.triangle.fill",
+                         tint: clean ? DS.Color.success : DS.Color.warning,
+                         title: clean ? String(localized: "Nice and clean!")
+                             : (summary.trashedCount > 0 ? String(localized: "Mostly clean") : String(localized: "Nothing was moved")),
+                         message: summary.reclaimableBytes < summary.trashedBytes
+                             ? String(localized: "\(summary.trashedBytes.formattedBytes) moved to the Trash. About \(summary.reclaimableBytes.formattedBytes) comes back once you empty it; the rest was shared with other files.")
+                             : String(localized: "\(summary.trashedBytes.formattedBytes) moved to the Trash. The space comes back once you empty it."))
+                .fixedSize(horizontal: false, vertical: true)
+                .dsTransition(.dsPop)
+            if !clean {
                 FailureList(failures: summary.failures)
-                    .frame(maxWidth: 560)
+                    .frame(maxWidth: DS.Layout.readableWidth)
             }
             if let message = model.putBackMessage {
-                Text(message).font(.callout).foregroundStyle(.white.opacity(0.8))
+                DSBanner(.info, title: message)
+                    .frame(maxWidth: DS.Layout.readableWidth)
             }
-            HStack {
+            HStack(spacing: DS.Space.md) {
                 if let id = summary.recordID, model.putBackMessage == nil {
                     Button("Undo") { model.putBack(id) }
-                        .buttonStyle(GhostButtonStyle())
+                        .buttonStyle(.dsSecondary)
                         .help("Puts everything from this cleanup back where it was")
                 }
                 Button("Open Trash") {
                     NSWorkspace.shared.open(FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".Trash"))
                 }
-                .buttonStyle(GhostButtonStyle())
+                .buttonStyle(.dsSecondary)
                 Button("Done") { model.reset() }
-                    .buttonStyle(PillButtonStyle())
+                    .buttonStyle(.dsPrimary)
+                    .keyboardShortcut(.defaultAction)
             }
-            Spacer()
+            Spacer(minLength: 0)
         }
+    }
+}
+
+/// Tiles rise into place one after another, 40 ms apart, when results arrive.
+private struct RiseIn: ViewModifier {
+    let index: Int
+    @State private var shown = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(shown ? 1 : 0)
+            .offset(y: shown || reduceMotion ? 0 : DS.Space.sm)
+            .onAppear {
+                let delay = Double(min(index, DS.Motion.staggerLimit)) * DS.Motion.stagger + DS.Duration.base
+                withAnimation(DS.Motion.smooth.animation(reduceMotion: reduceMotion).delay(delay)) { shown = true }
+            }
     }
 }
 
 /// "You'll get about X back once you empty the Trash", honest about clones.
 func reclaimNote(selected: Int64, reclaimable: Int64) -> String {
     reclaimable < selected
-        ? "About \(reclaimable.formattedBytes) of that comes back once you empty the Trash; the rest is shared with other files (APFS clones or hard links)."
-        : "The space comes back once you empty the Trash."
+        ? String(localized: "About \(reclaimable.formattedBytes) of that comes back once you empty the Trash; the rest is shared with other files (APFS clones or hard links).")
+        : String(localized: "The space comes back once you empty the Trash.")
 }
 
 /// Items a cleanup couldn't move, with the reason for each.
@@ -171,16 +244,21 @@ struct FailureList: View {
     @State private var expanded = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: DS.Space.sm) {
             Button {
-                withAnimation(.easeInOut(duration: 0.2)) { expanded.toggle() }
+                withMotion(.smooth) { expanded.toggle() }
             } label: {
-                HStack {
-                    Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
-                    Text("\(failures.count) item\(failures.count == 1 ? "" : "s") couldn't be moved")
-                        .font(.callout.weight(.semibold))
+                HStack(spacing: DS.Space.sm) {
+                    Image(systemName: DS.Icon.warning).foregroundStyle(DS.Color.warning)
+                    Text(failures.count == 1 ? String(localized: "1 item couldn't be moved")
+                                             : String(localized: "\(failures.count) items couldn't be moved"))
+                        .font(DS.Font.bodyEmphasized)
+                        .foregroundStyle(DS.Color.textPrimary)
                     Spacer()
-                    Image(systemName: "chevron.right").rotationEffect(.degrees(expanded ? 90 : 0))
+                    Image(systemName: "chevron.right")
+                        .font(DS.Font.captionEmphasized)
+                        .foregroundStyle(DS.Color.textSecondary)
+                        .rotationEffect(.degrees(expanded ? 90 : 0))
                 }
                 .contentShape(Rectangle())
             }
@@ -189,52 +267,21 @@ struct FailureList: View {
 
             if expanded {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 6) {
+                    LazyVStack(alignment: .leading, spacing: DS.Space.sm) {
                         ForEach(failures, id: \.self) { failure in
-                            HStack(alignment: .firstTextBaseline) {
-                                Text(failure.url.abbreviatedPath)
-                                    .font(.caption.monospaced()).lineLimit(1).truncationMode(.middle)
+                            HStack(alignment: .firstTextBaseline, spacing: DS.Space.md) {
+                                Text(failure.url.abbreviatedPath).dsPath()
                                 Spacer()
-                                Text(failure.reason).font(.caption).foregroundStyle(.orange)
+                                Text(failure.reason).font(DS.Font.caption).foregroundStyle(DS.Color.warning)
                             }
+                            .accessibilityElement(children: .combine)
                         }
                     }
                 }
                 .frame(maxHeight: 160)
+                .dsTransition(.dsRise)
             }
         }
-        .glassCard(padding: 12)
-    }
-}
-
-private struct ResultCard: View {
-    let category: JunkCategory
-    let result: CategoryResult?
-    let open: () -> Void
-
-    var body: some View {
-        Button(action: open) {
-            VStack(alignment: .leading, spacing: 12) {
-                GradientIcon(category, size: 46)
-                Text(category.title).font(.headline)
-                Text(category.subtitle)
-                    .font(.caption).foregroundStyle(.white.opacity(0.6))
-                    .fixedSize(horizontal: false, vertical: true)
-                Spacer(minLength: 0)
-                HStack {
-                    Text((result?.totalSize ?? 0).formattedBytes)
-                        .font(.title2.weight(.bold).monospacedDigit())
-                    Spacer()
-                    Text("Details")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.7))
-                    Image(systemName: "chevron.right").font(.caption)
-                }
-            }
-            .frame(maxWidth: .infinity, minHeight: 170, alignment: .leading)
-            .glassCard()
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
+        .dsCard()
     }
 }

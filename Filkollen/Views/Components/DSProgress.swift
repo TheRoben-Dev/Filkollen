@@ -55,12 +55,7 @@ struct DSCount: View, Animatable {
 /// turns true the segments close into one brand-coloured ring that settles
 /// with a single gentle spring and a haptic tick.
 struct DSScanRing<Center: View>: View {
-    struct Segment: Identifiable, Equatable {
-        let id: String
-        var tint: Color
-        /// 0 = not done, 1 = done. Values in between are allowed if a scanner reports them.
-        var progress: Double
-    }
+    typealias Segment = DSScanSegment
 
     var segments: [Segment]
     var isWorking: Bool
@@ -114,11 +109,17 @@ struct DSScanRing<Center: View>: View {
     }
 }
 
-extension DSScanRing {
+/// One category's share of the scan ring.
+struct DSScanSegment: Identifiable, Equatable {
+    let id: String
+    var tint: Color
+    /// 0 = not done, 1 = done. Values in between are allowed if a scanner reports them.
+    var progress: Double
+
     /// Ring segments for categories, filled when the category has a result and isn't still scanning.
-    static func segments(for categories: [JunkCategory], scanning: Set<JunkCategory>, finished: Set<JunkCategory>) -> [Segment] {
+    static func segments(for categories: [JunkCategory], scanning: Set<JunkCategory>, finished: Set<JunkCategory>) -> [DSScanSegment] {
         categories.map { category in
-            Segment(id: category.rawValue, tint: category.dsTint,
+            DSScanSegment(id: category.rawValue, tint: category.dsTint,
                     progress: finished.contains(category) && !scanning.contains(category) ? 1 : 0)
         }
     }

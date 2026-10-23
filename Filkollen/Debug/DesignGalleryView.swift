@@ -376,7 +376,7 @@ private struct GalleryComponents: View {
         GallerySection(title: "Scan ring and counting") {
             HStack(alignment: .center, spacing: DS.Space.xxl) {
                 DSScanRing(
-                    segments: DSScanRing<EmptyView>.segments(for: JunkCategory.smartScan, scanning: scanning ? Set(JunkCategory.smartScan).subtracting(done) : [], finished: done),
+                    segments: DSScanSegment.segments(for: JunkCategory.smartScan, scanning: scanning ? Set(JunkCategory.smartScan).subtracting(done) : [], finished: done),
                     isWorking: scanning, settled: settled, diameter: 180, lineWidth: 12
                 ) { EmptyView() }
                 VStack(alignment: .leading, spacing: DS.Space.md) {
