@@ -250,7 +250,7 @@ struct UninstallerView: View {
         let items = selected
         working = true
         Task {
-            summary = await model.uninstall(items)
+            summary = await model.uninstall(items, appName: chosen?.name ?? "an app")
             working = false
         }
     }

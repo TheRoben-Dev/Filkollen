@@ -137,7 +137,15 @@ struct SmartScanView: View {
                 FailureList(failures: summary.failures)
                     .frame(maxWidth: 560)
             }
+            if let message = model.putBackMessage {
+                Text(message).font(.callout).foregroundStyle(.white.opacity(0.8))
+            }
             HStack {
+                if let id = summary.recordID, model.putBackMessage == nil {
+                    Button("Undo") { model.putBack(id) }
+                        .buttonStyle(GhostButtonStyle())
+                        .help("Puts everything from this cleanup back where it was")
+                }
                 Button("Open Trash") {
                     NSWorkspace.shared.open(FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".Trash"))
                 }

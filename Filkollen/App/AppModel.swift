@@ -8,6 +8,7 @@ final class AppModel: ObservableObject {
         case smartScan
         case category(JunkCategory)
         case uninstaller
+        case history
         case protection
         case updates
         case system(SystemPage)
@@ -37,6 +38,9 @@ final class AppModel: ObservableObject {
 
     @Published var section: Section = .smartScan
     @Published var phase: Phase = .idle
+    let history = CleanupHistory.live
+    /// Result of the last Put Back, shown on the done screen and in History.
+    @Published var putBackMessage: String?
     @Published private(set) var hasFullDiskAccess = FullDiskAccess.isGranted
     @Published var onboardingDismissed = UserDefaults.standard.bool(forKey: "onboardingDismissed")
 
@@ -264,13 +268,17 @@ final class AppModel: ObservableObject {
                 r.items.removeAll { outcome.trashed.contains($0.url) }
                 results[category] = r
             }
-            phase = .done(CleanupSummary(outcome))
+            var summary = CleanupSummary(outcome)
+            let source = categories.count == 1 ? categories[0].title : "Smart Scan"
+            summary.recordID = history.record(outcome, items: items, source: source)?.id
+            putBackMessage = nil
+            phase = .done(summary)
         }
     }
 
     /// Moves an app's remnants to the Trash (App Uninstaller). Same Cleaner and
     /// checks as any cleanup; anything trashed also leaves the scan results.
-    func uninstall(_ items: [JunkItem]) async -> CleanupSummary {
+    func uninstall(_ items: [JunkItem], appName: String = "an app") async -> CleanupSummary {
         let screened = Self.screened(items, category: .appLeftovers)
         let outcome = await Task.detached(priority: .userInitiated) {
             Cleaner.moveToTrash(screened)
@@ -281,6 +289,7 @@ final class AppModel: ObservableObject {
             results[category] = r
         }
         var summary = CleanupSummary(outcome)
+        summary.recordID = history.record(outcome, items: screened, source: "Uninstalled \(appName)")?.id
         let refused = items.count - screened.count
         if refused > 0 {
             Log.cleaner.notice("Uninstaller: \(refused) items refused by SafetyGuard before cleaning")
@@ -288,6 +297,17 @@ final class AppModel: ObservableObject {
         summary.failures += items.filter { item in !screened.contains { $0.url == item.url } }
             .map { Cleaner.Failure(url: $0.url, reason: "Filkollen doesn't remove items in this location.") }
         return summary
+    }
+
+    /// Moves a cleanup's items back from the Trash. `only` limits it to some originals.
+    func putBack(_ recordID: UUID, only: Set<String>? = nil) {
+        let history = history
+        Task {
+            let failures = await Task.detached(priority: .userInitiated) { history.putBack(recordID, only: only) }.value
+            putBackMessage = failures.isEmpty
+                ? "Put back."
+                : "\(failures.count) item(s) couldn't go back: " + Set(failures.values.compactMap(\.errorDescription)).sorted().joined(separator: " ")
+        }
     }
 
     func reset() {
@@ -298,6 +318,8 @@ final class AppModel: ObservableObject {
 
 /// What the done screen shows after a cleanup.
 struct CleanupSummary: Equatable {
+    /// The history entry for Undo / Put Back; nil if nothing could be recorded.
+    var recordID: UUID?
     var trashedCount: Int
     var trashedBytes: Int64
     var reclaimableBytes: Int64
