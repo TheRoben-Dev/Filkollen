@@ -21,6 +21,8 @@ extension DS {
         static let headline = SwiftUI.Font.headline
         static let body = SwiftUI.Font.body
         static let bodyEmphasized = SwiftUI.Font.body.weight(.medium)
+        /// Large primary buttons (Smart Scan, Review…). 15 pt semibold.
+        static let buttonLarge = SwiftUI.Font.title3.weight(.semibold)
         static let callout = SwiftUI.Font.callout
         static let caption = SwiftUI.Font.caption
         static let captionEmphasized = SwiftUI.Font.caption.weight(.semibold)

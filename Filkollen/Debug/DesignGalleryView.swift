@@ -46,6 +46,7 @@ struct DesignGalleryView: View {
             case .shape: GalleryShape()
             case .motion: GalleryMotion()
             case .icons: GalleryIcons()
+            case .components: GalleryComponents()
             }
         }
         .padding(DS.Inset.page)
@@ -324,6 +325,126 @@ private struct GalleryMotion: View {
             }
             .frame(height: 60)
             .dsAnimation(.smooth, value: flipped)
+        }
+    }
+}
+
+// MARK: - Components
+
+private struct GalleryComponents: View {
+    @State private var scanning = false
+    @State private var done: Set<JunkCategory> = []
+    @State private var total: Int64 = 0
+    @State private var chipA = true
+    @State private var chipB = false
+    @State private var selected = true
+
+    private let home = FileManager.default.homeDirectoryForCurrentUser
+
+    private var settled: Bool { !scanning && done.count == JunkCategory.smartScan.count }
+
+    var body: some View {
+        GallerySection(title: "Buttons: normal, disabled, loading") {
+            ForEach([DSButtonStyle.Kind.primary, .secondary, .destructive, .plain], id: \.self) { kind in
+                HStack(spacing: DS.Space.md) {
+                    Button(String(describing: kind).capitalized) {}.buttonStyle(.ds(kind))
+                    Button("Disabled") {}.buttonStyle(.ds(kind)).disabled(true)
+                    Button("Working") {}.buttonStyle(.ds(kind, loading: true))
+                }
+            }
+            HStack(spacing: DS.Space.md) {
+                Button("Review 6,2 GB…") {}.buttonStyle(.ds(.primary, size: .large))
+                DSIconButton("Quick Look", symbol: DS.Icon.quickLook) {}
+                DSIconButton("Show in Finder", symbol: DS.Icon.revealInFinder) {}
+                DSIconButton("Disabled", symbol: DS.Icon.trash) {}.disabled(true)
+            }
+        }
+        GallerySection(title: "Badges") {
+            HStack(spacing: DS.Space.sm) {
+                DSBadge(.keep); DSBadge(.lowConfidence); DSBadge(.inUse("Spotify")); DSBadge(.quarantined)
+            }
+            HStack(spacing: DS.Space.sm) {
+                DSBadge(.unsigned); DSBadge(.missing); DSBadge(.notarized)
+            }
+        }
+        GallerySection(title: "Chips") {
+            HStack(spacing: DS.Space.sm) {
+                DSChip(title: "Selected", symbol: "checkmark.circle", count: 412, isOn: $chipA)
+                DSChip(title: "Needs a look", symbol: "eye", count: 3, isOn: $chipB)
+            }
+        }
+        GallerySection(title: "Scan ring and counting") {
+            HStack(alignment: .center, spacing: DS.Space.xxl) {
+                DSScanRing(
+                    segments: DSScanRing<EmptyView>.segments(for: JunkCategory.smartScan, scanning: scanning ? Set(JunkCategory.smartScan).subtracting(done) : [], finished: done),
+                    isWorking: scanning, settled: settled, diameter: 180, lineWidth: 12
+                ) { EmptyView() }
+                VStack(alignment: .leading, spacing: DS.Space.md) {
+                    DSByteCount(total).dsAnimation(.gentle, value: total)
+                    Text("you can safely reclaim").font(DS.Font.callout).foregroundStyle(DS.Color.textSecondary)
+                    HStack {
+                        Button("Scan") { runDemo() }.buttonStyle(.dsPrimary).disabled(scanning)
+                        Button("Reset") { done = []; total = 0 }.buttonStyle(.dsSecondary)
+                    }
+                }
+            }
+            DSLinearProgress(value: 0.62)
+            DSLinearProgress(value: nil)
+        }
+        GallerySection(title: "Category cards") {
+            HStack(spacing: DS.Space.md) {
+                DSCategoryCard(category: .systemJunk, size: 4_000_000_000, count: 6, status: .ready) {}
+                DSCategoryCard(category: .appLeftovers, size: 1_290_000_000, count: 4, status: .needsLook(1)) {}
+                DSCategoryCard(category: .duplicatePhotos, size: 0, count: 0, status: .scanning) {}
+            }
+        }
+        GallerySection(title: "File rows and placeholders") {
+            VStack(spacing: DS.Space.none) {
+                DSFileRow(item: fixture("Library/Caches/com.spotify.client", inUse: "Spotify"), isSelected: .constant(false), quickLook: { _ in })
+                DSFileRow(item: fixture("Pictures/Iceland 2024/IMG_4312.HEIC", keeper: true), isSelected: .constant(false), quickLook: { _ in })
+                DSFileRow(item: fixture("Library/Application Support/Spotify", low: true), isSelected: $selected, quickLook: { _ in })
+                DSPlaceholderRow()
+                DSPlaceholderRow()
+            }
+            .dsElevation()
+        }
+        GallerySection(title: "Banners and empty state") {
+            DSBanner(.warning, title: "The threat database is 9 days old", message: "Update it before scanning to catch recent malware.")
+            DSBanner(kind: .error, title: "2 items couldn't be moved", message: "Microsoft Teams is running.") {
+                Button("Show") {}.buttonStyle(.dsPlain)
+            }
+            DSEmptyState(symbol: "tray", badge: "checkmark.circle.fill", tint: DS.Color.success,
+                         title: "Nothing to clean here", message: "Filkollen found no app leftovers. Nice and tidy.") {
+                Button("Scan Again") {}.buttonStyle(.dsSecondary)
+            }
+            .frame(height: 260)
+            .dsElevation()
+        }
+        GallerySection(title: "Toast") {
+            DSToastView(toast: DSToastMessage(text: "Moved 2,3 GB to the Trash", actionTitle: "Undo", action: {}), dismiss: {})
+        }
+    }
+
+    private func fixture(_ path: String, keeper: Bool = false, low: Bool = false, inUse: String? = nil) -> JunkItem {
+        var item = JunkItem(url: home.appendingPathComponent(path), size: 1_840_000_000, category: .systemJunk, group: "g")
+        item.isKeeper = keeper
+        item.confidence = low ? .low : nil
+        item.inUseBy = inUse
+        return item
+    }
+
+    private func runDemo() {
+        done = []
+        total = 0
+        scanning = true
+        for (i, category) in JunkCategory.smartScan.enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7 * Double(i + 1)) {
+                done.insert(category)
+                if done.count == JunkCategory.smartScan.count {
+                    scanning = false
+                    total = 6_412_000_000
+                }
+            }
         }
     }
 }
