@@ -34,7 +34,7 @@ final class AppModel: ObservableObject {
 
     @Published var section: Section = .smartScan
     @Published var phase: Phase = .idle
-    @Published var hasFullDiskAccess = FullDiskAccess.isGranted
+    @Published private(set) var hasFullDiskAccess = FullDiskAccess.isGranted
     @Published var onboardingDismissed = UserDefaults.standard.bool(forKey: "onboardingDismissed")
 
     @Published private(set) var results: [JunkCategory: CategoryResult] = [:]
@@ -44,12 +44,26 @@ final class AppModel: ObservableObject {
     private var scanTask: Task<Void, Never>?
 
     var isScanning: Bool { phase == .scanning }
-    var showOnboarding: Bool { !hasFullDiskAccess && !onboardingDismissed }
+    var showOnboarding: Bool { !hasFullDiskAccess && !onboardingDismissed && !fullDiskAccessRevoked }
+
+    init() {
+        refreshFullDiskAccess()
+    }
 
     // MARK: Full Disk Access
 
+    /// Access was granted at some point and has since been turned off in System Settings.
+    @Published private(set) var fullDiskAccessRevoked = false
+
     func refreshFullDiskAccess() {
-        hasFullDiskAccess = FullDiskAccess.isGranted
+        let granted = FullDiskAccess.isGranted
+        let hadAccess = UserDefaults.standard.bool(forKey: "hadFullDiskAccess")
+        if granted != hasFullDiskAccess || (hadAccess && !granted) != fullDiskAccessRevoked {
+            Log.app.notice("Full Disk Access \(granted ? "granted" : (hadAccess ? "revoked" : "not granted"), privacy: .public)")
+        }
+        hasFullDiskAccess = granted
+        fullDiskAccessRevoked = hadAccess && !granted
+        if granted { UserDefaults.standard.set(true, forKey: "hadFullDiskAccess") }
     }
 
     func skipOnboarding() {

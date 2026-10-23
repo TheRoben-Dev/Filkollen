@@ -133,9 +133,16 @@ struct SidebarView: View {
                 Button {
                     FullDiskAccess.openSettings()
                 } label: {
-                    Label("Full Disk Access is off", systemImage: "exclamationmark.lock.fill")
-                        .font(.caption.weight(.semibold))
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Label(model.fullDiskAccessRevoked ? "Full Disk Access was turned off" : "Full Disk Access is off",
+                              systemImage: "exclamationmark.lock.fill")
+                            .font(.caption.weight(.semibold))
+                        if model.fullDiskAccessRevoked {
+                            Text("Scans will miss most of your Library. Click to turn it back on.")
+                                .font(.caption2).foregroundStyle(.secondary)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.orange)
