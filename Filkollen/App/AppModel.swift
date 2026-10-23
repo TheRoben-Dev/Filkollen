@@ -180,6 +180,7 @@ final class AppModel: ObservableObject {
             case .largeFiles: found = LargeFileScanner(context: context).scan(progress: progress)
             case .developerJunk: found = DeveloperScanner(context: context).scan(progress: progress)
             case .oldInstallers: found = InstallerScanner(context: context).scan(progress: progress)
+            case .iosBackups: found = IOSBackupScanner(context: context).scan(progress: progress)
             }
             if context.isCancelled { return [] }
             return screened(found, category: category)

@@ -48,6 +48,14 @@ struct SafetyGuard: Sendable {
         "application support/knowledge",
     ]
 
+    /// Narrow exceptions inside otherwise protected folders: exactly one level
+    /// below `parent` is allowed (whole items only, never their insides).
+    /// Each one is listed in docs/SAFETY.md and tested.
+    private static let exactChildExceptions: [String] = [
+        // Whole iPhone/iPad backups (one folder per device), for the iOS Backups module.
+        "library/application support/mobilesync/backup",
+    ]
+
     /// Folders directly under home that hold credentials.
     private static let protectedHomeFolders: [String] = [".trash", ".ssh", ".gnupg"]
 
@@ -96,6 +104,10 @@ struct SafetyGuard: Sendable {
         let parts = relative.split(separator: "/")
         // Direct children of ~/Library are system-defined folders.
         if parts.count == 2, parts[0] == "library" { return "Protected folder" }
+        for parent in Self.exactChildExceptions where relative.hasPrefix(parent + "/") {
+            let rest = relative.dropFirst(parent.count + 1)
+            return rest.contains("/") ? "Inside a protected item" : nil
+        }
         for folder in Self.protectedHomeFolders where relative == folder || relative.hasPrefix(folder + "/") {
             return "Protected folder"
         }

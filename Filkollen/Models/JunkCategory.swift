@@ -7,6 +7,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
     case largeFiles
     case developerJunk
     case oldInstallers
+    case iosBackups
 
     var id: String { rawValue }
 
@@ -22,6 +23,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .largeFiles: return "Large & Old Files"
         case .developerJunk: return "Developer Junk"
         case .oldInstallers: return "Old Installers"
+        case .iosBackups: return "iOS Backups & Firmware"
         }
     }
 
@@ -33,6 +35,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .largeFiles: return "Big files in your home folder you may not need"
         case .developerJunk: return "Xcode, simulator and package-manager caches"
         case .oldInstallers: return "Disk images and packages in Downloads you've already used"
+        case .iosBackups: return "iPhone and iPad backups and leftover update files"
         }
     }
 
@@ -44,6 +47,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .largeFiles: return "archivebox.fill"
         case .developerJunk: return "hammer.circle.fill"
         case .oldInstallers: return "shippingbox.and.arrow.backward.fill"
+        case .iosBackups: return "iphone.circle.fill"
         }
     }
 
@@ -55,6 +59,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .largeFiles: return "Looking for large files…"
         case .developerJunk: return "Looking for build caches and downloads…"
         case .oldInstallers: return "Checking Downloads for installers…"
+        case .iosBackups: return "Looking for device backups…"
         }
     }
 
@@ -66,6 +71,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .largeFiles: return Theme.gradient(.yellow, .orange)
         case .developerJunk: return Theme.gradient(.blue, .cyan)
         case .oldInstallers: return Theme.gradient(.mint, .teal)
+        case .iosBackups: return Theme.gradient(.gray, .blue)
         }
     }
 
@@ -77,6 +83,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .largeFiles: return .orange
         case .developerJunk: return .cyan
         case .oldInstallers: return .mint
+        case .iosBackups: return .blue
         }
     }
 }
