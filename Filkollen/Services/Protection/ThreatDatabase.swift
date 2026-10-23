@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 /// Offline SHA-256 blocklist built from abuse.ch MalwareBazaar's public exports.
@@ -55,7 +56,67 @@ final class ThreatDatabase: @unchecked Sendable {
     private let lock = NSLock()
     private var digests: [Digest] = []
 
-    var storeURL: URL { Self.supportDirectory.appendingPathComponent("malwarebazaar-sha256.bin") }
+    let storeURL: URL
+    /// Count, SHA-256 and build date of `storeURL`, written with it.
+    var sidecarURL: URL { storeURL.deletingPathExtension().appendingPathExtension("json") }
+
+    init(storeURL: URL = ThreatDatabase.supportDirectory.appendingPathComponent("malwarebazaar-sha256.bin")) {
+        self.storeURL = storeURL
+    }
+
+    struct Sidecar: Codable, Equatable {
+        var count: Int
+        var sha256: String
+        var built: Date
+    }
+
+    enum IntegrityError: LocalizedError, Equatable {
+        case truncated, unsorted, empty, checksumMismatch
+
+        var errorDescription: String? {
+            switch self {
+            case .truncated, .unsorted, .empty, .checksumMismatch:
+                return "The local threat database is damaged. Update it to download a fresh copy."
+            }
+        }
+    }
+
+    /// The table must be whole 32-byte digests, strictly ascending (binary search
+    /// depends on it), and match the checksum written alongside it.
+    static func validate(_ data: Data, sidecar: Sidecar?) -> IntegrityError? {
+        guard !data.isEmpty else { return .empty }
+        guard data.count % MemoryLayout<Digest>.stride == 0 else { return .truncated }
+        let sorted = data.withUnsafeBytes { raw -> Bool in
+            let table = raw.bindMemory(to: Digest.self)
+            for i in table.indices.dropFirst() where !(table[i - 1] < table[i]) { return false }
+            return true
+        }
+        guard sorted else { return .unsorted }
+        if let sidecar {
+            guard sidecar.count == data.count / MemoryLayout<Digest>.stride,
+                  sidecar.sha256 == Self.hex(SHA256.hash(data: data)) else { return .checksumMismatch }
+        }
+        return nil
+    }
+
+    private static func hex(_ digest: SHA256.Digest) -> String { digest.map { String(format: "%02x", $0) }.joined() }
+
+    private func readSidecar() -> Sidecar? {
+        guard let data = try? Data(contentsOf: sidecarURL) else { return nil }
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try? decoder.decode(Sidecar.self, from: data)
+    }
+
+    /// Writes a sorted table and its sidecar.
+    func store(_ sorted: [Digest], now: Date = Date()) throws {
+        let data = sorted.withUnsafeBufferPointer { Data(buffer: $0) }
+        try data.write(to: storeURL, options: .atomic)
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let sidecar = Sidecar(count: sorted.count, sha256: Self.hex(SHA256.hash(data: data)), built: now)
+        try encoder.encode(sidecar).write(to: sidecarURL, options: .atomic)
+    }
 
     static var supportDirectory: URL {
         let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -80,10 +141,16 @@ final class ThreatDatabase: @unchecked Sendable {
 
     // MARK: Lookup
 
+    /// Loads and checks the table. Throws `IntegrityError` if it's damaged; a
+    /// missing sidecar (databases built before it existed) only skips the checksum.
     func load() throws {
         lock.lock(); defer { lock.unlock() }
         guard digests.isEmpty else { return }
         let data = try Data(contentsOf: storeURL, options: .alwaysMapped)
+        if let problem = Self.validate(data, sidecar: readSidecar()) {
+            Log.protection.error("Threat database failed its integrity check: \(String(describing: problem), privacy: .public)")
+            throw problem
+        }
         digests = data.withUnsafeBytes { Array($0.bindMemory(to: Digest.self)) }
     }
 
@@ -120,6 +187,7 @@ final class ThreatDatabase: @unchecked Sendable {
         case http(Int, String)
         case unexpectedContent(String)
         case empty
+        case shrank(old: Int, new: Int)
 
         var errorDescription: String? {
             switch self {
@@ -135,6 +203,8 @@ final class ThreatDatabase: @unchecked Sendable {
                 return "abuse.ch said: \"\(snippet)\""
             case .empty:
                 return "The downloaded hash list was empty."
+            case .shrank(let old, let new):
+                return "The download had only \(new.formatted()) hashes, far fewer than the \(old.formatted()) you have. It was probably cut short, so the current database was kept."
             }
         }
     }
@@ -192,9 +262,13 @@ final class ThreatDatabase: @unchecked Sendable {
         progress("Building local database…")
         guard !set.isEmpty else { throw UpdateError.empty }
 
+        // A full export that's suddenly much smaller is a truncated download, not good news.
+        let previous = storedCount
+        if fullFile != nil, previous > 10_000, set.count < previous / 2 {
+            throw UpdateError.shrank(old: previous, new: set.count)
+        }
         let sorted = set.sorted()
-        let data = sorted.withUnsafeBufferPointer { Data(buffer: $0) }
-        try data.write(to: storeURL, options: .atomic)
+        try store(sorted)
 
         lock.withLock { digests = sorted }
         return sorted.count

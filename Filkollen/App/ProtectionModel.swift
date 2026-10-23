@@ -64,6 +64,7 @@ final class ProtectionModel: ObservableObject {
             threats = result.threats
             filesChecked = result.filesChecked
             if let e = result.clamError { errorMessage = "ClamAV: \(e)" }
+            if let e = result.databaseError { errorMessage = [errorMessage, e].compactMap { $0 }.joined(separator: "\n") }
             status = ""
             phase = .finished
         }
