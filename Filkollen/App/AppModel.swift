@@ -7,6 +7,7 @@ final class AppModel: ObservableObject {
     enum Section: Hashable {
         case smartScan
         case category(JunkCategory)
+        case uninstaller
         case protection
         case updates
         case system(SystemPage)
@@ -264,6 +265,28 @@ final class AppModel: ObservableObject {
             }
             phase = .done(CleanupSummary(outcome))
         }
+    }
+
+    /// Moves an app's remnants to the Trash (App Uninstaller). Same Cleaner and
+    /// checks as any cleanup; anything trashed also leaves the scan results.
+    func uninstall(_ items: [JunkItem]) async -> CleanupSummary {
+        let screened = Self.screened(items, category: .appLeftovers)
+        let outcome = await Task.detached(priority: .userInitiated) {
+            Cleaner.moveToTrash(screened)
+        }.value
+        for category in JunkCategory.allCases {
+            guard var r = results[category] else { continue }
+            r.items.removeAll { outcome.trashed.contains($0.url) }
+            results[category] = r
+        }
+        var summary = CleanupSummary(outcome)
+        let refused = items.count - screened.count
+        if refused > 0 {
+            Log.cleaner.notice("Uninstaller: \(refused) items refused by SafetyGuard before cleaning")
+        }
+        summary.failures += items.filter { item in !screened.contains { $0.url == item.url } }
+            .map { Cleaner.Failure(url: $0.url, reason: "Filkollen doesn't remove items in this location.") }
+        return summary
     }
 
     func reset() {

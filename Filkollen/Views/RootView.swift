@@ -46,6 +46,7 @@ struct MainView: View {
         switch model.section {
         case .smartScan: SmartScanView()
         case .category(let category): CategoryDetailView(category: category)
+        case .uninstaller: UninstallerView()
         case .protection: ProtectionView()
         case .updates: UpdatesView()
         case .system(.overview): SystemOverviewView()
@@ -58,6 +59,7 @@ struct MainView: View {
         switch model.section {
         case .smartScan: return .pink
         case .category(let c): return c.tint
+        case .uninstaller: return .orange
         case .protection: return .green
         case .updates: return .cyan
         case .system(.overview): return .teal
@@ -93,6 +95,8 @@ struct SidebarView: View {
                     }
                     .tag(AppModel.Section.category(category))
                 }
+                Label("App Uninstaller", systemImage: "xmark.app.fill")
+                    .tag(AppModel.Section.uninstaller)
             }
 
             Section("Protection") {
