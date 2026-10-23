@@ -8,7 +8,7 @@ import SwiftUI
 final class SelfUpdater: ObservableObject {
     private let controller: SPUStandardUpdaterController?
 
-    static func isConfigured(_ info: [String: Any]? = Bundle.main.infoDictionary) -> Bool {
+    nonisolated static func isConfigured(_ info: [String: Any]? = Bundle.main.infoDictionary) -> Bool {
         let feed = (info?["SUFeedURL"] as? String) ?? ""
         let key = (info?["SUPublicEDKey"] as? String) ?? ""
         return feed.hasPrefix("https://") && !key.isEmpty
