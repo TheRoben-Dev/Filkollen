@@ -36,7 +36,7 @@ final class CacheScannerTests: XCTestCase {
     }
 
     func testAppleCachesAreScreenedOut() throws {
-        try fx.file("Library/Caches/com.apple.Safari/x", bytes: 4_000)
+        try fx.file("Library/Caches/com.apple.finder/x", bytes: 4_000)
         try fx.file("Library/Caches/com.vendor.app/x", bytes: 4_000)
         let raw = CacheScanner(context: fx.context()).scan(progress: noProgress)
         let shown = AppModel.screened(raw, category: .systemJunk, safety: fx.safety)

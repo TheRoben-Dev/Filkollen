@@ -85,7 +85,7 @@ struct CategoryDetailView: View {
     private func groupTitle(_ key: String, items: [JunkItem]) -> String {
         switch category {
         case .duplicatePhotos: return items.first(where: \.isKeeper)?.name ?? key
-        case .appLeftovers, .systemJunk, .largeFiles, .developerJunk, .oldInstallers, .iosBackups: return key
+        case .appLeftovers, .systemJunk, .largeFiles, .developerJunk, .oldInstallers, .iosBackups, .browserCaches: return key
         }
     }
 
@@ -189,7 +189,7 @@ private struct GroupCard: View {
             return Set(items.map(\.detail)).sorted().joined(separator: ", ")
         case .developerJunk:
             return items.count == 1 ? items[0].detail : "\(items.count) items · \(items[0].detail)"
-        case .systemJunk, .largeFiles, .oldInstallers, .iosBackups: return "\(items.count) items"
+        case .systemJunk, .largeFiles, .oldInstallers, .iosBackups, .browserCaches: return "\(items.count) items"
         }
     }
 }

@@ -181,6 +181,7 @@ final class AppModel: ObservableObject {
             case .developerJunk: found = DeveloperScanner(context: context).scan(progress: progress)
             case .oldInstallers: found = InstallerScanner(context: context).scan(progress: progress)
             case .iosBackups: found = IOSBackupScanner(context: context).scan(progress: progress)
+            case .browserCaches: found = BrowserScanner(context: context).scan(progress: progress)
             }
             if context.isCancelled { return [] }
             return screened(found, category: category)

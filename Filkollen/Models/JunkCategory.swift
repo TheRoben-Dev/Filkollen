@@ -8,12 +8,13 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
     case developerJunk
     case oldInstallers
     case iosBackups
+    case browserCaches
 
     var id: String { rawValue }
 
     /// What Smart Scan covers. Large files are your own data and developer caches
     /// can be slow to get back, so both are opt-in.
-    static let smartScan: [JunkCategory] = [.systemJunk, .appLeftovers, .duplicatePhotos]
+    static let smartScan: [JunkCategory] = [.systemJunk, .appLeftovers, .duplicatePhotos, .browserCaches]
 
     var title: String {
         switch self {
@@ -24,6 +25,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .developerJunk: return "Developer Junk"
         case .oldInstallers: return "Old Installers"
         case .iosBackups: return "iOS Backups & Firmware"
+        case .browserCaches: return "Browser & Mail Caches"
         }
     }
 
@@ -36,6 +38,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .developerJunk: return "Xcode, simulator and package-manager caches"
         case .oldInstallers: return "Disk images and packages in Downloads you've already used"
         case .iosBackups: return "iPhone and iPad backups and leftover update files"
+        case .browserCaches: return "Cached web content and opened attachments. Never history, cookies, passwords or mail"
         }
     }
 
@@ -48,6 +51,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .developerJunk: return "hammer.circle.fill"
         case .oldInstallers: return "shippingbox.and.arrow.backward.fill"
         case .iosBackups: return "iphone.circle.fill"
+        case .browserCaches: return "globe"
         }
     }
 
@@ -60,6 +64,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .developerJunk: return "Looking for build caches and downloads…"
         case .oldInstallers: return "Checking Downloads for installers…"
         case .iosBackups: return "Looking for device backups…"
+        case .browserCaches: return "Looking at browser caches…"
         }
     }
 
@@ -72,6 +77,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .developerJunk: return Theme.gradient(.blue, .cyan)
         case .oldInstallers: return Theme.gradient(.mint, .teal)
         case .iosBackups: return Theme.gradient(.gray, .blue)
+        case .browserCaches: return Theme.gradient(.indigo, .blue)
         }
     }
 
@@ -84,6 +90,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .developerJunk: return .cyan
         case .oldInstallers: return .mint
         case .iosBackups: return .blue
+        case .browserCaches: return .indigo
         }
     }
 }

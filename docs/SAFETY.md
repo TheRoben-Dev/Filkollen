@@ -36,10 +36,12 @@ Everything else (`/`, `/System`, `/Library`, `/Applications`, other users, other
 
 ## Narrow exceptions
 
-Each exception allows *whole items exactly one level below* a protected folder, never anything inside those items, and has its own tests.
+Each exception allows whole items only (an exact folder, or exactly one level below one), never anything inside them, and has its own tests.
 
 | Allowed | Module | Why it's safe enough |
 |---|---|---|
+| `~/Library/Caches/com.apple.Safari` and `~/Library/Containers/com.apple.Safari/Data/Library/Caches` (exact folders) | Browser & Mail Caches | Safari's web cache, rebuilt as you browse. Approved by Roben 2026-10-23. Only offered while Safari is closed; the Cleaner refuses if it's running. History, cookies, passwords and everything else under `com.apple.Safari` stay refused. |
+| `~/Library/Containers/com.apple.mail/Data/Library/Mail Downloads` (exact folder) | Browser & Mail Caches | Copies of attachments you opened; originals stay in the mailbox. Approved by Roben 2026-10-23. Mail must be closed. The mailbox store (`~/Library/Mail`) and everything else in Mail's container stay refused. |
 | `~/Library/Application Support/MobileSync/Backup/<device>` | iOS Backups & Firmware | Finder's per-device backup folders. Listed with device name and date, never pre-selected, moved to the Trash whole. |
 
 Finder aliases are ordinary files and are judged as the file they are. Trashing an alias never touches what it points to.

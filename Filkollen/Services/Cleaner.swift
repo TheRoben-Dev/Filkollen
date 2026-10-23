@@ -39,6 +39,7 @@ enum Cleaner {
         _ items: [JunkItem],
         safety: SafetyGuard = .shared,
         fileManager fm: FileManager = .default,
+        isRunning: (String) -> Bool = RunningApps.isRunning,
         trash: Trasher = systemTrash
     ) -> Outcome {
         var outcome = Outcome()
@@ -48,6 +49,10 @@ enum Cleaner {
             guard (try? fm.attributesOfItem(atPath: item.url.path)) != nil else {
                 outcome.trashed.insert(item.url)
                 outcome.alreadyGone += 1
+                continue
+            }
+            if let app = item.requiresClosed.first(where: isRunning) {
+                outcome.failures.append(.init(url: item.url, reason: "Quit \(RunningApps.displayName(for: app)) first"))
                 continue
             }
             switch safety.evaluate(item.url) {

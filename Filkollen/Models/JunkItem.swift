@@ -22,6 +22,8 @@ struct JunkItem: Identifiable, Hashable, Sendable {
     /// What emptying the Trash would actually give back, when it's less than `size`
     /// (APFS clones, hard links). nil means all of `size`.
     var reclaimable: Int64? = nil
+    /// Bundle IDs of apps that must be closed before this may be cleaned. The Cleaner enforces it.
+    var requiresClosed: [String] = []
 
     var name: String { url.lastPathComponent }
     var reclaimableSize: Int64 { reclaimable ?? size }

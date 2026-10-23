@@ -73,6 +73,15 @@ enum RunningApps {
         }
     }
 
+    static func isRunning(_ bundleID: String) -> Bool {
+        !NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).isEmpty
+    }
+
+    static func displayName(for bundleID: String) -> String {
+        NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first?.localizedName
+            ?? AppNames.friendlyName(for: bundleID) ?? bundleID
+    }
+
     /// The running app that most likely owns a cache folder named `name`, if any.
     /// Matches bundle IDs (`com.vendor.app`, `com.vendor.app.helper`), app or
     /// executable names (`Firefox`), and vendor folders (`Google` for `com.google.Chrome`).

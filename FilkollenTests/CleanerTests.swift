@@ -43,7 +43,7 @@ final class CleanerTests: XCTestCase {
 
     func testScreeningDropsRefusedItems() throws {
         let ok = try fx.dir("Library/Caches/com.vendor.a")
-        let apple = try fx.dir("Library/Caches/com.apple.Safari")
+        let apple = try fx.dir("Library/Caches/com.apple.finder")
         let keychain = try fx.file("Library/Keychains/login.keychain-db")
         let kept = scanned([ok, apple, keychain])
         XCTAssertEqual(kept.map(\.url), [ok])

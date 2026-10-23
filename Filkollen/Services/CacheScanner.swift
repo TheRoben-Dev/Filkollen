@@ -12,7 +12,7 @@ struct CacheScanner: Sendable {
     ]
 
     func scan(progress: @escaping @Sendable (String) -> Void) -> [JunkItem] {
-        let skipNames = self.skipNames.union(DeveloperScanner.claimedCacheNames)
+        let skipNames = self.skipNames.union(DeveloperScanner.claimedCacheNames).union(BrowserScanner.claimedCacheNames)
         let throttle = ProgressThrottle(progress, counting: true)
         let running = context.runningApps()
         var items: [JunkItem] = []

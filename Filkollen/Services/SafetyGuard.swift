@@ -56,6 +56,14 @@ struct SafetyGuard: Sendable {
         "library/application support/mobilesync/backup",
     ]
 
+    /// Exact folders allowed despite a com.apple name, as whole items only. Approved by
+    /// Roben 2026-10-23; the modules using them also require the app to be closed.
+    private static let exactAppleExceptions: Set<String> = [
+        "library/caches/com.apple.safari",
+        "library/containers/com.apple.safari/data/library/caches",
+        "library/containers/com.apple.mail/data/library/mail downloads",
+    ]
+
     /// Folders directly under home that hold credentials.
     private static let protectedHomeFolders: [String] = [".trash", ".ssh", ".gnupg"]
 
@@ -87,6 +95,8 @@ struct SafetyGuard: Sendable {
         let inHome = p.hasPrefix(home + "/")
         let inTemp = p.hasPrefix(temp + "/")
         guard inHome || inTemp else { return p == home ? "Your home folder" : "Outside your home folder" }
+
+        if inHome, Self.exactAppleExceptions.contains(String(p.dropFirst(home.count + 1))) { return nil }
 
         let components = p.split(separator: "/")
         for (index, c) in components.enumerated() {
