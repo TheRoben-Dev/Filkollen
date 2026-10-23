@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 /// The panel that drops down from the menu bar icon: live stats plus quick actions.
