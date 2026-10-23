@@ -26,6 +26,9 @@ struct FilkollenApp: App {
             CommandGroup(replacing: .newItem) {}
             CommandGroup(replacing: .appInfo) {
                 Button("About Filkollen") { AboutPanel.show() }
+                if delegate.selfUpdater.isAvailable {
+                    Button("Check for Filkollen Updates…") { delegate.selfUpdater.checkForUpdates() }
+                }
             }
             CommandGroup(after: .help) {
                 Button("Export Diagnostics…") { Diagnostics.export() }
@@ -53,6 +56,7 @@ struct FilkollenApp: App {
 
         Settings {
             SettingsView()
+                .environmentObject(delegate.selfUpdater)
                 .environmentObject(delegate.model)
                 .environmentObject(delegate.protection)
                 .environmentObject(delegate.updates)

@@ -7,6 +7,7 @@ import SwiftUI
 final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     let model: AppModel
     let protection: ProtectionModel
+    let selfUpdater: SelfUpdater
     let updates: UpdatesModel
     private(set) var scheduler: BackgroundScheduler!
 
@@ -18,6 +19,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         model = AppModel()
         protection = ProtectionModel()
         updates = UpdatesModel()
+        selfUpdater = SelfUpdater()
         super.init()
         scheduler = BackgroundScheduler(model: model, protection: protection, updates: updates)
     }

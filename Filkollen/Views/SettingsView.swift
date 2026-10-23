@@ -17,6 +17,7 @@ struct SettingsView: View {
 
 private struct GeneralSettings: View {
     @EnvironmentObject private var model: AppModel
+    @EnvironmentObject private var selfUpdater: SelfUpdater
     @AppStorage(Pref.showMenuBarIcon) private var showMenuBarIcon = true
     @AppStorage(Pref.keepRunningInMenuBar) private var keepRunning = true
     @AppStorage(Pref.alwaysStartHidden) private var startHidden = false
@@ -29,6 +30,13 @@ private struct GeneralSettings: View {
 
     var body: some View {
         Form {
+            if selfUpdater.isAvailable {
+                Section("Filkollen updates") {
+                    Toggle("Check for new versions of Filkollen automatically",
+                           isOn: Binding(get: { selfUpdater.automaticallyChecks }, set: { selfUpdater.automaticallyChecks = $0 }))
+                    Button("Check Now") { selfUpdater.checkForUpdates() }
+                }
+            }
             Section("Startup") {
                 Toggle("Open Filkollen at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { enabled in
