@@ -6,7 +6,7 @@ import Foundation
 /// user's files ever leaves the Mac. Stored as a sorted array of 32-byte
 /// digests (~32 MB per million samples) and looked up with binary search.
 final class ThreatDatabase: @unchecked Sendable {
-    struct Digest: Comparable, Hashable {
+    struct Digest: Comparable, Hashable, Codable, Sendable {
         var a, b, c, d: UInt64
 
         init(_ a: UInt64, _ b: UInt64, _ c: UInt64, _ d: UInt64) {
@@ -94,12 +94,20 @@ final class ThreatDatabase: @unchecked Sendable {
     }
 
     func contains(_ digest: Digest) -> Bool {
-        lock.lock(); defer { lock.unlock() }
-        var lo = 0, hi = digests.count - 1
+        Self.contains(digest, in: snapshot())
+    }
+
+    /// The loaded table, for lock-free lookups from many threads during a scan.
+    func snapshot() -> [Digest] {
+        lock.withLock { digests }
+    }
+
+    static func contains(_ digest: Digest, in table: [Digest]) -> Bool {
+        var lo = 0, hi = table.count - 1
         while lo <= hi {
             let mid = (lo + hi) / 2
-            if digests[mid] == digest { return true }
-            if digests[mid] < digest { lo = mid + 1 } else { hi = mid - 1 }
+            if table[mid] == digest { return true }
+            if table[mid] < digest { lo = mid + 1 } else { hi = mid - 1 }
         }
         return false
     }

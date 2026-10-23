@@ -38,14 +38,19 @@ enum FileSizer {
 final class ProgressThrottle: @unchecked Sendable {
     private let handler: @Sendable (String) -> Void
     private var last = Date.distantPast
+    private let lock = NSLock()
 
     init(_ handler: @escaping @Sendable (String) -> Void) { self.handler = handler }
 
-    func report(_ message: String) {
+    /// Safe to call from many threads at once (the malware scan hashes in parallel).
+    func report(_ message: @autoclosure () -> String) {
         let now = Date()
-        guard now.timeIntervalSince(last) > 0.08 else { return }
-        last = now
-        handler(message)
+        let due = lock.withLock {
+            guard now.timeIntervalSince(last) > 0.08 else { return false }
+            last = now
+            return true
+        }
+        if due { handler(message()) }
     }
 }
 
