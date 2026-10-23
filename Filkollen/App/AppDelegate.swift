@@ -150,7 +150,7 @@ final class BackgroundScheduler {
         let d = Pref.defaults
 
         let hours = d.integer(forKey: Pref.autoScanHours)
-        if hours > 0, !model.isScanning, isDue(model.lastSmartScan, hours: hours) {
+        if hours > 0, model.canStartBackgroundScan, isDue(model.lastSmartScan, hours: hours) {
             model.startSmartScan { [weak self] in
                 guard let self else { return }
                 let total = self.model.smartScanTotal

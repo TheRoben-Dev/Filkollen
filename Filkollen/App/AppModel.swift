@@ -73,37 +73,67 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// Identifies the current scan, so a cancelled one that's still winding down
+    /// can never write its results over a newer scan's.
+    private var scanGeneration = 0
+
+    /// Whether a background (scheduled) scan may start now without disturbing the user:
+    /// not while they're looking at results or cleaning.
+    var canStartBackgroundScan: Bool {
+        switch phase {
+        case .idle, .done: return true
+        case .scanning, .results, .cleaning: return false
+        }
+    }
+
     func scan(_ categories: [JunkCategory], onFinish: (() -> Void)? = nil) {
         guard !isScanning else { return }
         refreshFullDiskAccess()
         phase = .scanning
         for c in categories { results[c] = nil }
+        scanGeneration += 1
+        let generation = scanGeneration
+        let started = Date()
 
         scanTask = Task {
             for category in categories {
                 if Task.isCancelled { break }
                 scanningCategory = category
                 scanStatus = category.scanningMessage
-                let items = await Self.runScanner(for: category) { path in
-                    Task { @MainActor in self.scanStatus = path }
+                let items = await Self.runScanner(for: category) { [weak self] path in
+                    Task { @MainActor in
+                        guard let self, self.scanGeneration == generation else { return }
+                        self.scanStatus = path
+                    }
                 }
+                guard !Task.isCancelled, scanGeneration == generation else { break }
                 let excluded = Exclusions.paths
                 results[category] = CategoryResult(
                     category: category,
                     items: excluded.isEmpty ? items : items.filter { !Exclusions.isExcluded($0.url, in: excluded) }
                 )
             }
+            guard scanGeneration == generation else { return }
             scanningCategory = nil
             scanStatus = ""
-            phase = Task.isCancelled ? .idle : .results
-            if !Task.isCancelled { onFinish?() }
+            if Task.isCancelled {
+                phase = .idle
+                Log.scan.info("Scan cancelled after \(Date().timeIntervalSince(started), format: .fixed(precision: 1)) s")
+            } else {
+                phase = .results
+                Log.scan.info("Scan finished in \(Date().timeIntervalSince(started), format: .fixed(precision: 1)) s")
+                onFinish?()
+            }
         }
     }
 
+    /// Stops the scan for real: the scanner sees the cancellation and returns early.
     func cancelScan() {
         scanTask?.cancel()
         scanTask = nil
+        scanGeneration += 1
         scanningCategory = nil
+        scanStatus = ""
         phase = .idle
     }
 
@@ -111,16 +141,21 @@ final class AppModel: ObservableObject {
         for category: JunkCategory,
         progress: @escaping @Sendable (String) -> Void
     ) async -> [JunkItem] {
-        await Task.detached(priority: .userInitiated) {
+        // Detached so the work runs off the main actor; cancellation is forwarded
+        // by hand because detached tasks don't inherit it.
+        let work = Task.detached(priority: .userInitiated) { () -> [JunkItem] in
+            let context = ScanContext.live
             let found: [JunkItem]
             switch category {
-            case .systemJunk: found = CacheScanner().scan(progress: progress)
-            case .appLeftovers: found = LeftoverScanner().scan(progress: progress)
-            case .duplicatePhotos: found = DuplicatePhotoScanner().scan(progress: progress)
-            case .largeFiles: found = LargeFileScanner().scan(progress: progress)
+            case .systemJunk: found = CacheScanner(context: context).scan(progress: progress)
+            case .appLeftovers: found = LeftoverScanner(context: context).scan(progress: progress)
+            case .duplicatePhotos: found = DuplicatePhotoScanner(context: context).scan(progress: progress)
+            case .largeFiles: found = LargeFileScanner(context: context).scan(progress: progress)
             }
+            if Task.isCancelled { return [] }
             return screened(found, category: category)
-        }.value
+        }
+        return await withTaskCancellationHandler { await work.value } onCancel: { work.cancel() }
     }
 
     /// Drops anything SafetyGuard would refuse, so it's never shown as cleanable,
