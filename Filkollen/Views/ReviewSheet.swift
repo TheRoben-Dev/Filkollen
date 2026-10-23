@@ -7,7 +7,7 @@ struct ReviewSheet: View {
     /// Limit cleaning to one category (from a detail page); nil means everything selected.
     var only: JunkCategory? = nil
 
-    private var categories: [JunkCategory] { only.map { [$0] } ?? JunkCategory.allCases }
+    private var categories: [JunkCategory] { only.map { [$0] } ?? JunkCategory.smartScan }
 
     private var items: [JunkItem] {
         categories.flatMap { model.result(for: $0)?.selectedItems ?? [] }

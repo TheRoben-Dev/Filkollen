@@ -8,6 +8,20 @@ final class AppModel: ObservableObject {
         case smartScan
         case category(JunkCategory)
         case protection
+        case updates
+        case system(SystemPage)
+    }
+
+    enum SystemPage: String, Hashable, CaseIterable {
+        case overview = "System Overview"
+        case startupItems = "Startup Items"
+
+        var symbol: String {
+            switch self {
+            case .overview: return "gauge.with.dots.needle.50percent"
+            case .startupItems: return "power.circle.fill"
+            }
+        }
     }
 
     enum Phase: Equatable {
@@ -45,11 +59,21 @@ final class AppModel: ObservableObject {
 
     // MARK: Scanning
 
-    func startSmartScan() {
-        scan(JunkCategory.allCases)
+    @Published private(set) var lastSmartScan: Date? = Pref.defaults.object(forKey: Pref.lastAutoScan) as? Date
+
+    var smartScanTotal: Int64 { JunkCategory.smartScan.reduce(0) { $0 + (results[$1]?.totalSize ?? 0) } }
+    var smartScanSelected: Int64 { JunkCategory.smartScan.reduce(0) { $0 + (results[$1]?.selectedSize ?? 0) } }
+
+    func startSmartScan(onFinish: (() -> Void)? = nil) {
+        scan(JunkCategory.smartScan) { [weak self] in
+            let now = Date()
+            self?.lastSmartScan = now
+            Pref.defaults.set(now, forKey: Pref.lastAutoScan)
+            onFinish?()
+        }
     }
 
-    func scan(_ categories: [JunkCategory]) {
+    func scan(_ categories: [JunkCategory], onFinish: (() -> Void)? = nil) {
         guard !isScanning else { return }
         refreshFullDiskAccess()
         phase = .scanning
@@ -63,11 +87,16 @@ final class AppModel: ObservableObject {
                 let items = await Self.runScanner(for: category) { path in
                     Task { @MainActor in self.scanStatus = path }
                 }
-                results[category] = CategoryResult(category: category, items: items)
+                let excluded = Exclusions.paths
+                results[category] = CategoryResult(
+                    category: category,
+                    items: excluded.isEmpty ? items : items.filter { !Exclusions.isExcluded($0.url, in: excluded) }
+                )
             }
             scanningCategory = nil
             scanStatus = ""
             phase = Task.isCancelled ? .idle : .results
+            if !Task.isCancelled { onFinish?() }
         }
     }
 
@@ -87,6 +116,7 @@ final class AppModel: ObservableObject {
             case .systemJunk: return CacheScanner().scan(progress: progress)
             case .appLeftovers: return LeftoverScanner().scan(progress: progress)
             case .duplicatePhotos: return DuplicatePhotoScanner().scan(progress: progress)
+            case .largeFiles: return LargeFileScanner().scan(progress: progress)
             }
         }.value
     }

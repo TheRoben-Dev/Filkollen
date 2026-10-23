@@ -85,8 +85,7 @@ struct CategoryDetailView: View {
     private func groupTitle(_ key: String, items: [JunkItem]) -> String {
         switch category {
         case .duplicatePhotos: return items.first(where: \.isKeeper)?.name ?? key
-        case .appLeftovers: return key
-        case .systemJunk: return key
+        case .appLeftovers, .systemJunk, .largeFiles: return key
         }
     }
 
@@ -182,7 +181,7 @@ private struct GroupCard: View {
         case .duplicatePhotos: return "\(items.count) identical copies"
         case .appLeftovers:
             return Set(items.map(\.detail)).sorted().joined(separator: ", ")
-        case .systemJunk: return "\(items.count) items"
+        case .systemJunk, .largeFiles: return "\(items.count) items"
         }
     }
 }

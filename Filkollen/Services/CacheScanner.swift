@@ -12,8 +12,10 @@ struct CacheScanner {
         "com.apple.containermanagerd", "Filkollen", "dev.theroben.Filkollen",
     ]
 
-    /// Temp files younger than this are probably in use.
-    private let tempMinAge: TimeInterval = 3 * 24 * 3600
+    /// Temp files younger than this are probably in use (Settings › Cleanup).
+    private var tempMinAge: TimeInterval {
+        TimeInterval(max(1, Pref.defaults.integer(forKey: Pref.tempMinAgeDays))) * 24 * 3600
+    }
 
     func scan(progress: @escaping @Sendable (String) -> Void) -> [JunkItem] {
         let throttle = ProgressThrottle(progress)

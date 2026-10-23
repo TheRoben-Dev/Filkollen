@@ -34,7 +34,7 @@ struct SmartScanView: View {
             }
             BigScanButton(title: "Scan") { model.startSmartScan() }
             HStack(spacing: 14) {
-                ForEach(JunkCategory.allCases) { category in
+                ForEach(JunkCategory.smartScan) { category in
                     HStack(spacing: 10) {
                         GradientIcon(category, size: 30)
                         Text(category.title).font(.callout.weight(.medium))
@@ -74,7 +74,7 @@ struct SmartScanView: View {
     private var results: some View {
         VStack(spacing: 24) {
             VStack(spacing: 6) {
-                Text(model.totalFound.formattedBytes)
+                Text(model.smartScanTotal.formattedBytes)
                     .font(.system(size: 56, weight: .heavy, design: .rounded))
                     .foregroundStyle(Theme.accent)
                 Text("of junk found")
@@ -83,7 +83,7 @@ struct SmartScanView: View {
             .padding(.top, 20)
 
             HStack(spacing: 16) {
-                ForEach(JunkCategory.allCases) { category in
+                ForEach(JunkCategory.smartScan) { category in
                     ResultCard(category: category, result: model.result(for: category)) {
                         model.section = .category(category)
                     }
@@ -98,10 +98,10 @@ struct SmartScanView: View {
                 Button {
                     showReview = true
                 } label: {
-                    Text("Review & Clean \(model.totalSelected.formattedBytes)")
+                    Text("Review & Clean \(model.smartScanSelected.formattedBytes)")
                 }
                 .buttonStyle(PillButtonStyle(large: true))
-                .disabled(model.totalSelected == 0)
+                .disabled(model.smartScanSelected == 0)
             }
         }
     }

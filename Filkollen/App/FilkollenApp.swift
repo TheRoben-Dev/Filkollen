@@ -2,14 +2,18 @@ import SwiftUI
 
 @main
 struct FilkollenApp: App {
-    @StateObject private var model = AppModel()
-    @StateObject private var protection = ProtectionModel()
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+    @AppStorage(Pref.showMenuBarIcon) private var showMenuBarIcon = true
 
     var body: some Scene {
-        WindowGroup {
+        // A single Window (not WindowGroup) so reopening from the menu bar never
+        // stacks up duplicate main windows.
+        Window("Filkollen", id: "main") {
             RootView()
-                .environmentObject(model)
-                .environmentObject(protection)
+                .environmentObject(delegate.model)
+                .environmentObject(delegate.protection)
+                .environmentObject(delegate.updates)
+                .environmentObject(delegate)
                 .frame(minWidth: 940, minHeight: 620)
         }
         // A real (transparent) title bar keeps the sidebar list below the
@@ -21,16 +25,47 @@ struct FilkollenApp: App {
         .commands {
             CommandGroup(replacing: .newItem) {}
             CommandMenu("Scan") {
-                Button("Smart Scan") { model.startSmartScan() }
+                Button("Smart Scan") { delegate.model.startSmartScan() }
                     .keyboardShortcut("r", modifiers: .command)
-                    .disabled(model.isScanning)
+                Button("Malware Scan") { delegate.protection.scan() }
+                    .keyboardShortcut("r", modifiers: [.command, .shift])
+                Button("Check for Updates") { delegate.updates.check() }
+                    .keyboardShortcut("u", modifiers: [.command, .shift])
             }
         }
 
+        MenuBarExtra(isInserted: $showMenuBarIcon) {
+            MenuBarView()
+                .environmentObject(delegate.model)
+                .environmentObject(delegate.protection)
+                .environmentObject(delegate.updates)
+                .environmentObject(delegate)
+        } label: {
+            MenuBarLabel(model: delegate.model, protection: delegate.protection)
+        }
+        .menuBarExtraStyle(.window)
+
         Settings {
             SettingsView()
-                .environmentObject(model)
-                .environmentObject(protection)
+                .environmentObject(delegate.model)
+                .environmentObject(delegate.protection)
+                .environmentObject(delegate.updates)
+        }
+    }
+}
+
+/// The status item icon: a warning badge when threats were found, a busy icon while scanning.
+private struct MenuBarLabel: View {
+    @ObservedObject var model: AppModel
+    @ObservedObject var protection: ProtectionModel
+
+    var body: some View {
+        if !protection.threats.isEmpty {
+            Image(systemName: "exclamationmark.shield.fill")
+        } else if model.isScanning || protection.isBusy {
+            Image(systemName: "arrow.triangle.2.circlepath")
+        } else {
+            Image(systemName: "sparkles")
         }
     }
 }
