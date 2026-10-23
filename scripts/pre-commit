@@ -1,0 +1,21 @@
+#!/bin/sh
+# Lints staged Swift files and stops a commit of the generated project.
+# Install with: scripts/install-hooks.sh
+set -eu
+
+if git diff --cached --name-only | grep -q '\.xcodeproj/'; then
+  echo "pre-commit: the .xcodeproj is generated; edit project.yml and run xcodegen instead." >&2
+  exit 1
+fi
+
+files=$(git diff --cached --name-only --diff-filter=ACM -- '*.swift')
+[ -n "$files" ] || exit 0
+
+if command -v swiftformat >/dev/null; then
+  # shellcheck disable=SC2086
+  swiftformat --lint --quiet $files || { echo "pre-commit: run 'swiftformat .' and re-stage." >&2; exit 1; }
+fi
+if command -v swiftlint >/dev/null; then
+  # shellcheck disable=SC2086
+  swiftlint lint --quiet --strict $files || exit 1
+fi
