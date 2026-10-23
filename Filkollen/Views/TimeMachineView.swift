@@ -7,55 +7,59 @@ struct TimeMachineView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                HStack(spacing: 16) {
-                    GradientIcon(symbol: "clock.arrow.circlepath", gradient: Theme.gradient(.teal, .green), size: 56)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Time Machine Snapshots").font(.system(size: 26, weight: .bold, design: .rounded))
-                        Text("Local snapshots on your startup disk").foregroundStyle(.white.opacity(0.65))
-                    }
-                    Spacer()
-                    Button { Task { await reload() } } label: { Label("Refresh", systemImage: "arrow.clockwise") }
-                        .buttonStyle(GhostButtonStyle())
+            VStack(alignment: .leading, spacing: DS.Space.lg) {
+                DSPageHeader(title: String(localized: "Time Machine Snapshots"),
+                             subtitle: String(localized: "Local snapshots on your startup disk"),
+                             tile: DSTile(symbol: AppModel.SystemPage.snapshots.symbol, tint: DS.Color.brand, size: .large)) {
+                    Button { Task { await reload() } } label: { Label("Refresh", systemImage: DS.Icon.refresh) }
+                        .buttonStyle(.dsSecondary)
+                        .disabled(loading)
                 }
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("What these are").font(.headline)
+                VStack(alignment: .leading, spacing: DS.Space.sm) {
+                    DSSectionHeader(String(localized: "What these are"))
                     Text("When Time Machine is on, macOS keeps hourly snapshots on this Mac so you can restore files even when your backup disk isn't connected. They can look like used space, but macOS deletes them automatically, oldest first, whenever space is needed, so you don't need to remove them to free space.")
-                        .foregroundStyle(.white.opacity(0.75))
+                        .font(DS.Font.body).foregroundStyle(DS.Color.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     Text("Filkollen doesn't delete snapshots. To turn local snapshots off, turn off Time Machine or change its options in System Settings.")
-                        .font(.callout).foregroundStyle(.white.opacity(0.6))
+                        .font(DS.Font.callout).foregroundStyle(DS.Color.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     Button("Open Time Machine Settings") { LocalSnapshots.openTimeMachineSettings() }
-                        .buttonStyle(GhostButtonStyle())
+                        .buttonStyle(.dsSecondary)
+                        .padding(.top, DS.Space.xs)
                 }
-                .glassCard()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .dsCard()
 
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: DS.Space.sm) {
                     if loading {
-                        ProgressView().frame(maxWidth: .infinity)
+                        ForEach(0..<3, id: \.self) { _ in DSPlaceholderRow() }
                     } else if snapshots.isEmpty {
-                        Label("No local snapshots right now.", systemImage: "checkmark.circle")
+                        Label("No local snapshots right now.", systemImage: DS.Icon.success)
+                            .font(DS.Font.body).foregroundStyle(DS.Color.textSecondary)
                     } else {
-                        Text("\(snapshots.count) snapshot\(snapshots.count == 1 ? "" : "s")").font(.headline)
+                        DSSectionHeader(snapshots.count == 1 ? String(localized: "1 snapshot")
+                                                             : String(localized: "\(snapshots.count) snapshots"))
                         ForEach(snapshots) { snap in
-                            HStack {
-                                Image(systemName: "camera.metering.center.weighted").foregroundStyle(.teal)
+                            HStack(spacing: DS.Space.md) {
+                                Image(systemName: "camera.metering.center.weighted").foregroundStyle(DS.Color.brand)
                                 Text(snap.date.map { $0.formatted(date: .abbreviated, time: .shortened) } ?? snap.name)
+                                    .font(DS.Font.numeric).foregroundStyle(DS.Color.textPrimary)
                                 Spacer()
                                 Text(snap.date.map { $0.formatted(.relative(presentation: .named)) } ?? "")
-                                    .font(.caption).foregroundStyle(.white.opacity(0.55))
+                                    .font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
                             }
                             .accessibilityElement(children: .combine)
                         }
                     }
                 }
-                .glassCard()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .dsCard()
             }
-            .padding(28)
+            .padding(DS.Inset.page)
+            .frame(maxWidth: DS.Layout.contentMaxWidth)
+            .frame(maxWidth: .infinity)
         }
-        .foregroundStyle(.white)
         .task { await reload() }
     }
 
