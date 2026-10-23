@@ -11,6 +11,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     let updates: UpdatesModel
     private(set) var scheduler: BackgroundScheduler!
 
+    /// The running app's delegate, for App Intents (SwiftUI owns the instance).
+    private(set) static weak var shared: AppDelegate?
+
     /// Set by the first SwiftUI view that appears; reopens the main window later.
     var openMainWindowAction: (() -> Void)?
 
@@ -21,6 +24,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         updates = UpdatesModel()
         selfUpdater = SelfUpdater()
         super.init()
+        Self.shared = self
         scheduler = BackgroundScheduler(model: model, protection: protection, updates: updates)
     }
 
