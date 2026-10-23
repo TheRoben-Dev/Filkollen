@@ -12,8 +12,9 @@ struct FilkollenApp: App {
                 .environmentObject(protection)
                 .frame(minWidth: 940, minHeight: 620)
         }
-        .windowStyle(.hiddenTitleBar)
-        .windowToolbarStyle(.unified)
+        // A real (transparent) title bar keeps the sidebar list below the
+        // traffic lights; .hiddenTitleBar let rows scroll underneath them.
+        .windowToolbarStyle(.unified(showsTitle: false))
         .commands {
             CommandGroup(replacing: .newItem) {}
             CommandMenu("Scan") {

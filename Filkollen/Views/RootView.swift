@@ -13,6 +13,7 @@ struct RootView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .toolbarBackground(.hidden, for: .windowToolbar)
         .animation(.easeInOut, value: model.showOnboarding)
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             model.refreshFullDiskAccess()
