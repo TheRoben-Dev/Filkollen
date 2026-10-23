@@ -100,6 +100,33 @@ final class ThreatDatabase: @unchecked Sendable {
 
     // MARK: Update
 
+    enum UpdateError: LocalizedError {
+        case authRequired
+        case http(Int)
+        case unexpectedContent(String)
+        case empty
+
+        var errorDescription: String? {
+            switch self {
+            case .authRequired:
+                return "abuse.ch requires a free Auth-Key for downloads. Add one in Settings › Protection."
+            case .http(let code):
+                return "abuse.ch answered with HTTP \(code)."
+            case .unexpectedContent(let snippet):
+                return "abuse.ch sent something other than a hash list: \"\(snippet)\""
+            case .empty:
+                return "The downloaded hash list was empty."
+            }
+        }
+    }
+
+    /// Optional abuse.ch Auth-Key (free at auth.abuse.ch), sent as the `Auth-Key` header.
+    static var authKey: String? {
+        let key = UserDefaults.standard.string(forKey: "abuseChAuthKey")?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return (key?.isEmpty ?? true) ? nil : key
+    }
+
     /// Downloads the full export plus the last 48 hours and rebuilds the local table.
     func update(progress: @escaping @Sendable (String) -> Void) async throws -> Int {
         let fm = FileManager.default
@@ -108,25 +135,29 @@ final class ThreatDatabase: @unchecked Sendable {
         defer { try? fm.removeItem(at: work) }
 
         progress("Downloading MalwareBazaar hash list…")
-        let (zipFile, _) = try await URLSession.shared.download(from: Source.full)
-        let zipURL = work.appendingPathComponent("full.zip")
-        try fm.moveItem(at: zipFile, to: zipURL)
+        let fullFile = work.appendingPathComponent("full.download")
+        try fm.moveItem(at: try await Self.download(Source.full), to: fullFile)
 
-        progress("Unpacking…")
-        try Self.unzip(zipURL, to: work)
+        var set = Set<Digest>()
+        if try Self.isZip(fullFile) {
+            progress("Unpacking…")
+            try Self.unzip(fullFile, to: work)
+            let texts = (try fm.contentsOfDirectory(at: work, includingPropertiesForKeys: nil))
+                .filter { $0.pathExtension == "txt" }
+            for file in texts {
+                Self.parse(String(decoding: try Data(contentsOf: file), as: UTF8.self), into: &set)
+            }
+        } else {
+            // Some mirrors serve the export as plain text instead of a zip.
+            try Self.parseOrThrow(try Data(contentsOf: fullFile), into: &set)
+        }
 
         progress("Fetching latest samples…")
-        let (recentData, _) = try await URLSession.shared.data(from: Source.recent)
+        let recentFile = try await Self.download(Source.recent)
+        try Self.parseOrThrow(try Data(contentsOf: recentFile), into: &set)
 
         progress("Building local database…")
-        var set = Set<Digest>()
-        let texts = (try fm.contentsOfDirectory(at: work, includingPropertiesForKeys: nil))
-            .filter { $0.pathExtension == "txt" }
-        for file in texts {
-            Self.parse(try String(contentsOf: file, encoding: .utf8), into: &set)
-        }
-        Self.parse(String(decoding: recentData, as: UTF8.self), into: &set)
-        guard !set.isEmpty else { throw CocoaError(.fileReadCorruptFile) }
+        guard !set.isEmpty else { throw UpdateError.empty }
 
         let sorted = set.sorted()
         let data = sorted.withUnsafeBufferPointer { Data(buffer: $0) }
@@ -134,6 +165,47 @@ final class ThreatDatabase: @unchecked Sendable {
 
         lock.withLock { digests = sorted }
         return sorted.count
+    }
+
+    private static func download(_ url: URL) async throws -> URL {
+        var request = URLRequest(url: url)
+        request.setValue("Filkollen/1.0 (macOS)", forHTTPHeaderField: "User-Agent")
+        if let key = authKey { request.setValue(key, forHTTPHeaderField: "Auth-Key") }
+
+        let (file, response) = try await URLSession.shared.download(for: request)
+        if let http = response as? HTTPURLResponse {
+            switch http.statusCode {
+            case 200..<300: break
+            case 401, 403: throw UpdateError.authRequired
+            default: throw UpdateError.http(http.statusCode)
+            }
+        }
+        return file
+    }
+
+    private static func isZip(_ file: URL) throws -> Bool {
+        let handle = try FileHandle(forReadingFrom: file)
+        defer { try? handle.close() }
+        return try handle.read(upToCount: 4) == Data([0x50, 0x4B, 0x03, 0x04]) // "PK\u{3}\u{4}"
+    }
+
+    /// Parses a plain-text export, or explains what came back instead (HTML, JSON error…).
+    private static func parseOrThrow(_ data: Data, into set: inout Set<Digest>) throws {
+        let text = String(decoding: data, as: UTF8.self)
+        let before = set.count
+        parse(text, into: &set)
+        guard set.count == before else { return }
+
+        let lower = text.lowercased()
+        if lower.contains("auth-key") || lower.contains("unauthorized") || lower.contains("api key") {
+            throw UpdateError.authRequired
+        }
+        // Only comments and no hashes is a valid (if quiet) "recent" export.
+        let meaningful = text.split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty && !$0.hasPrefix("#") }
+        guard !meaningful.isEmpty else { return }
+        throw UpdateError.unexpectedContent(String(meaningful[0].prefix(120)))
     }
 
     private static func parse(_ text: String, into set: inout Set<Digest>) {
@@ -151,6 +223,8 @@ final class ThreatDatabase: @unchecked Sendable {
         p.arguments = ["-x", "-k", zip.path, dir.path]
         try p.run()
         p.waitUntilExit()
-        guard p.terminationStatus == 0 else { throw CocoaError(.fileReadCorruptFile) }
+        guard p.terminationStatus == 0 else {
+            throw UpdateError.unexpectedContent("archive could not be unpacked")
+        }
     }
 }
