@@ -1,3 +1,4 @@
+import QuickLook
 import SwiftUI
 
 struct CategoryDetailView: View {
@@ -32,7 +33,7 @@ struct CategoryDetailView: View {
         .foregroundStyle(.white)
         .sheet(isPresented: $showReview) { ReviewSheet(only: category).environmentObject(model) }
         .quickLookPreview($previewURL)
-        .environment(\.showQuickLook) { previewURL = $0 }
+        .environment(\.showQuickLook, { previewURL = $0 })
     }
 
     private var header: some View {
