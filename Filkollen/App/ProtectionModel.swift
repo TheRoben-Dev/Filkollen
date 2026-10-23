@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// State for the Protection (malware) section. Separate from junk cleaning
 /// because findings are quarantined or deleted, never just trashed.
@@ -98,6 +99,19 @@ final class ProtectionModel: ObservableObject {
 
     func deleteQuarantined(_ entries: [Quarantine.Entry]) {
         run { for e in entries { try Quarantine.delete(e) } }
+    }
+
+    /// Quarantined more than `days` ago.
+    func quarantined(olderThanDays days: Int) -> [Quarantine.Entry] {
+        Quarantine.entries(olderThan: Date().addingTimeInterval(-Double(days) * 86_400))
+    }
+
+    func exportQuarantineReport() {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = "Filkollen Quarantine \(Date().formatted(.iso8601.year().month().day())).json"
+        panel.allowedContentTypes = [.json]
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        run { try Quarantine.exportReport(to: url) }
     }
 
     private func run(_ body: () throws -> Void) {

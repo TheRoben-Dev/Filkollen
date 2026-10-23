@@ -232,15 +232,29 @@ struct ProtectionView: View {
                             HStack(spacing: 12) {
                                 Image(systemName: "lock.doc.fill").font(.title2).foregroundStyle(.orange)
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(entry.name).font(.headline).lineLimit(1)
-                                    Text("\(entry.engine.rawValue) · from \((entry.originalPath as NSString).abbreviatingWithTildeInPath)")
+                                    HStack(spacing: 6) {
+                                        Text(entry.name).font(.headline).lineLimit(1)
+                                        if entry.isMissing {
+                                            Text("MISSING")
+                                                .font(.caption2.bold())
+                                                .padding(.horizontal, 6).padding(.vertical, 1)
+                                                .background(.gray.opacity(0.6), in: Capsule())
+                                                .help("The quarantined copy is no longer in the quarantine folder.")
+                                        }
+                                    }
+                                    Text("\(entry.engine.rawValue) · \(entry.identifier.prefix(40)) · from \((entry.originalPath as NSString).abbreviatingWithTildeInPath)")
                                         .font(.caption).foregroundStyle(.white.opacity(0.55))
                                         .lineLimit(1).truncationMode(.middle)
+                                        .textSelection(.enabled)
                                 }
                                 Spacer()
-                                Text(entry.date.formatted(date: .abbreviated, time: .shortened))
-                                    .font(.caption).foregroundStyle(.white.opacity(0.55))
+                                VStack(alignment: .trailing, spacing: 2) {
+                                    Text(entry.date.formatted(date: .abbreviated, time: .shortened))
+                                    Text(entry.size.formattedBytes)
+                                }
+                                .font(.caption).foregroundStyle(.white.opacity(0.55))
                                 Button("Restore") { protection.restore(entry) }.buttonStyle(GhostButtonStyle())
+                                    .disabled(entry.isMissing)
                                 Button("Delete") { pendingQuarantineDelete = [entry] }
                                     .buttonStyle(PillButtonStyle(fill: Theme.danger))
                             }
@@ -250,7 +264,15 @@ struct ProtectionView: View {
                     .padding(.horizontal, 28).padding(.bottom, 16)
                 }
                 HStack {
+                    Button("Export Report…") { protection.exportQuarantineReport() }
+                        .buttonStyle(GhostButtonStyle())
+                        .help("Saves what was quarantined, from where and its SHA-256, as JSON. The files themselves stay here.")
                     Spacer()
+                    let old = protection.quarantined(olderThanDays: 30)
+                    if !old.isEmpty {
+                        Button("Delete \(old.count) Older Than 30 Days…") { pendingQuarantineDelete = old }
+                            .buttonStyle(GhostButtonStyle())
+                    }
                     Button("Delete All Quarantined…") { pendingQuarantineDelete = protection.quarantined }
                         .buttonStyle(PillButtonStyle(fill: Theme.danger))
                 }
