@@ -43,7 +43,7 @@ On first launch the onboarding screen explains Full Disk Access, opens the right
 
 ## Malware scanning
 
-**MalwareBazaar (built in).** "Update" downloads abuse.ch's public SHA-256 export (full list + last 48 h) and stores it as a sorted binary table in `~/Library/Application Support/Filkollen/`. Matching is entirely offline, so no file hashes leave the Mac. It scans Downloads, Desktop, Documents, `/Applications`, `~/Applications`, Application Support, LaunchAgents/Daemons, `/Users/Shared` and `/tmp`, hashing only Mach-O binaries, scripts and risky file types (dmg, pkg, zip, exe, macro docs and so on) up to 256 MB.
+**MalwareBazaar (built in).** Needs a free abuse.ch Auth-Key (https://auth.abuse.ch/), pasted into the Malware Scan page or Settings. "Update" downloads the authenticated CSV exports from `mb-api.abuse.ch/v2/files/exports/<key>/` (full list + last 48 h; the old `bazaar.abuse.ch/export/txt/` URLs now return 410 Gone) and stores it as a sorted binary table in `~/Library/Application Support/Filkollen/`. Matching is entirely offline, so no file hashes leave the Mac. It scans Downloads, Desktop, Documents, `/Applications`, `~/Applications`, Application Support, LaunchAgents/Daemons, `/Users/Shared` and `/tmp`, hashing only Mach-O binaries, scripts and risky file types (dmg, pkg, zip, exe, macro docs and so on) up to 256 MB.
 
 Tradeoff: exact-hash matching has essentially no false positives, but it only catches files identical to a known sample. Repacked or brand-new variants slip through.
 
