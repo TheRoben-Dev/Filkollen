@@ -81,3 +81,31 @@ final class CleanupHistoryTests: XCTestCase {
         XCTAssertEqual(all.first?.source, "\(CleanupHistory.limit + 4)")
     }
 }
+
+final class ScopedEmptyTrashTests: XCTestCase {
+    func testDeletesOnlyFilkollensItemsDirectlyInTheTrash() throws {
+        let fx = try Fixture()
+        let history = CleanupHistory(url: fx.root.appendingPathComponent("h.json"), safety: fx.safety)
+        let ours = try fx.file(".Trash/blob", bytes: 100)
+        let mine = try fx.file(".Trash/my-own-deleted-file.txt")
+        let elsewhere = try fx.file("Documents/not-in-trash.txt")
+        let outcome = Cleaner.Outcome(trashLocations: [
+            fx.home.appendingPathComponent("Library/Caches/blob"): ours,
+            fx.home.appendingPathComponent("Library/Caches/x"): elsewhere, // tampered: not in the Trash
+        ])
+        let record = try XCTUnwrap(history.record(outcome, items: [
+            JunkItem(url: fx.home.appendingPathComponent("Library/Caches/blob"), size: 100, category: .systemJunk, group: "g"),
+        ], source: "System Junk"))
+
+        XCTAssertEqual(history.itemsInTrash(home: fx.home).map(\.trashed), [ours.path])
+        let result = history.emptyFromTrash(home: fx.home)
+        XCTAssertEqual(result.freed, 100)
+        XCTAssertEqual(result.failed, 0)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: ours.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: mine.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: elsewhere.path))
+        XCTAssertTrue(history.itemsInTrash(home: fx.home).isEmpty)
+        // An emptied item can't be put back, and says so by not being restorable.
+        XCTAssertEqual(history.records().first { $0.id == record.id }?.restorable.map(\.trashed), [elsewhere.path])
+    }
+}

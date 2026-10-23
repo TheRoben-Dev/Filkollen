@@ -8,6 +8,8 @@ struct CleanupHistory: Sendable {
         let trashed: String
         let size: Int64
         var restored = false
+        /// Deleted from the Trash by "Empty Filkollen's Items"; optional so older history still loads.
+        var emptied: Bool? = nil
     }
 
     struct Record: Codable, Identifiable, Hashable, Sendable {
@@ -19,7 +21,7 @@ struct CleanupHistory: Sendable {
         let bytes: Int64
         let reclaimable: Int64
 
-        var restorable: [Item] { items.filter { !$0.restored } }
+        var restorable: [Item] { items.filter { !$0.restored && $0.emptied != true } }
     }
 
     enum PutBackError: LocalizedError, Equatable {
@@ -77,7 +79,7 @@ struct CleanupHistory: Sendable {
         var all = records()
         guard let index = all.firstIndex(where: { $0.id == recordID }) else { return [:] }
         var failures: [String: PutBackError] = [:]
-        for i in all[index].items.indices where !all[index].items[i].restored {
+        for i in all[index].items.indices where !all[index].items[i].restored && all[index].items[i].emptied != true {
             let item = all[index].items[i]
             if let only, !only.contains(item.original) { continue }
             let original = URL(fileURLWithPath: item.original)
@@ -96,6 +98,40 @@ struct CleanupHistory: Sendable {
         save(all)
         Log.cleaner.info("Put back \(all[index].items.filter(\.restored).count) items, \(failures.count) couldn't go back")
         return failures
+    }
+
+    /// What "Empty Filkollen's Items" would delete: things Filkollen moved that are
+    /// still sitting directly in the Trash. Nothing else in the Trash is touched.
+    func itemsInTrash(home: URL, fileManager fm: FileManager = .default) -> [Item] {
+        let trash = SafetyGuard.fold(SafetyGuard.canonicalPath(home.appendingPathComponent(".Trash").path) ?? "")
+        guard !trash.isEmpty else { return [] }
+        return records().flatMap(\.restorable).filter { item in
+            guard (try? fm.attributesOfItem(atPath: item.trashed)) != nil else { return false }
+            // Its parent, resolved, must be the Trash itself.
+            let parent = URL(fileURLWithPath: item.trashed).deletingLastPathComponent().path
+            return SafetyGuard.fold(SafetyGuard.canonicalPath(parent) ?? "") == trash
+        }
+    }
+
+    /// Permanently deletes `itemsInTrash`. Returns bytes freed and how many failed.
+    func emptyFromTrash(home: URL, fileManager fm: FileManager = .default) -> (freed: Int64, failed: Int) {
+        let targets = Set(itemsInTrash(home: home, fileManager: fm).map(\.trashed))
+        var all = records()
+        var freed: Int64 = 0, failed = 0
+        for r in all.indices {
+            for i in all[r].items.indices where targets.contains(all[r].items[i].trashed) {
+                do {
+                    try fm.removeItem(atPath: all[r].items[i].trashed)
+                    all[r].items[i].emptied = true
+                    freed += all[r].items[i].size
+                } catch {
+                    failed += 1
+                }
+            }
+        }
+        save(all)
+        Log.cleaner.notice("Emptied \(targets.count - failed) of Filkollen's items from the Trash")
+        return (freed, failed)
     }
 
     /// Lifetime totals, for the stats line.

@@ -5,6 +5,8 @@ struct HistoryView: View {
     @EnvironmentObject private var model: AppModel
     @State private var records: [CleanupHistory.Record] = []
     @State private var expanded: Set<UUID> = []
+    @State private var inTrash: [CleanupHistory.Item] = []
+    @State private var confirmEmpty = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -29,6 +31,20 @@ struct HistoryView: View {
             }
         }
         .foregroundStyle(.white)
+        .confirmationDialog("Delete \(inTrash.count) items permanently?", isPresented: $confirmEmpty, titleVisibility: .visible) {
+            Button("Delete from Trash", role: .destructive) {
+                let history = model.history
+                let home = FileManager.default.homeDirectoryForCurrentUser
+                Task {
+                    let result = await Task.detached(priority: .userInitiated) { history.emptyFromTrash(home: home) }.value
+                    model.putBackMessage = result.failed == 0
+                        ? "Deleted \(result.freed.formattedBytes) of Filkollen's items from the Trash."
+                        : "Deleted \(result.freed.formattedBytes); \(result.failed) items couldn't be deleted."
+                }
+            }
+        } message: {
+            Text("Only items Filkollen moved to the Trash (\(inTrash.reduce(0) { $0 + $1.size }.formattedBytes)) are deleted. Everything else in your Trash stays. This can't be undone.")
+        }
         .onAppear(perform: reload)
         .onChange(of: model.putBackMessage) { _ in reload() }
     }
@@ -44,6 +60,11 @@ struct HistoryView: View {
                     .foregroundStyle(.white.opacity(0.65))
             }
             Spacer()
+            if !inTrash.isEmpty {
+                Button("Empty Filkollen's Items from Trash…") { confirmEmpty = true }
+                    .buttonStyle(GhostButtonStyle())
+                    .help("Frees the space now. Only deletes what Filkollen put in the Trash.")
+            }
         }
     }
 
@@ -57,7 +78,8 @@ struct HistoryView: View {
                 }
                 Spacer()
                 if record.restorable.isEmpty {
-                    Text("Put back").font(.caption).foregroundStyle(.white.opacity(0.5))
+                    Text(record.items.allSatisfy(\.restored) ? "Put back" : "Done")
+                        .font(.caption).foregroundStyle(.white.opacity(0.5))
                 } else {
                     Button("Put Back All") { model.putBack(record.id) }.buttonStyle(GhostButtonStyle())
                 }
@@ -81,6 +103,10 @@ struct HistoryView: View {
                         Text(item.size.formattedBytes).font(.caption).foregroundStyle(.white.opacity(0.6))
                         if item.restored {
                             Image(systemName: "checkmark.circle").foregroundStyle(.green).help("Put back")
+                                .accessibilityLabel("Put back")
+                        } else if item.emptied == true {
+                            Image(systemName: "trash.slash").foregroundStyle(.white.opacity(0.5)).help("Deleted from the Trash")
+                                .accessibilityLabel("Deleted from the Trash")
                         } else {
                             Button("Put Back") { model.putBack(record.id, only: [item.original]) }
                                 .buttonStyle(.plain).font(.caption).foregroundStyle(.cyan)
@@ -92,5 +118,8 @@ struct HistoryView: View {
         .glassCard(padding: 14)
     }
 
-    private func reload() { records = model.history.records() }
+    private func reload() {
+        records = model.history.records()
+        inTrash = model.history.itemsInTrash(home: FileManager.default.homeDirectoryForCurrentUser)
+    }
 }
