@@ -20,12 +20,16 @@ final class ProtectionModel: ObservableObject {
     @AppStorage("useClamAV") var useClamAV = true
 
     var clamAVInstalled: Bool { ClamAV.isInstalled }
+    @Published var clamSignaturesDate = ClamAV.signaturesDate()
     var isBusy: Bool { phase == .updating || phase == .scanning }
 
     /// Database older than a week is considered stale.
-    var databaseIsStale: Bool {
-        guard let date = databaseUpdated else { return true }
-        return date < Date().addingTimeInterval(-7 * 24 * 3600)
+    var databaseIsStale: Bool { Self.isStale(databaseUpdated) }
+    var clamSignaturesAreStale: Bool { Self.isStale(clamSignaturesDate) }
+
+    nonisolated static func isStale(_ date: Date?, now: Date = Date()) -> Bool {
+        guard let date else { return true }
+        return date < now.addingTimeInterval(-7 * 24 * 3600)
     }
 
     func updateDatabase() {
@@ -50,6 +54,7 @@ final class ProtectionModel: ObservableObject {
 
     func scan() {
         guard !isBusy else { return }
+        clamSignaturesDate = ClamAV.signaturesDate()
         phase = .scanning
         threats = []
         errorMessage = nil

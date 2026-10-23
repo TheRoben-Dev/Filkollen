@@ -141,14 +141,19 @@ struct ProtectionView: View {
                 }
                 engineCard(
                     title: "ClamAV (optional)",
-                    detail: protection.clamAVInstalled
-                        ? "Installed. Deeper signature scan, slower"
-                        : "Install with: brew install clamav",
-                    ok: protection.clamAVInstalled,
+                    detail: clamDetail,
+                    ok: protection.clamAVInstalled && !protection.clamSignaturesAreStale,
                     toggle: protection.clamAVInstalled ? $protection.useClamAV : nil
                 )
             }
             .padding(.horizontal, 28)
+
+            if protection.databaseCount > 0 && protection.databaseIsStale {
+                Label("The threat database is more than a week old. Update it before scanning to catch recent malware.",
+                      systemImage: "clock.badge.exclamationmark")
+                    .font(.callout).foregroundStyle(.orange)
+                    .padding(.horizontal, 28)
+            }
 
             Spacer(minLength: 12)
             BigScanButton(title: "Scan") { protection.scan() }
@@ -160,6 +165,17 @@ struct ProtectionView: View {
             Spacer(minLength: 12)
         }
         .padding(.vertical, 8)
+    }
+
+    private var clamDetail: String {
+        guard protection.clamAVInstalled else { return "Install with: brew install clamav" }
+        guard let date = protection.clamSignaturesDate else {
+            return "Installed, but no signatures yet. Run freshclam in Terminal first."
+        }
+        let age = "signatures from \(date.formatted(.relative(presentation: .named)))"
+        return protection.clamSignaturesAreStale
+            ? "Installed, \(age). Run freshclam in Terminal to update them."
+            : "Installed, \(age). Deeper signature scan, slower"
     }
 
     private func engineCard(
