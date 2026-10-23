@@ -1,0 +1,39 @@
+name: Filkollen
+options:
+  bundleIdPrefix: dev.theroben
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  Filkollen:
+    type: application
+    platform: macOS
+    sources:
+      - path: Filkollen
+    info:
+      path: Filkollen/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Filkollen
+        LSApplicationCategoryType: public.app-category.utilities
+        LSMinimumSystemVersion: "13.0"
+        NSHumanReadableCopyright: "© 2026 Roben"
+        NSDesktopFolderUsageDescription: Filkollen scans your Desktop for duplicate photos.
+        NSDownloadsFolderUsageDescription: Filkollen scans Downloads for duplicate photos.
+        NSDocumentsFolderUsageDescription: Filkollen scans Documents for duplicate photos.
+    entitlements:
+      path: Filkollen/Resources/Filkollen.entitlements
+      properties:
+        com.apple.security.app-sandbox: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.theroben.Filkollen
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_STYLE: Automatic
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        COMBINE_HIDPI_IMAGES: YES
