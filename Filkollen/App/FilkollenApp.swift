@@ -24,6 +24,9 @@ struct FilkollenApp: App {
         .windowResizability(.contentMinSize)
         .commands {
             CommandGroup(replacing: .newItem) {}
+            CommandGroup(after: .help) {
+                Button("Export Diagnostics…") { Diagnostics.export() }
+            }
             CommandMenu("Scan") {
                 Button("Smart Scan") { delegate.model.startSmartScan() }
                     .keyboardShortcut("r", modifiers: .command)
