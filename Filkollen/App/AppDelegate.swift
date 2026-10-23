@@ -16,6 +16,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
     /// Set by the first SwiftUI view that appears; reopens the main window later.
     var openMainWindowAction: (() -> Void)?
+    /// Set by `SettingsOpener` on macOS 14+, where the old selector no longer opens Settings.
+    var openSettingsAction: (() -> Void)?
 
     override init() {
         Pref.registerDefaults()
@@ -96,7 +98,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
     func showSettings() {
         NSApp.activate(ignoringOtherApps: true)
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        if let open = openSettingsAction {
+            open()
+        } else {
+            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        }
     }
 
     func hideToMenuBar() {
@@ -126,6 +132,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         guard let event = NSAppleEventManager.shared().currentAppleEvent else { return false }
         return event.eventID == kAEOpenApplication
             && event.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem
+    }
+}
+
+/// Hands SwiftUI's `openSettings` to the app delegate so the menu bar panel and
+/// the snapshot runner can open Settings. `showSettingsWindow:` stopped working in macOS 14.
+@available(macOS 14.0, *)
+private struct SettingsOpener: View {
+    @Environment(\.openSettings) private var openSettings
+    let app: AppDelegate
+
+    var body: some View {
+        Color.clear.frame(width: 0, height: 0)
+            .onAppear { app.openSettingsAction = { openSettings() } }
+    }
+}
+
+extension View {
+    func registersSettingsOpener(_ app: AppDelegate) -> some View {
+        background {
+            if #available(macOS 14.0, *) { SettingsOpener(app: app) }
+        }
     }
 }
 

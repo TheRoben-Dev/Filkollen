@@ -33,13 +33,13 @@ def colorset(name, light, dark, hc_light=None, hc_dark=None, alpha=(1, 1), hc_al
 colorset("Fjord", "#0D757E", "#45B8C1", "#08565D", "#8FDCE2")
 colorset("Success", "#22784A", "#4CC38A", "#17573A", "#8FE3B8")
 colorset("Warning", "#8E5F00", "#E5A93B", "#6E4A00", "#F5CB7A")
-colorset("Danger", "#C2343A", "#FF6B6B", "#8F1F24", "#FFA3A3")
+colorset("Danger", "#C2343A", "#FF6B6B", "#8F1F24", "#FFBDBD")
 colorset("Info", "#0B63CE", "#5AA9FF", "#084A9C", "#99CCFF")
 
 # Protection: calm to alert.
 colorset("ProtectionSafe", "#3A7555", "#6FBF92", "#2C5C42", "#A3DDBC")
 colorset("ProtectionAttention", "#8E5F00", "#E5A93B", "#6E4A00", "#F5CB7A")
-colorset("ProtectionThreat", "#B42D33", "#FF6B6B", "#861E23", "#FFA3A3")
+colorset("ProtectionThreat", "#B42D33", "#FF6B6B", "#861E23", "#FFBDBD")
 
 # Surfaces. Dark surfaces are white overlays so they sit on any window background.
 colorset("Surface", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", alpha=(1, 0.05), hc_alpha=(1, 0.10))

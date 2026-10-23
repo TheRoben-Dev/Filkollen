@@ -71,13 +71,34 @@ final class DesignTokenTests: XCTestCase {
         }
     }
 
+    /// AppKit only picks Increased Contrast variants from the live system setting
+    /// (a named high-contrast NSAppearance resolves to the normal one), so this
+    /// reads the colour sets from the source catalog instead.
     func testIncreasedContrastIsStronger() throws {
+        let catalog = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("Filkollen/Resources/Assets.xcassets/DesignSystem")
         let white = NSColor.white.usingColorSpace(.sRGB)!
+        let darkWindow = NSColor(srgbRed: 50 / 255, green: 50 / 255, blue: 50 / 255, alpha: 1)
         for name in textTokens {
-            let color = try token(name)
-            let normal = contrast(resolve(color, in: .aqua), white)
-            let high = contrast(resolve(color, in: .accessibilityHighContrastAqua), white)
-            XCTAssertGreaterThan(high, normal, "\(name) should gain contrast with Increased Contrast")
+            let url = catalog.appendingPathComponent("\(name).colorset/Contents.json")
+            let json = try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any]
+            let entries = try XCTUnwrap(json?["colors"] as? [[String: Any]])
+            func variant(dark: Bool, high: Bool) throws -> NSColor {
+                let match = entries.first { entry in
+                    let looks = (entry["appearances"] as? [[String: String]]) ?? []
+                    return looks.contains { $0["value"] == "dark" } == dark && looks.contains { $0["value"] == "high" } == high
+                }
+                let parts = try XCTUnwrap((match?["color"] as? [String: Any])?["components"] as? [String: String])
+                func c(_ k: String) -> CGFloat { CGFloat(Double(parts[k] ?? "0") ?? 0) }
+                return NSColor(srgbRed: c("red"), green: c("green"), blue: c("blue"), alpha: 1)
+            }
+            let light = (try contrast(variant(dark: false, high: false), white), try contrast(variant(dark: false, high: true), white))
+            let dark = (try contrast(variant(dark: true, high: false), darkWindow), try contrast(variant(dark: true, high: true), darkWindow))
+            XCTAssertGreaterThan(light.1, light.0, "\(name) light should gain contrast with Increased Contrast")
+            XCTAssertGreaterThan(dark.1, dark.0, "\(name) dark should gain contrast with Increased Contrast")
+            XCTAssertGreaterThanOrEqual(light.1, 7, "\(name) light Increased Contrast should reach AAA")
+            XCTAssertGreaterThanOrEqual(dark.1, 7, "\(name) dark Increased Contrast should reach AAA")
         }
     }
 

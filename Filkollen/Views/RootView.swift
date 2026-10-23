@@ -20,6 +20,7 @@ struct RootView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             model.refreshFullDiskAccess()
         }
+        .registersSettingsOpener(app)
         .onAppear {
             app.openMainWindowAction = { openWindow(id: "main") }
             DispatchQueue.main.async { app.hideIfPending() }

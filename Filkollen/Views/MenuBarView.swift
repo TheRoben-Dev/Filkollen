@@ -30,6 +30,7 @@ struct MenuBarView: View {
         .foregroundStyle(.white)
         .background(BackdropView(tint: headerTint).clipped())
         .preferredColorScheme(.dark)
+        .registersSettingsOpener(app)
         .onAppear {
             app.openMainWindowAction = { openWindow(id: "main") }
             refresh(includeTrash: true)
