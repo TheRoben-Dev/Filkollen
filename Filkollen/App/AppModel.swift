@@ -186,8 +186,8 @@ final class AppModel: ObservableObject {
     func setAllSelected(_ selected: Bool, in category: JunkCategory) {
         guard var result = results[category] else { return }
         for i in result.items.indices {
-            // Never auto-select the copy we keep in a duplicate group.
-            if result.items[i].isKeeper { continue }
+            // Never auto-select the copy we keep in a duplicate group, or something an app is using.
+            if result.items[i].isKeeper || (selected && result.items[i].inUseBy != nil) { continue }
             result.items[i].isSelected = selected
         }
         results[category] = result

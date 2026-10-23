@@ -13,13 +13,14 @@ struct CacheScanner {
 
     func scan(progress: @escaping @Sendable (String) -> Void) -> [JunkItem] {
         let throttle = ProgressThrottle(progress)
+        let running = context.runningApps()
         var items: [JunkItem] = []
 
-        items += children(of: context.library("Caches"), group: "User Caches", throttle: throttle)
-        items += children(of: context.library("Logs"), group: "User Logs", throttle: throttle)
+        items += children(of: context.library("Caches"), group: "User Caches", running: running, throttle: throttle)
+        items += children(of: context.library("Logs"), group: "User Logs", running: running, throttle: throttle)
         items += children(
             of: context.library("Developer/Xcode/DerivedData"),
-            group: "Xcode Derived Data", throttle: throttle
+            group: "Xcode Derived Data", running: [], throttle: throttle
         )
         if Task.isCancelled { return [] }
         items += oldTempFiles(throttle: throttle)
@@ -28,7 +29,7 @@ struct CacheScanner {
     }
 
     private func children(
-        of dir: URL, group: String, throttle: ProgressThrottle
+        of dir: URL, group: String, running: [ScanContext.RunningApp], throttle: ProgressThrottle
     ) -> [JunkItem] {
         let entries: [URL]
         do {
@@ -44,6 +45,19 @@ struct CacheScanner {
                   fm.isDeletableFile(atPath: url.path) else { return nil }
             throttle.report(url.abbreviatedPath)
             let friendly = AppNames.friendlyName(for: url.lastPathComponent)
+            // A running app may be writing to its cache right now; let the user decide.
+            if let owner = RunningApps.owner(of: url.lastPathComponent, in: running) {
+                return JunkItem(
+                    url: url,
+                    size: FileSizer.allocatedSize(of: url),
+                    category: .systemJunk,
+                    group: group,
+                    detail: "\(owner.name.isEmpty ? owner.bundleID : owner.name) is running. Quit it first to clean this safely.",
+                    isSelected: false,
+                    modified: FileSizer.modificationDate(url),
+                    inUseBy: owner.name.isEmpty ? owner.bundleID : owner.name
+                )
+            }
             return JunkItem(
                 url: url,
                 size: FileSizer.allocatedSize(of: url),

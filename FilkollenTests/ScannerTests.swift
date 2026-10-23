@@ -36,6 +36,28 @@ final class CacheScannerTests: XCTestCase {
         XCTAssertEqual(shown.map(\.name), ["com.vendor.app"])
     }
 
+    func testRunningAppsCachesAreUnselectedAndFlagged() throws {
+        try fx.file("Library/Caches/com.spotify.client/data", bytes: 8_000)
+        try fx.file("Library/Caches/com.spotify.client.ShipIt/data", bytes: 8_000)
+        try fx.file("Library/Caches/Firefox/Profiles/x", bytes: 8_000)
+        try fx.file("Library/Caches/Google/Chrome/x", bytes: 8_000)
+        try fx.file("Library/Caches/com.idle.app/data", bytes: 8_000)
+        let running: [ScanContext.RunningApp] = [
+            .init(bundleID: "com.spotify.client", name: "Spotify", executable: "Spotify"),
+            .init(bundleID: "org.mozilla.firefox", name: "Firefox", executable: "firefox"),
+            .init(bundleID: "com.google.Chrome", name: "Google Chrome", executable: "Google Chrome"),
+        ]
+        let items = CacheScanner(context: fx.context(running: running)).scan(progress: noProgress)
+        let byName = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0) })
+
+        for name in ["com.spotify.client", "com.spotify.client.ShipIt", "Firefox", "Google"] {
+            XCTAssertEqual(byName[name]?.isSelected, false, name)
+            XCTAssertNotNil(byName[name]?.inUseBy, name)
+        }
+        XCTAssertEqual(byName["com.idle.app"]?.isSelected, true)
+        XCTAssertNil(byName["com.idle.app"]?.inUseBy)
+    }
+
     func testOnlyOldTempFilesAreListed() throws {
         let now = Date()
         try fx.file("old.tmp", in: fx.temp, bytes: 4_000, modified: now.addingTimeInterval(-5 * 86_400))

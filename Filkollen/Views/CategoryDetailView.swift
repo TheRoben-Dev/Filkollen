@@ -136,7 +136,9 @@ private struct GroupCard: View {
     let items: [JunkItem]
     @Binding var isExpanded: Bool
 
-    private var allSelected: Bool { items.filter { !$0.isKeeper }.allSatisfy(\.isSelected) }
+    /// Items a group checkbox selects: never the kept duplicate or something in use.
+    private var selectable: [JunkItem] { items.filter { !$0.isKeeper && $0.inUseBy == nil } }
+    private var allSelected: Bool { !selectable.isEmpty && selectable.allSatisfy(\.isSelected) }
     private var total: Int64 { items.reduce(0) { $0 + $1.size } }
 
     var body: some View {
@@ -144,7 +146,11 @@ private struct GroupCard: View {
             HStack(spacing: 12) {
                 Toggle("", isOn: Binding(
                     get: { allSelected },
-                    set: { v in for i in items where !i.isKeeper { model.setSelected(v, item: i.id, in: category) } }
+                    set: { v in
+                        for i in items where !i.isKeeper && (!v || i.inUseBy == nil) {
+                            model.setSelected(v, item: i.id, in: category)
+                        }
+                    }
                 ))
                 .toggleStyle(.checkbox).labelsHidden()
 
@@ -209,6 +215,13 @@ private struct ItemRow: View {
                             .font(.caption2.bold())
                             .padding(.horizontal, 6).padding(.vertical, 1)
                             .background(Theme.safe, in: Capsule())
+                    }
+                    if item.inUseBy != nil {
+                        Text("IN USE")
+                            .font(.caption2.bold())
+                            .padding(.horizontal, 6).padding(.vertical, 1)
+                            .background(.orange, in: Capsule())
+                            .accessibilityLabel("In use by \(item.inUseBy ?? "a running app")")
                     }
                 }
                 Text(item.detail).font(.caption).foregroundStyle(.white.opacity(0.5))
