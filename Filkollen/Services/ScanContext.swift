@@ -22,6 +22,8 @@ struct ScanContext: @unchecked Sendable {
 
     /// Temp files younger than this are probably in use.
     var tempMinAge: TimeInterval = 3 * 24 * 3600
+    /// Downloads older than this count as old installers.
+    var installerMinAge: TimeInterval = 30 * 24 * 3600
     /// Large & Old Files threshold.
     var largeFileMinBytes: Int64 = 500 * 1_048_576
     /// Where scanners may keep caches between runs; nil keeps them in memory.

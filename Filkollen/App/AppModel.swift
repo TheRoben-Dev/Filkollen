@@ -179,6 +179,7 @@ final class AppModel: ObservableObject {
             case .duplicatePhotos: found = DuplicatePhotoScanner(context: context).scan(progress: progress)
             case .largeFiles: found = LargeFileScanner(context: context).scan(progress: progress)
             case .developerJunk: found = DeveloperScanner(context: context).scan(progress: progress)
+            case .oldInstallers: found = InstallerScanner(context: context).scan(progress: progress)
             }
             if context.isCancelled { return [] }
             return screened(found, category: category)
