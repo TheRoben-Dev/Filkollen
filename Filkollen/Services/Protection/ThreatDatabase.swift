@@ -108,7 +108,8 @@ final class ThreatDatabase: @unchecked Sendable {
 
     enum UpdateError: LocalizedError {
         case authRequired
-        case http(Int)
+        case keyRejected(Int, String)
+        case http(Int, String)
         case unexpectedContent(String)
         case empty
 
@@ -116,10 +117,14 @@ final class ThreatDatabase: @unchecked Sendable {
             switch self {
             case .authRequired:
                 return "MalwareBazaar needs a free abuse.ch Auth-Key. Add it in Settings › Protection (get one at auth.abuse.ch)."
-            case .http(let code):
-                return "abuse.ch answered with HTTP \(code)."
+            case .keyRejected(let code, let message):
+                return message.isEmpty
+                    ? "abuse.ch rejected the Auth-Key (HTTP \(code))."
+                    : "abuse.ch rejected the Auth-Key: \(message)"
+            case .http(let code, let message):
+                return "abuse.ch answered with HTTP \(code)" + (message.isEmpty ? "." : ": \(message)")
             case .unexpectedContent(let snippet):
-                return "abuse.ch sent something other than a hash list: \"\(snippet)\""
+                return "abuse.ch said: \"\(snippet)\""
             case .empty:
                 return "The downloaded hash list was empty."
             }
@@ -152,7 +157,7 @@ final class ThreatDatabase: @unchecked Sendable {
                 try fm.moveItem(at: try await Self.download(base.appendingPathComponent(name)), to: dest)
                 fullFile = dest
                 break
-            } catch UpdateError.http(404), UpdateError.http(410) {
+            } catch UpdateError.http(404, _), UpdateError.http(410, _) {
                 continue
             }
         }
@@ -190,14 +195,21 @@ final class ThreatDatabase: @unchecked Sendable {
     private static func download(_ url: URL) async throws -> URL {
         var request = URLRequest(url: url)
         request.setValue("Filkollen/1.0 (macOS)", forHTTPHeaderField: "User-Agent")
-        if let key = authKey { request.setValue(key, forHTTPHeaderField: "Auth-Key") }
+        let key = authKey
+        if let key { request.setValue(key, forHTTPHeaderField: "Auth-Key") }
 
         let (file, response) = try await URLSession.shared.download(for: request)
         if let http = response as? HTTPURLResponse {
-            switch http.statusCode {
-            case 200..<300: break
-            case 401, 403: throw UpdateError.authRequired
-            default: throw UpdateError.http(http.statusCode)
+            let code = http.statusCode
+            if !(200..<300).contains(code) {
+                // abuse.ch explains rejections in the body, e.g. "Email address not confirmed".
+                let body = (try? Data(contentsOf: file)).map { String(decoding: $0.prefix(300), as: UTF8.self) } ?? ""
+                let message = body.trimmingCharacters(in: .whitespacesAndNewlines)
+                    .replacingOccurrences(of: key ?? "\u{0}", with: "…")
+                switch code {
+                case 401, 403: throw UpdateError.keyRejected(code, message)
+                default: throw UpdateError.http(code, message)
+                }
             }
         }
         return file
@@ -216,10 +228,6 @@ final class ThreatDatabase: @unchecked Sendable {
         parse(text, into: &set)
         guard set.count == before else { return }
 
-        let lower = text.lowercased()
-        if lower.contains("auth-key") || lower.contains("unauthorized") || lower.contains("api key") {
-            throw UpdateError.authRequired
-        }
         // Only comments and no hashes is a valid (if quiet) "recent" export.
         let meaningful = text.split(whereSeparator: \.isNewline)
             .map { $0.trimmingCharacters(in: .whitespaces) }
