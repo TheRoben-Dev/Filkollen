@@ -73,3 +73,29 @@ Models are `@MainActor ObservableObject`s. Heavy work is synchronous code run in
 5. **Wire it up** in `AppModel.runScanner` and `CategoryDetailView` (group titles/subtitles). The review sheet and Cleaner need nothing new.
 6. **Test it** against a fixture tree: what it finds, what it must ignore, zero-byte and unreadable entries, cancellation.
 7. **Document it** in the README feature table, `CHANGELOG.md` and the roadmap.
+
+## Design system
+
+All styling comes from `Filkollen/DesignSystem/`, namespaced under `DS`. The direction behind it is in `docs/design/DIRECTION.md`; the audit that motivated it is `docs/design/AUDIT.md`.
+
+| File | Tokens |
+|---|---|
+| `DSColor.swift` | `DS.Color` (background layers, surfaces, text, separator, brand, status), `DS.ProtectionState`, `DS.CategoryFamily`, `JunkCategory.family/.dsTint/.dsSymbol`, `.dsAccent()` |
+| `DSType.swift` | `DS.Font` (display, numeric, title, headline, body, callout, caption, badge, path), `Text.dsPath()` |
+| `DSLayout.swift` | `DS.Space` (4-pt scale), `DS.Layout` (window, sidebar, inspector, readable widths), `DS.Inset` (padding per container type) |
+| `DSShape.swift` | `DS.Radius`, `DS.shape(_:)` (continuous corners), `DS.Elevation` + `.dsElevation()` / `.dsCard()`, `DS.MaterialRole` + `.dsMaterial()` / `.dsGlass()` |
+| `DSMotion.swift` | `DS.Motion` (snappy, smooth, gentle), `DS.Duration`, `withMotion`, `.dsAnimation()`, `.dsTransition()`, `.dsRise` / `.dsPop` |
+| `DSIcon.swift` | `DS.Icon.TileSize`, shared action symbols, `DSTile` |
+
+Colours that aren't system colours live in `Assets.xcassets/DesignSystem` (namespaced, so `Color("DesignSystem/Fjord")`), each with light, dark and both Increased Contrast variants. Regenerate them with `python3 scripts/design-colors.py Filkollen/Resources/Assets.xcassets/DesignSystem` rather than editing JSON by hand, then copy `Fjord` over `AccentColor`. `DesignTokenTests` fails if a colour drops below WCAG AA (4.5:1 text, 4:1 white on tiles) or Increased Contrast below 7:1.
+
+### Rules for a new screen
+
+1. **No literals.** Colours, fonts, spacing, radii, shadows and animations all come from `DS`. If a token is missing, add it to `DesignSystem/` and the Design Gallery, don't inline a number.
+2. **Follow the system.** Use `DS.Color.text*` and `DS.Color.background*`, never `.white.opacity(x)`. Never force a colour scheme. Interactive colour is `.tint`, which follows the system accent or Fjord via `.dsAccent()` at each scene root.
+3. **Red means danger.** `DS.Color.danger` is only for threats, Delete Permanently and Empty Trash. Routine junk uses its category tint; warnings use `DS.Color.warning`.
+4. **Numbers are monospaced.** Every size and count uses a `DS.Font.numeric*` or `display` token.
+5. **Depth from `DS.Elevation`.** Cards use `.dsCard()`. Blur only through `.dsMaterial(_:)`/`.dsGlass(in:)`, never behind scrolling content; both fall back to solid under Reduce Transparency.
+6. **Motion from `DS.Motion`.** Use `.dsAnimation`, `withMotion` and `.dsTransition`; they turn into crossfades under Reduce Motion. Nothing loops unless work is happening.
+7. **Symbols are SF Symbols, hierarchical.** Category and tool tiles are `DSTile` at `.small` (sidebar), `.medium` (rows, cards) or `.large` (headers).
+8. **Check it in the gallery and snapshots.** Debug › Design Gallery (⌥⌘G) shows tokens in light and dark. Run a Debug build with `-FKSnapshotDir <folder>` to capture every screen and state on fixture data; add new states to `Debug/SnapshotRunner.swift`.

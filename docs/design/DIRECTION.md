@@ -1,6 +1,6 @@
 # Design direction: "Lagom"
 
-*Proposal for approval. Nothing below is implemented yet.*
+*Approved by Roben on 2026-10-23 with Fjord teal as the brand accent. Implemented as tokens in `Filkollen/DesignSystem/`; final values in the asset catalog and `scripts/design-colors.py`.*
 
 Filkollen is a Swedish tool that looks after your files. The direction takes that literally: **lagom**, just the right amount. It should feel like it was made by the people who made Finder and System Settings, then given one moment of real craft where it matters: the scan.
 
@@ -24,13 +24,13 @@ Three words to test every screen against: **quiet, exact, warm**.
 
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| `accent.brand` (Fjord) | #0E7C86 | #45B8C1 | Icon, scan ring, brand moments. Opt-in for controls. |
-| `success` | #2E8B57 | #4CC38A | Clean, done, protected. |
-| `warning` | #B7791F | #E5A93B | Needs a look: low confidence, stale database, in use. |
+| `accent.brand` (Fjord) | #0D757E | #45B8C1 | Icon, scan ring, brand moments. Opt-in for controls. |
+| `success` | #22784A | #4CC38A | Clean, done, protected. |
+| `warning` | #8E5F00 | #E5A93B | Needs a look: low confidence, stale database, in use. |
 | `danger` | #C2343A | #FF6B6B | Threats and permanent deletion only. |
 | `info` | system blue | system blue | Neutral notes, links. |
 
-Text, separators, backgrounds and surfaces map to the system's semantic colours (`labelColor`, `secondaryLabelColor`, `separatorColor`, `windowBackgroundColor`, `controlBackgroundColor`, `underPageBackgroundColor`) wrapped as tokens, so they adapt to accessibility settings for free. Hex values above are starting points; every pair will be checked to WCAG AA against its background in both themes plus Increased Contrast before Phase 1 lands.
+Text, separators, backgrounds and surfaces map to the system's semantic colours (`labelColor`, `secondaryLabelColor`, `separatorColor`, `windowBackgroundColor`, `controlBackgroundColor`, `underPageBackgroundColor`) wrapped as tokens, so they adapt to accessibility settings for free. Hex values above are starting points; every value is at least 4.5:1 on the window background in its theme, and Increased Contrast variants reach 7:1 (`DesignTokenTests`).
 
 **Category tints have meaning, not a rainbow.** Nine hues become three families, at the same muted lightness and saturation, so they sit together:
 
