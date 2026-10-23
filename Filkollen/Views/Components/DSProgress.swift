@@ -62,6 +62,8 @@ struct DSScanRing<Center: View>: View {
     var settled: Bool
     var diameter: CGFloat = 240
     var lineWidth: CGFloat = 14
+    /// What VoiceOver says instead of the scan progress, for other kinds of work (cleaning, malware scan).
+    var label: String? = nil
     @ViewBuilder var center: Center
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -102,6 +104,7 @@ struct DSScanRing<Center: View>: View {
     }
 
     private var accessibilityText: String {
+        if let label { return label }
         let done = segments.filter { $0.progress >= 1 }.count
         return isWorking
             ? String(localized: "Scanning, \(done) of \(segments.count) done")

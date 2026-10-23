@@ -16,23 +16,30 @@ struct ProtectionView: View {
     static let startTab = Tab.scan
     #endif
 
+    /// Calm to alert, one layout: only colour, symbol and words change.
+    private var state: DS.ProtectionState {
+        if !protection.threats.isEmpty { return .threat }
+        if protection.databaseCount == 0 || protection.databaseIsStale { return .attention }
+        return .protected
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            header.padding(.horizontal, 28).padding(.top, 28).padding(.bottom, 16)
+            header.padding(DS.Inset.page)
 
-            Picker("", selection: $tab) {
+            Picker("Section", selection: $tab) {
                 ForEach(Tab.allCases, id: \.self) { t in
                     Text(t == .quarantine && !protection.quarantined.isEmpty
-                         ? "\(t.rawValue) (\(protection.quarantined.count))" : t.rawValue).tag(t)
+                         ? "\(String(localized: String.LocalizationValue(t.rawValue))) (\(protection.quarantined.count))"
+                         : String(localized: String.LocalizationValue(t.rawValue))).tag(t)
                 }
             }
             .pickerStyle(.segmented).labelsHidden().frame(width: 380)
-            .padding(.bottom, 16)
+            .padding(.bottom, DS.Space.lg)
 
             if let error = protection.errorMessage {
-                Label(error, systemImage: "exclamationmark.triangle.fill")
-                    .font(.callout).foregroundStyle(.orange)
-                    .padding(.horizontal, 28).padding(.bottom, 10)
+                DSBanner(.error, title: error)
+                    .padding(.horizontal, DS.Space.xxl).padding(.bottom, DS.Space.md)
             }
 
             switch tab {
@@ -42,7 +49,6 @@ struct ProtectionView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .foregroundStyle(.white)
         .confirmationDialog(
             "Permanently delete \(pendingDelete.count) file(s)?",
             isPresented: Binding(get: { !pendingDelete.isEmpty }, set: { if !$0 { pendingDelete = [] } }),
@@ -71,18 +77,16 @@ struct ProtectionView: View {
     // MARK: Header
 
     private var header: some View {
-        HStack(spacing: 16) {
-            GradientIcon(
-                symbol: protection.threats.isEmpty ? "checkmark.shield.fill" : "exclamationmark.shield.fill",
-                gradient: protection.threats.isEmpty ? Theme.safe : Theme.danger, size: 56
-            )
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Malware Scan").font(.system(size: 26, weight: .bold, design: .rounded))
-                Text("Checks downloads, apps and launch items against known threats")
-                    .foregroundStyle(.white.opacity(0.65))
-            }
-            Spacer()
+        DSPageHeader(title: String(localized: "Malware Scan"),
+                     subtitle: String(localized: "Checks downloads, apps and launch items against known threats"),
+                     tile: DSTile(symbol: state.symbol, tint: state.color, size: .large)) {
+            Label(state.title, systemImage: state.symbol)
+                .font(DS.Font.captionEmphasized)
+                .foregroundStyle(state.color)
+                .padding(DS.Inset.button)
+                .background(state.color.opacity(0.12), in: Capsule())
         }
+        .dsAnimation(.smooth, value: state)
     }
 
     // MARK: Scan tab
@@ -90,25 +94,29 @@ struct ProtectionView: View {
     @ViewBuilder private var scanTab: some View {
         switch protection.phase {
         case .updating, .scanning:
-            VStack(spacing: 18) {
-                Spacer()
-                ScanningRing(gradient: AngularGradient(colors: [.green, .teal, .blue, .green], center: .center), size: 150)
+            VStack(spacing: DS.Space.xl) {
+                Spacer(minLength: 0)
+                DSScanRing(segments: [], isWorking: true, settled: false, diameter: 150, lineWidth: 10,
+                           label: protection.phase == .updating ? String(localized: "Updating threat database")
+                                                                : String(localized: "Scanning for malware")) {
+                    Image(systemName: "shield.lefthalf.filled")
+                        .font(.system(size: 36, weight: .regular))
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(DS.Color.brand)
+                }
                 Text(protection.phase == .updating ? "Updating threat database…" : "Scanning for malware…")
-                    .font(.title3.weight(.semibold))
-                Text(protection.status).font(.caption.monospaced()).foregroundStyle(.white.opacity(0.55))
-                    .lineLimit(1).truncationMode(.middle).frame(maxWidth: 520)
-                Spacer()
+                    .font(DS.Font.sectionTitle).foregroundStyle(DS.Color.textPrimary)
+                Text(protection.status).dsPath(DS.Font.pathBody).frame(maxWidth: DS.Layout.readableWidth)
+                Spacer(minLength: 0)
             }
+            .padding(DS.Inset.page)
         case .finished where !protection.threats.isEmpty:
             threatList
         case .finished:
-            VStack(spacing: 14) {
-                Spacer()
-                GradientIcon(symbol: "checkmark.shield.fill", gradient: Theme.safe, size: 90)
-                Text("No threats found").font(.title2.weight(.semibold))
-                Text("\(protection.filesChecked) files checked").foregroundStyle(.white.opacity(0.6))
-                Button("Scan Again") { protection.scan() }.buttonStyle(GhostButtonStyle())
-                Spacer()
+            DSEmptyState(symbol: "checkmark.shield.fill", tint: DS.ProtectionState.protected.color,
+                         title: String(localized: "No threats found"),
+                         message: String(localized: "\(protection.filesChecked) files checked")) {
+                Button("Scan Again") { protection.scan() }.buttonStyle(.dsSecondary)
             }
         case .idle:
             idle
@@ -127,112 +135,122 @@ struct ProtectionView: View {
     }
 
     private var idleContent: some View {
-        VStack(spacing: 18) {
-            HStack(alignment: .top, spacing: 16) {
-                VStack(alignment: .leading, spacing: 10) {
+        VStack(spacing: DS.Space.lg) {
+            HStack(alignment: .top, spacing: DS.Space.lg) {
+                VStack(alignment: .leading, spacing: DS.Space.sm) {
                     engineCard(
                         title: "MalwareBazaar",
                         detail: protection.databaseCount > 0
-                            ? "\(protection.databaseCount.formatted()) known threats · updated \(protection.databaseUpdated?.formatted(.relative(presentation: .named)) ?? "never")"
-                            : "Not downloaded yet. Needs a free abuse.ch Auth-Key.",
+                            ? String(localized: "\(protection.databaseCount.formatted()) known threats · updated \(protection.databaseUpdated?.formatted(.relative(presentation: .named)) ?? String(localized: "never"))")
+                            : String(localized: "Not downloaded yet. Needs a free abuse.ch Auth-Key."),
                         ok: !protection.databaseIsStale,
-                        action: ("Update", protection.updateDatabase)
+                        action: (String(localized: "Update"), protection.updateDatabase)
                     )
                     if abuseChAuthKey.isEmpty {
-                        HStack {
+                        HStack(spacing: DS.Space.sm) {
                             SecureField("Paste your abuse.ch Auth-Key", text: $abuseChAuthKey)
                                 .textFieldStyle(.roundedBorder)
                             Link("Get one", destination: URL(string: "https://auth.abuse.ch/")!)
-                                .font(.caption)
+                                .font(DS.Font.caption)
                         }
                     }
                 }
                 engineCard(
-                    title: "ClamAV (optional)",
+                    title: String(localized: "ClamAV (optional)"),
                     detail: clamDetail,
                     ok: protection.clamAVInstalled && !protection.clamSignaturesAreStale,
                     toggle: protection.clamAVInstalled ? $protection.useClamAV : nil
                 )
             }
-            .padding(.horizontal, 28)
+            .padding(.horizontal, DS.Space.xxl)
 
             if protection.databaseCount > 0 && protection.databaseIsStale {
-                Label("The threat database is more than a week old. Update it before scanning to catch recent malware.",
-                      systemImage: "clock.badge.exclamationmark")
-                    .font(.callout).foregroundStyle(.orange)
-                    .padding(.horizontal, 28)
+                DSBanner(.warning, title: String(localized: "The threat database is more than a week old."),
+                         message: String(localized: "Update it before scanning to catch recent malware."))
+                    .padding(.horizontal, DS.Space.xxl)
             }
 
-            Spacer(minLength: 12)
-            BigScanButton(title: "Scan") { protection.scan() }
-                .disabled(protection.databaseCount == 0 && !(protection.clamAVInstalled && protection.useClamAV))
-            if protection.databaseCount == 0 {
-                Text("Download the threat database first.")
-                    .font(.callout).foregroundStyle(.white.opacity(0.6))
+            Spacer(minLength: DS.Space.md)
+            VStack(spacing: DS.Space.sm) {
+                Button("Scan for Malware") { protection.scan() }
+                    .buttonStyle(.ds(.primary, size: .large))
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(protection.databaseCount == 0 && !(protection.clamAVInstalled && protection.useClamAV))
+                if protection.databaseCount == 0 {
+                    Text("Download the threat database first.")
+                        .font(DS.Font.callout).foregroundStyle(DS.Color.textSecondary)
+                }
             }
-            Spacer(minLength: 12)
+            Spacer(minLength: DS.Space.md)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, DS.Space.sm)
     }
 
     private var clamDetail: String {
-        guard protection.clamAVInstalled else { return "Install with: brew install clamav" }
+        guard protection.clamAVInstalled else { return String(localized: "Install with: brew install clamav") }
         guard let date = protection.clamSignaturesDate else {
-            return "Installed, but no signatures yet. Run freshclam in Terminal first."
+            return String(localized: "Installed, but no signatures yet. Run freshclam in Terminal first.")
         }
-        let age = "signatures from \(date.formatted(.relative(presentation: .named)))"
+        let age = String(localized: "signatures from \(date.formatted(.relative(presentation: .named)))")
         return protection.clamSignaturesAreStale
-            ? "Installed, \(age). Run freshclam in Terminal to update them."
-            : "Installed, \(age). Deeper signature scan, slower"
+            ? String(localized: "Installed, \(age). Run freshclam in Terminal to update them.")
+            : String(localized: "Installed, \(age). Deeper signature scan, slower")
     }
 
     private func engineCard(
         title: String, detail: String, ok: Bool,
         action: (String, () -> Void)? = nil, toggle: Binding<Bool>? = nil
     ) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: ok ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
-                .foregroundStyle(ok ? .green : .orange).font(.title3)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title).font(.headline)
-                Text(detail).font(.caption).foregroundStyle(.white.opacity(0.65))
+        HStack(alignment: .top, spacing: DS.Space.md) {
+            Image(systemName: ok ? DS.Icon.success : "exclamationmark.circle.fill")
+                .foregroundStyle(ok ? DS.Color.success : DS.Color.warning).font(DS.Font.sectionTitle)
+                .accessibilityLabel(ok ? String(localized: "Up to date") : String(localized: "Needs attention"))
+            VStack(alignment: .leading, spacing: DS.Space.xs) {
+                Text(title).font(DS.Font.headline).foregroundStyle(DS.Color.textPrimary)
+                Text(detail).font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
+                    .textSelection(.enabled)
             }
             Spacer()
             if let action {
-                Button(action.0, action: action.1).buttonStyle(GhostButtonStyle())
+                Button(action.0, action: action.1).buttonStyle(.dsSecondary)
             }
             if let toggle {
-                Toggle("", isOn: toggle).toggleStyle(.switch).labelsHidden()
+                Toggle(title, isOn: toggle).toggleStyle(.switch).labelsHidden()
             }
         }
         .frame(maxWidth: .infinity)
-        .glassCard(padding: 16)
+        .dsCard()
     }
 
     private var threatList: some View {
         VStack(spacing: 0) {
             ScrollView {
-                LazyVStack(spacing: 10) {
+                LazyVStack(spacing: DS.Space.sm) {
                     ForEach(protection.threats) { threat in
                         ThreatRow(threat: threat,
                                   quarantine: { protection.quarantine([threat]) },
                                   delete: { pendingDelete = [threat] })
                     }
                 }
-                .padding(.horizontal, 28).padding(.bottom, 16)
+                .padding(.horizontal, DS.Space.xxl).padding(.bottom, DS.Space.lg)
             }
-            HStack {
-                Text("\(protection.threats.count) threat(s) found")
-                    .font(.headline).foregroundStyle(.red)
+            // Quarantine is the primary action; permanent delete is behind a confirmation.
+            HStack(spacing: DS.Space.md) {
+                Label(protection.threats.count == 1 ? String(localized: "1 threat found")
+                                                    : String(localized: "\(protection.threats.count) threats found"),
+                      systemImage: DS.ProtectionState.threat.symbol)
+                    .font(DS.Font.headline).foregroundStyle(DS.ProtectionState.threat.color)
                 Spacer()
                 Button("Delete All…") { pendingDelete = protection.threats }
-                    .buttonStyle(GhostButtonStyle())
+                    .buttonStyle(.dsSecondary)
                 Button("Quarantine All") { protection.quarantine(protection.threats) }
-                    .buttonStyle(PillButtonStyle(fill: Theme.danger))
+                    .buttonStyle(.dsPrimary)
+                    .keyboardShortcut(.defaultAction)
             }
-            .padding(.horizontal, 28).padding(.vertical, 14)
-            .background(.ultraThinMaterial)
+            .padding(DS.Inset.bar)
+            .background(DS.Color.backgroundWindow)
+            .overlay(alignment: .top) { Divider() }
         }
     }
 
@@ -240,70 +258,73 @@ struct ProtectionView: View {
 
     @ViewBuilder private var quarantineTab: some View {
         if protection.quarantined.isEmpty {
-            VStack(spacing: 14) {
-                Spacer()
-                Image(systemName: "archivebox").font(.system(size: 54)).foregroundStyle(.white.opacity(0.4))
-                Text("Quarantine is empty").font(.title3.weight(.semibold))
-                Text("Quarantined files are locked so they can't run, and can be restored if it was a false alarm.")
-                    .font(.callout).foregroundStyle(.white.opacity(0.6))
-                Spacer()
-            }
+            DSEmptyState(symbol: "archivebox", badge: "lock.shield.fill", tint: DS.Color.info,
+                         title: String(localized: "Quarantine is empty"),
+                         message: String(localized: "Quarantined files are locked so they can't run, and can be restored if it was a false alarm."))
         } else {
             VStack(spacing: 0) {
                 ScrollView {
-                    LazyVStack(spacing: 10) {
+                    LazyVStack(spacing: DS.Space.sm) {
                         ForEach(protection.quarantined) { entry in
-                            HStack(spacing: 12) {
-                                Image(systemName: "lock.doc.fill").font(.title2).foregroundStyle(.orange)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    HStack(spacing: 6) {
-                                        Text(entry.name).font(.headline).lineLimit(1)
-                                        if entry.isMissing {
-                                            Text("MISSING")
-                                                .font(.caption2.bold())
-                                                .padding(.horizontal, 6).padding(.vertical, 1)
-                                                .background(.gray.opacity(0.6), in: Capsule())
-                                                .help("The quarantined copy is no longer in the quarantine folder.")
-                                        }
-                                    }
-                                    Text("\(entry.engine.rawValue) · \(entry.identifier.prefix(40)) · from \((entry.originalPath as NSString).abbreviatingWithTildeInPath)")
-                                        .font(.caption).foregroundStyle(.white.opacity(0.55))
-                                        .lineLimit(1).truncationMode(.middle)
-                                        .textSelection(.enabled)
-                                }
-                                Spacer()
-                                VStack(alignment: .trailing, spacing: 2) {
-                                    Text(entry.date.formatted(date: .abbreviated, time: .shortened))
-                                    Text(entry.size.formattedBytes)
-                                }
-                                .font(.caption).foregroundStyle(.white.opacity(0.55))
-                                Button("Restore") { protection.restore(entry) }.buttonStyle(GhostButtonStyle())
-                                    .disabled(entry.isMissing)
-                                Button("Delete") { pendingQuarantineDelete = [entry] }
-                                    .buttonStyle(PillButtonStyle(fill: Theme.danger))
-                            }
-                            .glassCard(padding: 14)
+                            QuarantineRow(entry: entry,
+                                          restore: { protection.restore(entry) },
+                                          delete: { pendingQuarantineDelete = [entry] })
                         }
                     }
-                    .padding(.horizontal, 28).padding(.bottom, 16)
+                    .padding(.horizontal, DS.Space.xxl).padding(.bottom, DS.Space.lg)
                 }
-                HStack {
+                HStack(spacing: DS.Space.md) {
                     Button("Export Report…") { protection.exportQuarantineReport() }
-                        .buttonStyle(GhostButtonStyle())
+                        .buttonStyle(.dsSecondary)
                         .help("Saves what was quarantined, from where and its SHA-256, as JSON. The files themselves stay here.")
                     Spacer()
                     let old = protection.quarantined(olderThanDays: 30)
                     if !old.isEmpty {
-                        Button("Delete \(old.count) Older Than 30 Days…") { pendingQuarantineDelete = old }
-                            .buttonStyle(GhostButtonStyle())
+                        Button(String(localized: "Delete \(old.count) Older Than 30 Days…")) { pendingQuarantineDelete = old }
+                            .buttonStyle(.dsSecondary)
                     }
                     Button("Delete All Quarantined…") { pendingQuarantineDelete = protection.quarantined }
-                        .buttonStyle(PillButtonStyle(fill: Theme.danger))
+                        .buttonStyle(.dsDestructive)
                 }
-                .padding(.horizontal, 28).padding(.vertical, 14)
-                .background(.ultraThinMaterial)
+                .padding(DS.Inset.bar)
+                .background(DS.Color.backgroundWindow)
+                .overlay(alignment: .top) { Divider() }
             }
         }
+    }
+}
+
+private struct QuarantineRow: View {
+    let entry: Quarantine.Entry
+    let restore: () -> Void
+    let delete: () -> Void
+
+    var body: some View {
+        HStack(spacing: DS.Space.md) {
+            DSTile(symbol: "lock.doc.fill", tint: DS.Color.info, size: .medium)
+            VStack(alignment: .leading, spacing: DS.Space.xxs) {
+                HStack(spacing: DS.Space.sm) {
+                    Text(entry.name).font(DS.Font.headline).foregroundStyle(DS.Color.textPrimary).lineLimit(1)
+                    DSBadge(.quarantined)
+                    if entry.isMissing { DSBadge(.missing) }
+                }
+                Text("\(entry.engine.rawValue) · \(String(entry.identifier.prefix(40))) · from \((entry.originalPath as NSString).abbreviatingWithTildeInPath)")
+                    .dsPath()
+                    .textSelection(.enabled)
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: DS.Space.xxs) {
+                Text(entry.date.formatted(date: .abbreviated, time: .shortened))
+                Text(entry.size.formattedBytes)
+            }
+            .font(DS.Font.numericCaption).foregroundStyle(DS.Color.textSecondary)
+            Button("Restore", action: restore).buttonStyle(.dsSecondary)
+                .disabled(entry.isMissing)
+            Button("Delete…", action: delete).buttonStyle(.dsSecondary)
+                .help("Deletes the quarantined copy permanently, after asking")
+        }
+        .dsCard(insets: DS.Inset.row)
+        .accessibilityElement(children: .contain)
     }
 }
 
@@ -313,33 +334,31 @@ private struct ThreatRow: View {
     let delete: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
-            GradientIcon(symbol: "ladybug.fill", gradient: Theme.danger, size: 38)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(threat.name).font(.headline).lineLimit(1)
-                Text(threat.url.deletingLastPathComponent().abbreviatedPath)
-                    .font(.caption).foregroundStyle(.white.opacity(0.55)).lineLimit(1).truncationMode(.middle)
-                HStack(spacing: 6) {
-                    Text(threat.engine.rawValue)
-                        .font(.caption2.bold()).padding(.horizontal, 6).padding(.vertical, 1)
-                        .background(.white.opacity(0.15), in: Capsule())
+        HStack(spacing: DS.Space.md) {
+            DSTile(symbol: "ladybug.fill", tint: DS.ProtectionState.threat.color, size: .medium)
+            VStack(alignment: .leading, spacing: DS.Space.xxs) {
+                Text(threat.name).font(DS.Font.headline).foregroundStyle(DS.Color.textPrimary).lineLimit(1)
+                Text(threat.url.deletingLastPathComponent().abbreviatedPath).dsPath()
+                HStack(spacing: DS.Space.sm) {
+                    DSBadge(.custom(threat.engine.rawValue, symbol: "shield.lefthalf.filled", tint: DS.Color.textSecondary))
                     if threat.engine == .clamAV {
-                        Text(threat.identifier).font(.caption2.monospaced()).foregroundStyle(.orange)
+                        Text(threat.identifier).font(DS.Font.path).foregroundStyle(DS.Color.warning)
+                            .textSelection(.enabled)
                     } else if let report = threat.reportURL {
-                        Link("View report", destination: report).font(.caption2)
+                        Link("View report", destination: report).font(DS.Font.caption)
                     }
                 }
             }
             Spacer()
-            Text(threat.size.formattedBytes).font(.caption.monospacedDigit()).foregroundStyle(.white.opacity(0.7))
-            Button {
+            Text(threat.size.formattedBytes).font(DS.Font.numericCallout).foregroundStyle(DS.Color.textSecondary)
+            DSIconButton(String(localized: "Show \(threat.name) in Finder"), symbol: DS.Icon.revealInFinder) {
                 NSWorkspace.shared.activateFileViewerSelecting([threat.url])
-            } label: { Image(systemName: "magnifyingglass") }
-                .buttonStyle(.plain).help("Show in Finder")
-                .accessibilityLabel("Show \(threat.name) in Finder")
-            Button("Quarantine", action: quarantine).buttonStyle(GhostButtonStyle())
-            Button("Delete", action: delete).buttonStyle(PillButtonStyle(fill: Theme.danger))
+            }
+            Button("Delete…", action: delete).buttonStyle(.dsSecondary)
+            Button("Quarantine", action: quarantine).buttonStyle(.dsPrimary)
         }
-        .glassCard(padding: 14)
+        .dsCard(insets: DS.Inset.row)
+        .overlay(DS.shape(DS.Radius.card).strokeBorder(DS.ProtectionState.threat.color.opacity(0.35), lineWidth: 1))
+        .accessibilityElement(children: .contain)
     }
 }

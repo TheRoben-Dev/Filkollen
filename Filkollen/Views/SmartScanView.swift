@@ -160,13 +160,13 @@ struct SmartScanView: View {
     private var cleaning: some View {
         VStack(spacing: DS.Space.xxl) {
             Spacer(minLength: 0)
-            DSScanRing(segments: [], isWorking: true, settled: false, diameter: 220, lineWidth: 12) {
+            DSScanRing(segments: [], isWorking: true, settled: false, diameter: 220, lineWidth: 12,
+                       label: String(localized: "Moving files to the Trash")) {
                 Image(systemName: DS.Icon.trash)
                     .font(.system(size: 40, weight: .regular))
                     .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(DS.Color.textSecondary)
             }
-            .accessibilityLabel(String(localized: "Moving files to the Trash"))
             Text("Moving files to the Trash…")
                 .font(DS.Font.sectionTitle)
                 .foregroundStyle(DS.Color.textPrimary)
