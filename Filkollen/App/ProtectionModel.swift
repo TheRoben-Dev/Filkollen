@@ -32,6 +32,34 @@ final class ProtectionModel: ObservableObject {
         return date < now.addingTimeInterval(-7 * 24 * 3600)
     }
 
+    // MARK: Downloads watcher
+
+    private lazy var downloadsWatcher = DownloadsWatcher(
+        folder: FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Downloads")
+    ) { [weak self] found in
+        Task { @MainActor in self?.downloadsWatcherFound(found) }
+    }
+
+    /// Starts or stops watching Downloads, and remembers the choice.
+    func setWatchingDownloads(_ on: Bool) {
+        Pref.defaults.set(on, forKey: Pref.watchDownloads)
+        on ? downloadsWatcher.start() : downloadsWatcher.stop()
+    }
+
+    func startBackgroundWatchers() {
+        if Pref.defaults.bool(forKey: Pref.watchDownloads) { downloadsWatcher.start() }
+    }
+
+    private func downloadsWatcherFound(_ found: [Threat]) {
+        let new = found.filter { t in !threats.contains { $0.url == t.url } }
+        guard !new.isEmpty else { return }
+        threats += new
+        if phase == .idle { phase = .finished }
+        Notifier.post("Known malware in Downloads",
+                      new.count == 1 ? "\(new[0].name) matches a known threat. Open Filkollen to quarantine it."
+                                     : "\(new.count) new downloads match known threats. Open Filkollen to quarantine them.")
+    }
+
     func updateDatabase() {
         guard !isBusy else { return }
         phase = .updating

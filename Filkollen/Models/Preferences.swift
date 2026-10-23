@@ -14,6 +14,7 @@ enum Pref {
     static let autoCheckUpdates = "autoCheckUpdates"
     static let lastAutoScan = "lastAutoScan"
     static let lastUpdateCheck = "lastUpdateCheck"
+    static let watchDownloads = "watchDownloads"
 
     // Cleanup
     static let tempMinAgeDays = "tempMinAgeDays"
@@ -37,6 +38,7 @@ enum Pref {
             notificationsEnabled: true,
             autoScanHours: 24,
             autoUpdateThreatDB: true,
+            watchDownloads: false,
             autoCheckUpdates: true,
             tempMinAgeDays: 3,
             largeFileMB: 500,

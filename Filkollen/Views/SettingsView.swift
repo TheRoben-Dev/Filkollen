@@ -180,6 +180,7 @@ private struct ProtectionSettings: View {
     @EnvironmentObject private var protection: ProtectionModel
     @AppStorage("abuseChAuthKey") private var abuseChAuthKey = ""
     @AppStorage(Pref.autoUpdateThreatDB) private var autoUpdate = true
+    @AppStorage(Pref.watchDownloads) private var watchDownloads = false
 
     var body: some View {
         Form {
@@ -211,11 +212,15 @@ private struct ProtectionSettings: View {
                     Text("Install ClamAV with Homebrew (brew install clamav) for a second opinion.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
+                Toggle(isOn: Binding(get: { watchDownloads }, set: { watchDownloads = $0; protection.setWatchingDownloads($0) })) {
+                    Text("Check new downloads as they arrive")
+                    Text("Compares each new file in Downloads with the local threat database and notifies you on a match. Nothing is moved automatically.")
+                }
                 Button("Open Quarantine Folder") { NSWorkspace.shared.open(Quarantine.directory) }
             }
         }
         .formStyle(.grouped)
-        .frame(height: 440)
+        .frame(height: 500)
     }
 }
 

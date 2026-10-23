@@ -52,6 +52,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         // Unit tests run inside the app; keep them free of scheduled scans and network.
         guard !AppEnvironment.isRunningTests else { return }
         scheduler.start()
+        protection.startBackgroundWatchers()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
