@@ -19,6 +19,8 @@ targets:
       path: Filkollen/Resources/Info.plist
       properties:
         CFBundleDisplayName: Filkollen
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         LSApplicationCategoryType: public.app-category.utilities
         LSMinimumSystemVersion: "13.0"
         NSHumanReadableCopyright: "© 2026 Roben"

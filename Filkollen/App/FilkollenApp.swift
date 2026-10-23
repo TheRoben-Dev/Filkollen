@@ -24,6 +24,9 @@ struct FilkollenApp: App {
         .windowResizability(.contentMinSize)
         .commands {
             CommandGroup(replacing: .newItem) {}
+            CommandGroup(replacing: .appInfo) {
+                Button("About Filkollen") { AboutPanel.show() }
+            }
             CommandGroup(after: .help) {
                 Button("Export Diagnostics…") { Diagnostics.export() }
             }

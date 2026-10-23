@@ -1,0 +1,33 @@
+# Matches the existing code style; tighten gradually rather than reformatting everything at once.
+included:
+  - Filkollen
+  - FilkollenTests
+excluded:
+  - build
+  - DerivedData
+disabled_rules:
+  - identifier_name      # short names like fm, v, i are used deliberately in tight loops
+  - nesting              # nested model types (App, Entry, Record) read better in place
+  - todo
+  - force_try            # only used for constant regex/URL literals
+  - multiple_closures_with_trailing_closure
+opt_in_rules:
+  - empty_count
+  - first_where
+  - contains_over_filter_count
+  - redundant_nil_coalescing
+  - toggle_bool
+line_length:
+  warning: 170
+  error: 220
+  ignores_urls: true
+type_body_length:
+  warning: 400
+file_length:
+  warning: 600
+function_body_length:
+  warning: 80
+large_tuple:
+  warning: 4
+cyclomatic_complexity:
+  warning: 20
