@@ -83,6 +83,7 @@ struct AppTrustView: View {
             }
             Button { NSWorkspace.shared.activateFileViewerSelecting([row.url]) } label: { Image(systemName: "magnifyingglass") }
                 .buttonStyle(.plain).help("Show in Finder")
+                .accessibilityLabel("Show \(row.name) in Finder")
         }
         .glassCard(padding: 12)
     }

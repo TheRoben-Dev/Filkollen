@@ -164,6 +164,7 @@ private struct StartupRow: View {
             }
             .buttonStyle(.plain)
             .help("Show in Finder")
+            .accessibilityLabel("Show \(item.displayName) in Finder")
             if item.scope.removable {
                 Button("Remove", action: onRemove).buttonStyle(GhostButtonStyle())
             }

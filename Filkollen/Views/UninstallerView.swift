@@ -152,6 +152,7 @@ struct UninstallerView: View {
                 set: { if $0 { deselected.remove(item.url) } else { deselected.insert(item.url) } }
             ))
             .toggleStyle(.checkbox).labelsHidden()
+            .accessibilityLabel("Remove \(item.name)")
             VStack(alignment: .leading, spacing: 1) {
                 Text(item.name).lineLimit(1).truncationMode(.middle)
                 Text(item.detail).font(.caption).foregroundStyle(.white.opacity(0.5))

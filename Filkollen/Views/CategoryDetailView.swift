@@ -157,6 +157,7 @@ private struct GroupCard: View {
                     }
                 ))
                 .toggleStyle(.checkbox).labelsHidden()
+                .accessibilityLabel("Select all in \(title)")
 
                 if category == .duplicatePhotos, let first = items.first {
                     Thumbnail(url: first.url, size: 40)
@@ -175,6 +176,7 @@ private struct GroupCard: View {
                             .rotationEffect(.degrees(isExpanded ? 90 : 0))
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel(isExpanded ? "Hide items in \(title)" : "Show items in \(title)")
                 }
             }
 
@@ -209,6 +211,7 @@ private struct ItemRow: View {
                 set: { model.setSelected($0, item: item.id, in: item.category) }
             ))
             .toggleStyle(.checkbox).labelsHidden()
+            .accessibilityLabel("Clean \(item.name)")
 
             if item.category == .duplicatePhotos {
                 Thumbnail(url: item.url, size: 32)

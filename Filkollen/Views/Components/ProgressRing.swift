@@ -7,6 +7,7 @@ struct ScanningRing: View {
     )
     var size: CGFloat = 220
     @State private var rotation: Double = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
@@ -18,7 +19,12 @@ struct ScanningRing: View {
                 .rotationEffect(.degrees(rotation))
         }
         .frame(width: size, height: size)
+        .accessibilityElement()
+        .accessibilityLabel("Scanning")
+        .accessibilityAddTraits(.updatesFrequently)
         .onAppear {
+            // Reduce Motion: a slow pulse-free ring instead of a spinner.
+            guard !reduceMotion else { return }
             withAnimation(.linear(duration: 1.4).repeatForever(autoreverses: false)) {
                 rotation = 360
             }

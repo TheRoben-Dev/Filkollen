@@ -329,6 +329,7 @@ private struct ThreatRow: View {
                 NSWorkspace.shared.activateFileViewerSelecting([threat.url])
             } label: { Image(systemName: "magnifyingglass") }
                 .buttonStyle(.plain).help("Show in Finder")
+                .accessibilityLabel("Show \(threat.name) in Finder")
             Button("Quarantine", action: quarantine).buttonStyle(GhostButtonStyle())
             Button("Delete", action: delete).buttonStyle(PillButtonStyle(fill: Theme.danger))
         }
