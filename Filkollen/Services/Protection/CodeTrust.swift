@@ -46,7 +46,7 @@ enum CodeTrust {
 
     /// Never ask Apple's servers (revocation or notarization lookups): Filkollen's
     /// only network destination is MalwareBazaar.
-    private static let noNetwork = kSecCSNoNetworkAccess
+    private static let noNetwork = SecCSFlags.noNetworkAccess.rawValue
 
     private static func requirement(_ text: String) -> SecRequirement? {
         var req: SecRequirement?
