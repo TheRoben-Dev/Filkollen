@@ -2,14 +2,23 @@ import XCTest
 @testable import Filkollen
 
 final class CodeTrustTests: XCTestCase {
+    /// Security warns when code checks run on the main thread, as the app never does.
+    private func offMain<T>(_ body: @escaping @Sendable () -> T) -> T {
+        let box = LockedBox<T?>(nil)
+        let done = expectation(description: "checked")
+        DispatchQueue.global().async { box.value = body(); done.fulfill() }
+        wait(for: [done], timeout: 30)
+        return box.value!
+    }
+
     func testAppleBinaryIsApple() {
-        XCTAssertEqual(CodeTrust.evaluate(URL(fileURLWithPath: "/bin/ls")).level, .apple)
+        XCTAssertEqual(offMain { CodeTrust.evaluate(URL(fileURLWithPath: "/bin/ls")).level }, .apple)
     }
 
     func testPlainFileIsUnsigned() throws {
         let fx = try Fixture()
         let script = try fx.file("Downloads/run.sh", contents: Data("#!/bin/sh\necho hi\n".utf8))
-        let report = CodeTrust.evaluate(script)
+        let report = offMain { CodeTrust.evaluate(script) }
         XCTAssertEqual(report.level, .unsigned)
         XCTAssertTrue(report.level.isConcerning)
         XCTAssertNil(report.teamID)

@@ -23,7 +23,7 @@ struct ScanningRing: View {
         .accessibilityLabel("Scanning")
         .accessibilityAddTraits(.updatesFrequently)
         .onAppear {
-            // Reduce Motion: a slow pulse-free ring instead of a spinner.
+            // Reduce Motion: a still ring instead of a spinner.
             guard !reduceMotion else { return }
             withAnimation(.linear(duration: 1.4).repeatForever(autoreverses: false)) {
                 rotation = 360
