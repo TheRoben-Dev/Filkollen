@@ -2,71 +2,71 @@
 
 Every backlog item, its status at the audit baseline (`7d1b4b9`, PR #2), and the order it's being worked in. Order is impact ÷ effort, with safety work first because everything else builds on it.
 
-Status key: **Done** · **Partial** · **Missing** · **N/A**. Checkboxes are ticked when the item is finished on `claude/project-thread-aiwa78`.
+Status key: **Done** · **Partial** · **Missing** · **N/A**. Checkboxes are ticked when the item is finished on `claude/project-thread-aiwa78`; unticked items carry a note on what's left.
 
 ## Work order
 
 ### Tier 1: safety and correctness foundation
-- [ ] 1. Unit test target in `project.yml`; injectable roots/FileManager/clock for `SafetyGuard` and scanners (P1, Missing)
-- [ ] 2. `SafetyGuard` hardening + exhaustive tests: case, NFC/NFD, traversal, symlinks, firmlinks, `T/`-only temp, `com.apple.*`, Mail, Trash, app bundles, CloudStorage (P1, Missing)
-- [ ] 3. Resolve-and-recheck at delete time, refuse if the resolved path changed since scan (TOCTOU) (P1, Partial)
-- [ ] 4. Partial-success cleanup summary with per-item reasons (P1, Partial)
-- [ ] 5. Real scan cancellation, no stale-task clobbering (P2 cancellation, Partial)
-- [ ] 6. Skip caches of running apps (P1, Missing)
-- [ ] 7. Scanner fixture tests in temp dirs (P1, Missing)
-- [ ] 8. CI runs the tests (P7, Partial)
-- [ ] 9. Full Disk Access "revoked" state (P1, Partial)
-- [ ] 10. `os.Logger` per module + Export Diagnostics (P1, Missing)
+- [x] 1. Unit test target in `project.yml`; injectable roots/FileManager/clock for `SafetyGuard` and scanners (P1, Missing)
+- [x] 2. `SafetyGuard` hardening + exhaustive tests: case, NFC/NFD, traversal, symlinks, firmlinks, `T/`-only temp, `com.apple.*`, Mail, Trash, app bundles, CloudStorage (P1, Missing)
+- [x] 3. Resolve-and-recheck at delete time, refuse if the resolved path changed since scan (TOCTOU) (P1, Partial)
+- [x] 4. Partial-success cleanup summary with per-item reasons (P1, Partial)
+- [x] 5. Real scan cancellation, no stale-task clobbering (P2 cancellation, Partial)
+- [x] 6. Skip caches of running apps (P1, Missing)
+- [x] 7. Scanner fixture tests in temp dirs (P1, Missing)
+- [x] 8. CI runs the tests (P7, Partial)
+- [x] 9. Full Disk Access "revoked" state (P1, Partial)
+- [x] 10. `os.Logger` per module + Export Diagnostics (P1, Missing)
 
 ### Tier 2: honest numbers and speed
-- [ ] 11. APFS-aware sizing: hard links counted once, clone detection, "space you'll get back" (P2, Partial)
-- [ ] 12. "Freed only after emptying the Trash" messaging + scoped Empty Trash for Filkollen's items (P2, Partial)
-- [ ] 13. Duplicates: size → head → tail → full tiers, hash cache by inode+size+mtime (P2, Partial)
-- [ ] 14. Concurrent scanning with bounded TaskGroup and live progress (P2, Partial)
-- [ ] 15. `docs/PERF.md` before/after (P2, Missing)
+- [x] 11. APFS-aware sizing: hard links counted once, clone detection, "space you'll get back" (P2, Partial)
+- [x] 12. "Freed only after emptying the Trash" messaging + scoped Empty Trash for Filkollen's items (P2, Partial)
+- [x] 13. Duplicates: size → head → tail → full tiers, hash cache by inode+size+mtime (P2, Partial)
+- [x] 14. Concurrent scanning with bounded TaskGroup and live progress (P2, Partial)
+- [x] 15. `docs/PERF.md` before/after (P2, Missing)
 
 ### Tier 3: docs that keep it safe
-- [ ] 16. `docs/SAFETY.md`, `docs/ARCHITECTURE.md` (with the "add a category" checklist), `CHANGELOG.md`, `CONTRIBUTING.md` (P8, Missing)
+- [x] 16. `docs/SAFETY.md`, `docs/ARCHITECTURE.md` (with the "add a category" checklist), `CHANGELOG.md`, `CONTRIBUTING.md` (P8, Missing)
 
 ### Tier 4: new cleanup modules (each: category, scanner, SafetyGuard rule, tests, review sheet)
-- [ ] 17. Developer junk: Archives, iOS DeviceSupport, CoreSimulator caches, SwiftPM, npm/yarn/pnpm, pip, Cargo, Gradle, CocoaPods, Go (P3, Partial: DerivedData only)
-- [ ] 18. Old installers in Downloads (P3, Missing)
-- [ ] 19. iOS backups & firmware (P3, Missing)
-- [ ] 20. Large & Old Files: age filter, type grouping, Quick Look (P3, Partial: size-only from PR #2)
-- [ ] 21. Time Machine local snapshots, informational (P3, Missing)
-- [ ] 22. Mail Downloads cache (P3, Missing)
-- [ ] 23. Browser caches (P3, Missing as a module; Safari conflicts with the `com.apple.*` rule, needs a decision)
-- [ ] 24. Smarter leftovers with confidence (P3, Missing)
-- [ ] 25. App Uninstaller (P3, Missing)
-- [ ] 26. Duplicates upgrade: Live Photo / RAW+JPEG pairs, similar photos, any-file mode (P3, Missing)
+- [x] 17. Developer junk: Archives, iOS DeviceSupport, CoreSimulator caches, SwiftPM, npm/yarn/pnpm, pip, Cargo, Gradle, CocoaPods, Go (P3, Partial: DerivedData only)
+- [x] 18. Old installers in Downloads (P3, Missing)
+- [x] 19. iOS backups & firmware (P3, Missing)
+- [x] 20. Large & Old Files: age filter, type grouping, Quick Look (P3, Partial: size-only from PR #2)
+- [x] 21. Time Machine local snapshots, informational (P3, Missing)
+- [x] 22. Mail Downloads cache (P3, Missing)
+- [x] 23. Browser caches (P3, Missing as a module; Safari conflicts with the `com.apple.*` rule, needs a decision)
+- [x] 24. Smarter leftovers with confidence (P3, Missing)
+- [x] 25. App Uninstaller (P3, Missing)
+- [ ] 26. Duplicates upgrade: Live Photo / RAW+JPEG pairs, similar photos, any-file mode (P3, Missing) · *Live Photo / RAW pairs and any-file mode done; Vision similar-photo matching not started*
 
 ### Tier 5: protection
-- [ ] 27. Quarantine browser details, purge, report export (P5, Partial)
-- [ ] 28. MalwareBazaar: integrity/format checks, DB age + stale warning (P5, Partial: auto-update when stale is in PR #2)
-- [ ] 29. ClamAV: clamd/clamdscan, signature age, freshclam (P5, Partial)
-- [ ] 30. Persistence inspector: signatures/Team ID/notarization, cron, shell hooks, profiles, login items (P5, Partial: Startup Items in PR #2)
-- [ ] 31. App trust check for `/Applications` (P5, Missing)
-- [ ] 32. Downloads watcher, off by default (P5, Missing)
-- [ ] 33. YARA rules (P5, Missing)
+- [x] 27. Quarantine browser details, purge, report export (P5, Partial)
+- [x] 28. MalwareBazaar: integrity/format checks, DB age + stale warning (P5, Partial: auto-update when stale is in PR #2)
+- [ ] 29. ClamAV: clamd/clamdscan, signature age, freshclam (P5, Partial) · *signature age shown; Filkollen tells you to run freshclam instead of running it (network rule); clamd/clamdscan not added*
+- [ ] 30. Persistence inspector: signatures/Team ID/notarization, cron, shell hooks, profiles, login items (P5, Partial: Startup Items in PR #2) · *launchd items now show signature, Team ID, scripts and odd locations; cron, shell startup files, configuration profiles not covered*
+- [x] 31. App trust check for `/Applications` (P5, Missing)
+- [x] 32. Downloads watcher, off by default (P5, Missing)
+- [ ] 33. YARA rules (P5, Missing) · *skipped: needs libyara or a yara binary plus a curated rule source; not worth it before the helper*
 
 ### Tier 6: app experience
-- [ ] 34. Review sheet polish: Quick Look, sort/filter, per-group select, reveal, live totals (P6, Missing)
-- [ ] 35. Ignore list: right-click "Always ignore" (P6, Partial: excluded folders in Settings)
-- [ ] 36. Undo/history with Put Back (P6, Missing)
-- [ ] 37. Stats dashboard (Swift Charts) (P6, Missing)
-- [ ] 38. Disk usage treemap (P6, Missing)
-- [ ] 39. App Intents (P6, Missing)
-- [ ] 40. Accessibility pass (P6, Missing)
-- [ ] 41. Localization en + sv, String Catalog (P6, Missing)
-- [ ] 42. Visual polish pass (P6, Partial)
-- [ ] 43. Swift 6 strict-concurrency readiness (P1, Missing; done late because it touches everything)
+- [x] 34. Review sheet polish: Quick Look, sort/filter, per-group select, reveal, live totals (P6, Missing)
+- [x] 35. Ignore list: right-click "Always ignore" (P6, Partial: excluded folders in Settings)
+- [x] 36. Undo/history with Put Back (P6, Missing)
+- [x] 37. Stats dashboard (Swift Charts) (P6, Missing)
+- [x] 38. Disk usage treemap (P6, Missing)
+- [x] 39. App Intents (P6, Missing)
+- [x] 40. Accessibility pass (P6, Missing)
+- [x] 41. Localization en + sv, String Catalog (P6, Missing)
+- [ ] 42. Visual polish pass (P6, Partial) · *accessibility and small polish only; no dedicated visual pass*
+- [x] 43. Swift 6 strict-concurrency readiness (P1, Missing; done late because it touches everything)
 
 ### Tier 7: release and system level
-- [ ] 44. Version automation + About window (P7, Missing)
-- [ ] 45. SwiftLint/SwiftFormat + pre-commit hook (P7, Missing)
-- [ ] 46. `scripts/release.sh` (P7, Missing)
-- [ ] 47. Sparkle 2 for Filkollen itself (P7, Missing; PR #2's `SparkleChecker` only reads *other* apps' feeds)
-- [ ] 48. Privileged helper (`SMAppService.daemon` + XPC) and its UI (P4, Missing)
+- [x] 44. Version automation + About window (P7, Missing)
+- [x] 45. SwiftLint/SwiftFormat + pre-commit hook (P7, Missing)
+- [x] 46. `scripts/release.sh` (P7, Missing)
+- [x] 47. Sparkle 2 for Filkollen itself (P7, Missing; PR #2's `SparkleChecker` only reads *other* apps' feeds)
+- [ ] 48. Privileged helper (`SMAppService.daemon` + XPC) and its UI (P4, Missing) · *design proposal in docs/HELPER.md, waiting for review of the allowlist*
 
 ## Backlog mapping
 

@@ -7,17 +7,23 @@ Filkollen is a single SwiftUI app target (macOS 13+, not sandboxed, Hardened Run
 ```
 Filkollen/
   App/        FilkollenApp (scenes, menus), AppDelegate (owns models, Dock/menu bar,
-              BackgroundScheduler), AppModel (cleanup), ProtectionModel (malware),
-              UpdatesModel (other apps' updates)
+              BackgroundScheduler), AppModel (cleanup, history), ProtectionModel (malware,
+              Downloads watcher), UpdatesModel (other apps' updates), AboutPanel, Intents
   Models/     JunkCategory, JunkItem, Preferences (Pref keys, Exclusions)
-  Services/   ScanContext, the scanners, FileSizer, ContentHashCache, Cleaner,
+  Services/   ScanContext, the scanners (Cache, Leftover, DuplicatePhoto [photos + files],
+              LargeFile, Developer, Installer, IOSBackup, Browser), AppUninstaller,
+              FileSizer, ContentHashCache (+ parallelMap, Locked), Cleaner, CleanupHistory,
               SafetyGuard, FullDiskAccess, Diagnostics, Log, Shell
-    Protection/ ThreatDatabase, MalwareScanner, HashCache, ClamAV, Quarantine, Threat
-    System/     SystemInfo, StartupItems, LoginItem, Notifier
-    Updates/    SparkleChecker, PackageCheckers, AppUpdate
+    Protection/ ThreatDatabase, MalwareScanner, HashCache, ClamAV, Quarantine, Threat,
+                CodeTrust, DownloadsWatcher
+    System/     SystemInfo, StartupItems, LoginItem, Notifier, LocalSnapshots, DiskUsage (+ Treemap)
+    Updates/    SparkleChecker, PackageCheckers, AppUpdate, SelfUpdater (Sparkle 2 for Filkollen)
   Views/      RootView (sidebar), SmartScanView, CategoryDetailView, ReviewSheet,
-              ProtectionView, MenuBarView, Settings, System pages, Theme, Components/
-FilkollenTests/  Fixture (temp folder trees), SafetyGuard / Cleaner / scanner / sizing tests
+              UninstallerView, HistoryView, ProtectionView, AppTrustView, MenuBarView,
+              Settings, System pages (incl. DiskUsageView, TimeMachineView), Theme, Components/
+  Resources/  Assets, Localizable.xcstrings (en + sv)
+FilkollenTests/  Fixture (temp folder trees) and tests for every service above
+scripts/      bump-version.sh, release.sh, pre-commit, install-hooks.sh
 ```
 
 ## Cleanup flow
@@ -31,8 +37,11 @@ AppModel.scan(categories)
 CategoryDetailView / SmartScanView → ReviewSheet → AppModel.cleanSelected
   └─ Task.detached { Cleaner.moveToTrash(items) }
        └─ per item: exists? → SafetyGuard.evaluate → same resolvedPath as at scan? → trash
-  ◀─ CleanupSummary (count, bytes, reclaimable bytes, per-item failures)
+  ◀─ CleanupSummary (count, bytes, reclaimable bytes, per-item failures, history record)
+       └─ CleanupHistory.record: original → Trash location, for Undo / Put Back
 ```
+
+App Uninstaller uses the same path: `AppUninstaller.remnants` → `AppModel.screened` → review → `AppModel.uninstall` → `Cleaner.moveToTrash` → history.
 
 - **ScanContext** carries everything a scanner reads from the outside: home and temp roots, `FileManager`, clock, running apps, app search roots, LaunchServices lookup, preferences and a cache folder. `.live` is the real Mac; tests build one around a `Fixture`.
 - **Cancellation**: `AppModel.cancelScan()` cancels the task and sets the context's `CancellationFlag`, which scanners check through `context.isCancelled` (it works on the worker threads `parallelMap` fans out to, where `Task.isCancelled` doesn't). A generation counter stops a dying scan from writing over a newer one.

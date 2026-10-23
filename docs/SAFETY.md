@@ -14,7 +14,7 @@ Filkollen's job is to delete things, so the rules for what it may never delete m
 - Inside your home folder.
 - Inside your per-user temp folder (`/var/folders/…/T/`). Its siblings `C/` and `0/` belong to system daemons and are refused.
 
-Everything else (`/`, `/System`, `/Library`, `/Applications`, other users, other volumes) is refused. System-wide cleanup will need the privileged helper planned for Phase 4, which will carry its own allowlist.
+Everything else (`/`, `/System`, `/Library`, `/Applications`, other users, other volumes) is refused. System-wide cleanup would need the privileged helper proposed in `docs/HELPER.md`, with its own allowlist; it isn't built.
 
 ## Never removed, even though they're in your home folder
 
@@ -28,7 +28,7 @@ Everything else (`/`, `/System`, `/Library`, `/Applications`, other users, other
 | `~/Library/Mobile Documents` (iCloud Drive) and `~/Library/CloudStorage` (Dropbox, OneDrive, Google Drive…) | Deleting here deletes from the cloud and every other device. |
 | Any `.photoslibrary` / `.photolibrary`, at any depth | Removing files inside a Photos library corrupts it. Use Photos' own Duplicates album. |
 | `~/Library/Mail`, `Messages`, `Safari`, `Photos`, `Accounts`, `Calendars`, `IdentityServices`, `Sharing`, `Suggestions`, `Biome`, `Daemon Containers`, `PersonalizationPortrait` | App data stores, not caches. |
-| `~/Library/Application Support/AddressBook`, `CallHistoryDB`, `Knowledge`, `MobileSync` | Contacts, call history, Screen Time data, iPhone backups. iOS backups will only become cleanable through an explicit, separately reviewed rule. |
+| `~/Library/Application Support/AddressBook`, `CallHistoryDB`, `Knowledge`, `MobileSync` | Contacts, call history, Screen Time data, iPhone backups. Whole per-device backups are the one exception below. |
 | `~/Library/Autosave Information` | Unsaved documents. |
 | `~/Library/Application Support/Filkollen` | Filkollen's own data, including the malware quarantine. |
 | `~/.Trash`, `~/.ssh`, `~/.gnupg` | Trash can't be trashed; the others are credentials. |
@@ -53,7 +53,11 @@ Finder aliases are ordinary files and are judged as the file they are. Trashing 
 - **Running apps' caches** are listed but unselected and marked *In use*. Select All skips them.
 - **Large & Old Files** are your files, not junk, and are never pre-selected.
 - **Duplicates** always keep one copy (the oldest), which can't be selected by group or Select All.
-- **Background scans only look.** Scheduled scans notify; nothing is cleaned without your review.
+- **Background scans only look.** Scheduled scans notify; nothing is cleaned without your review. The Downloads watcher (off by default) only notifies too.
+- **App Uninstaller** removes only what's in your home folder. Apple apps are refused; an app outside your home folder is removed by you in Finder, because the app itself may not delete there.
+- **Put Back** (History) never overwrites something that's back in the original place and only restores into places `SafetyGuard` allows.
+- **Empty Filkollen's Items from Trash** deletes only items Filkollen recorded moving, still sitting directly in `~/.Trash`, after a confirmation. Nothing else in the Trash is touched. (The whole-Trash Empty Trash on System Overview and the menu bar comes from PR #2 and is under review.)
+- **Code-signature checks never go online** (`kSecCSNoNetworkAccess`), and Filkollen never runs `freshclam` itself.
 - **No network** except MalwareBazaar updates (and Sparkle for Filkollen itself, once added). No telemetry. *Exception under review:* the App Updates page added in PR #2 reads other apps' update feeds and runs `brew`/`mas`/`softwareupdate`; see `docs/SESSION_SUMMARY.md`.
 
 ## Changing these rules
