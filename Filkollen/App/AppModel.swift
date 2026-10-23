@@ -29,7 +29,7 @@ final class AppModel: ObservableObject {
         case scanning
         case results
         case cleaning
-        case done(freed: Int64, failed: Int)
+        case done(CleanupSummary)
     }
 
     @Published var section: Section = .smartScan
@@ -112,13 +112,29 @@ final class AppModel: ObservableObject {
         progress: @escaping @Sendable (String) -> Void
     ) async -> [JunkItem] {
         await Task.detached(priority: .userInitiated) {
+            let found: [JunkItem]
             switch category {
-            case .systemJunk: return CacheScanner().scan(progress: progress)
-            case .appLeftovers: return LeftoverScanner().scan(progress: progress)
-            case .duplicatePhotos: return DuplicatePhotoScanner().scan(progress: progress)
-            case .largeFiles: return LargeFileScanner().scan(progress: progress)
+            case .systemJunk: found = CacheScanner().scan(progress: progress)
+            case .appLeftovers: found = LeftoverScanner().scan(progress: progress)
+            case .duplicatePhotos: found = DuplicatePhotoScanner().scan(progress: progress)
+            case .largeFiles: found = LargeFileScanner().scan(progress: progress)
             }
+            return screened(found, category: category)
         }.value
+    }
+
+    /// Drops anything SafetyGuard would refuse, so it's never shown as cleanable,
+    /// and records each item's resolved location for the delete-time re-check.
+    nonisolated static func screened(_ items: [JunkItem], category: JunkCategory, safety: SafetyGuard = .shared) -> [JunkItem] {
+        var refused = 0
+        let kept = items.compactMap { item -> JunkItem? in
+            guard case .allowed(let path) = safety.evaluate(item.url) else { refused += 1; return nil }
+            var item = item
+            item.resolvedPath = path
+            return item
+        }
+        Log.scan.info("\(category.rawValue, privacy: .public): \(kept.count) items, \(refused) refused by SafetyGuard")
+        return kept
     }
 
     // MARK: Selection
@@ -162,13 +178,26 @@ final class AppModel: ObservableObject {
                 r.items.removeAll { outcome.trashed.contains($0.url) }
                 results[category] = r
             }
-            phase = .done(freed: outcome.freedBytes, failed: outcome.failures.count)
+            phase = .done(CleanupSummary(outcome))
         }
     }
 
     func reset() {
         results = [:]
         phase = .idle
+    }
+}
+
+/// What the done screen shows after a cleanup.
+struct CleanupSummary: Equatable {
+    var trashedCount: Int
+    var trashedBytes: Int64
+    var failures: [Cleaner.Failure]
+
+    init(_ outcome: Cleaner.Outcome) {
+        trashedCount = outcome.trashed.count - outcome.alreadyGone
+        trashedBytes = outcome.trashedBytes
+        failures = outcome.failures
     }
 }
 

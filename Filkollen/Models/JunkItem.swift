@@ -13,6 +13,8 @@ struct JunkItem: Identifiable, Hashable, Sendable {
     /// In a duplicate group, the copy we keep. Never trashed by default.
     var isKeeper: Bool = false
     var modified: Date? = nil
+    /// Canonical location when scanned. The Cleaner refuses the item if it resolves elsewhere later.
+    var resolvedPath: String? = nil
 
     var name: String { url.lastPathComponent }
 }
