@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProtectionView: View {
     @EnvironmentObject private var protection: ProtectionModel
+    @AppStorage("abuseChAuthKey") private var abuseChAuthKey = ""
     @State private var tab = Tab.scan
     @State private var pendingDelete: [Threat] = []
     @State private var pendingQuarantineDelete: [Quarantine.Entry] = []
@@ -32,6 +33,7 @@ struct ProtectionView: View {
             case .quarantine: quarantineTab
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .foregroundStyle(.white)
         .confirmationDialog(
             "Permanently delete \(pendingDelete.count) file(s)?",
@@ -105,17 +107,38 @@ struct ProtectionView: View {
         }
     }
 
+    /// Scrolls instead of overflowing the window when it's short, but stays
+    /// vertically centred when there's room.
     private var idle: some View {
+        GeometryReader { proxy in
+            ScrollView {
+                idleContent
+                    .frame(maxWidth: .infinity, minHeight: proxy.size.height)
+            }
+        }
+    }
+
+    private var idleContent: some View {
         VStack(spacing: 18) {
-            HStack(spacing: 16) {
-                engineCard(
-                    title: "MalwareBazaar",
-                    detail: protection.databaseCount > 0
-                        ? "\(protection.databaseCount.formatted()) known threats · updated \(protection.databaseUpdated?.formatted(.relative(presentation: .named)) ?? "never")"
-                        : "Not downloaded yet",
-                    ok: !protection.databaseIsStale,
-                    action: ("Update", protection.updateDatabase)
-                )
+            HStack(alignment: .top, spacing: 16) {
+                VStack(alignment: .leading, spacing: 10) {
+                    engineCard(
+                        title: "MalwareBazaar",
+                        detail: protection.databaseCount > 0
+                            ? "\(protection.databaseCount.formatted()) known threats · updated \(protection.databaseUpdated?.formatted(.relative(presentation: .named)) ?? "never")"
+                            : "Not downloaded yet. Needs a free abuse.ch Auth-Key.",
+                        ok: !protection.databaseIsStale,
+                        action: ("Update", protection.updateDatabase)
+                    )
+                    if abuseChAuthKey.isEmpty {
+                        HStack {
+                            SecureField("Paste your abuse.ch Auth-Key", text: $abuseChAuthKey)
+                                .textFieldStyle(.roundedBorder)
+                            Link("Get one", destination: URL(string: "https://auth.abuse.ch/")!)
+                                .font(.caption)
+                        }
+                    }
+                }
                 engineCard(
                     title: "ClamAV (optional)",
                     detail: protection.clamAVInstalled
@@ -127,15 +150,16 @@ struct ProtectionView: View {
             }
             .padding(.horizontal, 28)
 
-            Spacer()
+            Spacer(minLength: 12)
             BigScanButton(title: "Scan") { protection.scan() }
                 .disabled(protection.databaseCount == 0 && !(protection.clamAVInstalled && protection.useClamAV))
             if protection.databaseCount == 0 {
                 Text("Download the threat database first.")
                     .font(.callout).foregroundStyle(.white.opacity(0.6))
             }
-            Spacer()
+            Spacer(minLength: 12)
         }
+        .padding(.vertical, 8)
     }
 
     private func engineCard(

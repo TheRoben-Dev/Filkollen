@@ -15,6 +15,9 @@ struct FilkollenApp: App {
         // A real (transparent) title bar keeps the sidebar list below the
         // traffic lights; .hiddenTitleBar let rows scroll underneath them.
         .windowToolbarStyle(.unified(showsTitle: false))
+        // Don't let the window shrink below what the current page needs,
+        // otherwise SwiftUI overflows the split view past the window edges.
+        .windowResizability(.contentMinSize)
         .commands {
             CommandGroup(replacing: .newItem) {}
             CommandMenu("Scan") {

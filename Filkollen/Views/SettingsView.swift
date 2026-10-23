@@ -22,7 +22,7 @@ struct SettingsView: View {
             }
             Section("Protection") {
                 LabeledContent("Threat database", value: "\(protection.databaseCount.formatted()) hashes")
-                SecureField("abuse.ch Auth-Key (optional)", text: $abuseChAuthKey)
+                SecureField("abuse.ch Auth-Key", text: $abuseChAuthKey)
                 Link("Get a free Auth-Key at auth.abuse.ch", destination: URL(string: "https://auth.abuse.ch/")!)
                     .font(.caption)
                 Toggle("Also scan with ClamAV when installed", isOn: $protection.useClamAV)
