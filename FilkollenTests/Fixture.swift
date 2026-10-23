@@ -31,6 +31,8 @@ final class Fixture {
         try? fm.removeItem(at: root)
     }
 
+    var safety: SafetyGuard { SafetyGuard(home: home, temp: temp) }
+
     /// Outside the fake home and temp: stands in for /etc, /System and other volumes.
     var outside: URL { root.appendingPathComponent("outside") }
 
