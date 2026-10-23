@@ -15,11 +15,13 @@ final class AppModel: ObservableObject {
     enum SystemPage: String, Hashable, CaseIterable {
         case overview = "System Overview"
         case startupItems = "Startup Items"
+        case snapshots = "Time Machine Snapshots"
 
         var symbol: String {
             switch self {
             case .overview: return "gauge.with.dots.needle.50percent"
             case .startupItems: return "power.circle.fill"
+            case .snapshots: return "clock.arrow.circlepath"
             }
         }
     }
