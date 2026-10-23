@@ -1,0 +1,46 @@
+import Foundation
+
+/// Big files in your home folder that might not be worth keeping. Never
+/// pre-selected: these are your files, not junk.
+struct LargeFileScanner {
+    private let fm = FileManager.default
+    private let home = FileManager.default.homeDirectoryForCurrentUser
+
+    func scan(progress: @escaping @Sendable (String) -> Void) -> [JunkItem] {
+        let throttle = ProgressThrottle(progress)
+        let minMB = max(50, Pref.defaults.integer(forKey: Pref.largeFileMB))
+        let minSize = Int64(minMB) * 1_048_576
+        let keys: [URLResourceKey] = [.isRegularFileKey, .totalFileAllocatedSizeKey, .contentAccessDateKey, .contentModificationDateKey]
+        let keySet = Set(keys)
+        let skipTopLevel: Set<String> = ["Library", ".Trash"]
+        var items: [JunkItem] = []
+
+        guard let enumerator = fm.enumerator(
+            at: home, includingPropertiesForKeys: keys,
+            options: [.skipsHiddenFiles, .skipsPackageDescendants],
+            errorHandler: { _, _ in true }
+        ) else { return [] }
+
+        for case let url as URL in enumerator {
+            if enumerator.level == 1, skipTopLevel.contains(url.lastPathComponent) {
+                enumerator.skipDescendants(); continue
+            }
+            throttle.report(url.abbreviatedPath)
+            guard let v = try? url.resourceValues(forKeys: keySet), v.isRegularFile == true,
+                  let size = v.totalFileAllocatedSize.map(Int64.init), size >= minSize else { continue }
+
+            let lastUsed = v.contentAccessDate ?? v.contentModificationDate
+            let top = url.pathComponents.dropFirst(home.pathComponents.count).first ?? "Home"
+            items.append(JunkItem(
+                url: url,
+                size: size,
+                category: .largeFiles,
+                group: top,
+                detail: lastUsed.map { "Last opened \($0.formatted(.relative(presentation: .named)))" } ?? url.abbreviatedPath,
+                isSelected: false,
+                modified: lastUsed
+            ))
+        }
+        return items.sorted { $0.size > $1.size }
+    }
+}

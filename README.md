@@ -13,7 +13,27 @@ A friendly macOS cleaner, written in SwiftUI. It finds junk, shows you exactly w
 | System Junk | `~/Library/Caches/*`, `~/Library/Logs/*`, Xcode DerivedData, temp files older than 3 days | Review, then Move to Trash |
 | App Leftovers | Support files named after a bundle ID (`com.vendor.app`) whose app isn't installed: Application Support, Caches, Preferences, Containers, Group Containers, Saved State, HTTPStorages, WebKit, Cookies, Logs, LaunchAgents | Review, then Move to Trash |
 | Duplicate Photos | Byte-identical images in Pictures, Desktop, Downloads, Documents. Oldest copy is marked **KEEP**. | Review, then Move to Trash |
+| Large & Old Files | Files over 500 MB (adjustable) in your home folder, grouped by folder | Review, then Move to Trash |
 | Malware Scan | Files whose SHA-256 is in abuse.ch **MalwareBazaar**, plus optional **ClamAV** signature scan | Quarantine (restorable) or Delete Permanently |
+
+Maintenance:
+
+| Page | What it does |
+|---|---|
+| System Overview | Live disk, memory and CPU load, uptime, model, Trash size with Empty Trash (confirmed), shortcuts to Activity Monitor, Disk Utility, Storage and Software Update |
+| Startup Items | Lists your launch agents plus system agents and daemons, flags ones whose app is gone, and removes your own agents (unload + Trash) |
+| App Updates | One list of updates from Sparkle appcasts (apps that update themselves), Homebrew formulae and casks (`brew outdated`, upgrade in place), the Mac App Store (via `mas`) and macOS (`softwareupdate`) |
+
+### Menu bar and background mode
+
+A menu bar icon opens a panel with disk, memory and CPU bars, the last junk result, protection and update status, and one-click Smart Scan, Malware Scan, Check for Updates and Empty Trash (two clicks, it's permanent).
+
+When **Keep running in the menu bar** is on (default), closing the window keeps Filkollen running with no Dock icon; the menu bar icon or opening the app again brings the window back. **Open at login** (Settings › General, uses `SMAppService`) starts it hidden in the menu bar. While running it can, on a schedule you pick:
+- run a Smart Scan (looks only; nothing is cleaned without your review) and notify you when there's over 500 MB to clean
+- refresh the threat database weekly when an Auth-Key is set
+- check for app updates daily and notify you
+
+Settings has General, Cleanup (temp file age, large-file size, excluded folders), Protection and Updates tabs.
 
 Safety rails:
 - Junk always goes to the Trash. Nothing is deleted without a review sheet.
@@ -55,13 +75,17 @@ Quarantined files live in `~/Library/Application Support/Filkollen/Quarantine/`,
 
 ```
 Filkollen/
-  App/          FilkollenApp, AppModel (cleanup state), ProtectionModel (malware state)
-  Models/       JunkCategory, JunkItem
+  App/          FilkollenApp, AppDelegate (menu bar mode + BackgroundScheduler),
+                AppModel (cleanup), ProtectionModel (malware), UpdatesModel
+  Models/       JunkCategory, JunkItem, Preferences (settings keys, exclusions)
   Services/     FullDiskAccess, CacheScanner, LeftoverScanner, DuplicatePhotoScanner,
-                Cleaner, SafetyGuard, FileSizer
+                LargeFileScanner, Cleaner, SafetyGuard, FileSizer, Shell
     Protection/ ThreatDatabase, MalwareScanner, ClamAV, Quarantine, Threat
-  Views/        RootView, OnboardingView, SmartScanView, CategoryDetailView,
-                ReviewSheet, ProtectionView, SettingsView, Theme, Components/
+    Updates/    AppUpdate, SparkleChecker, PackageCheckers (Homebrew, mas, softwareupdate)
+    System/     SystemInfo, StartupItems, LoginItem, Notifier
+  Views/        RootView, MenuBarView, OnboardingView, SmartScanView, CategoryDetailView,
+                ReviewSheet, ProtectionView, UpdatesView, SystemOverviewView,
+                StartupItemsView, SettingsView, Theme, Components/
   Resources/    Assets (app icon, accent color)
 project.yml     XcodeGen spec (macOS 13, no sandbox, hardened runtime)
 ```
@@ -71,4 +95,6 @@ project.yml     XcodeGen spec (macOS 13, no sandbox, hardened runtime)
 - Leftover detection only matches bundle-ID–named entries. Plain names like `~/Library/Application Support/Spotify` are ignored to avoid false positives.
 - Duplicate photos are exact matches only. Visually similar shots (resized, re-encoded) would need perceptual hashing (Vision `VNFeaturePrintObservation`).
 - System-wide locations (`/Library/Caches`, `/private/var/log`) need admin rights through a privileged helper (SMAppService), not included yet.
-- No Sparkle auto-update yet.
+- Filkollen itself has no Sparkle auto-update yet.
+- Open at login needs a signed build; an unsigned debug build may be refused by `SMAppService`.
+- Startup items in `/Library` need admin rights to change, so they're shown but not removable.

@@ -2,6 +2,8 @@ import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject private var model: AppModel
+    @EnvironmentObject private var app: AppDelegate
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         Group {
@@ -17,6 +19,10 @@ struct RootView: View {
         .animation(.easeInOut, value: model.showOnboarding)
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             model.refreshFullDiskAccess()
+        }
+        .onAppear {
+            app.openMainWindowAction = { openWindow(id: "main") }
+            DispatchQueue.main.async { app.hideIfPending() }
         }
     }
 }
@@ -41,6 +47,9 @@ struct MainView: View {
         case .smartScan: SmartScanView()
         case .category(let category): CategoryDetailView(category: category)
         case .protection: ProtectionView()
+        case .updates: UpdatesView()
+        case .system(.overview): SystemOverviewView()
+        case .system(.startupItems): StartupItemsView()
         }
     }
 
@@ -49,6 +58,9 @@ struct MainView: View {
         case .smartScan: return .pink
         case .category(let c): return c.tint
         case .protection: return .green
+        case .updates: return .cyan
+        case .system(.overview): return .teal
+        case .system(.startupItems): return .orange
         }
     }
 }
@@ -56,6 +68,7 @@ struct MainView: View {
 struct SidebarView: View {
     @EnvironmentObject private var model: AppModel
     @EnvironmentObject private var protection: ProtectionModel
+    @EnvironmentObject private var updates: UpdatesModel
 
     var body: some View {
         List(selection: Binding<AppModel.Section?>(
@@ -92,6 +105,26 @@ struct SidebarView: View {
                     }
                 }
                 .tag(AppModel.Section.protection)
+            }
+
+            Section("Maintenance") {
+                ForEach(AppModel.SystemPage.allCases, id: \.self) { page in
+                    Label(page.rawValue, systemImage: page.symbol)
+                        .tag(AppModel.Section.system(page))
+                }
+                HStack {
+                    Label("App Updates", systemImage: "arrow.down.app.fill")
+                    Spacer()
+                    if updates.isChecking {
+                        ProgressView().controlSize(.mini)
+                    } else if !updates.updates.isEmpty {
+                        Text("\(updates.updates.count)")
+                            .font(.caption.bold())
+                            .padding(.horizontal, 6).padding(.vertical, 1)
+                            .background(.blue, in: Capsule())
+                    }
+                }
+                .tag(AppModel.Section.updates)
             }
         }
         .listStyle(.sidebar)
