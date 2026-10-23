@@ -180,6 +180,7 @@ final class AppModel: ObservableObject {
             case .systemJunk: found = CacheScanner(context: context).scan(progress: progress)
             case .appLeftovers: found = LeftoverScanner(context: context).scan(progress: progress)
             case .duplicatePhotos: found = DuplicatePhotoScanner(context: context).scan(progress: progress)
+            case .duplicateFiles: found = DuplicatePhotoScanner(context: context, mode: .files).scan(progress: progress)
             case .largeFiles: found = LargeFileScanner(context: context).scan(progress: progress)
             case .developerJunk: found = DeveloperScanner(context: context).scan(progress: progress)
             case .oldInstallers: found = InstallerScanner(context: context).scan(progress: progress)

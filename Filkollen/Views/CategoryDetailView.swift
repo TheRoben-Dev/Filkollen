@@ -76,7 +76,7 @@ struct CategoryDetailView: View {
                         title: groupTitle(group.key, items: group.items),
                         items: group.items,
                         isExpanded: Binding(
-                            get: { expanded.contains(group.key) || category == .duplicatePhotos },
+                            get: { expanded.contains(group.key) || category.isDuplicates },
                             set: { if $0 { expanded.insert(group.key) } else { expanded.remove(group.key) } }
                         )
                     )
@@ -88,7 +88,7 @@ struct CategoryDetailView: View {
 
     private func groupTitle(_ key: String, items: [JunkItem]) -> String {
         switch category {
-        case .duplicatePhotos: return items.first(where: \.isKeeper)?.name ?? key
+        case .duplicatePhotos, .duplicateFiles: return items.first(where: \.isKeeper)?.name ?? key
         case .appLeftovers, .systemJunk, .largeFiles, .developerJunk, .oldInstallers, .iosBackups, .browserCaches: return key
         }
     }
@@ -167,7 +167,7 @@ private struct GroupCard: View {
                 }
                 Spacer()
                 Text(total.formattedBytes).font(.callout.weight(.semibold).monospacedDigit())
-                if category != .duplicatePhotos {
+                if !category.isDuplicates {
                     Button {
                         withAnimation(.easeInOut(duration: 0.2)) { isExpanded.toggle() }
                     } label: {
@@ -188,7 +188,7 @@ private struct GroupCard: View {
 
     private var subtitle: String {
         switch category {
-        case .duplicatePhotos: return "\(items.count) identical copies"
+        case .duplicatePhotos, .duplicateFiles: return "\(items.count) identical copies"
         case .appLeftovers:
             return Set(items.map(\.detail)).sorted().joined(separator: ", ")
         case .developerJunk:
