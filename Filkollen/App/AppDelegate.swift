@@ -49,6 +49,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         )
         // SwiftUI may create the window just after launch; RootView also calls this when it appears.
         DispatchQueue.main.async { [weak self] in self?.hideIfPending() }
+        // Unit tests run inside the app; keep them free of scheduled scans and network.
+        guard !AppEnvironment.isRunningTests else { return }
         scheduler.start()
     }
 
@@ -114,6 +116,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         return event.eventID == kAEOpenApplication
             && event.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem
     }
+}
+
+enum AppEnvironment {
+    static let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        || NSClassFromString("XCTestCase") != nil
 }
 
 /// Periodic work while the app runs, including with no window open.
