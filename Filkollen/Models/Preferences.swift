@@ -19,6 +19,7 @@ enum Pref {
     static let tempMinAgeDays = "tempMinAgeDays"
     static let largeFileMB = "largeFileMB"
     static let oldFileMonths = "oldFileMonths"            // 0 = size only
+    static let leftoverPlainNames = "leftoverPlainNames"
     static let excludedPaths = "excludedPaths"            // one path per line
 
     // Updates
@@ -40,6 +41,7 @@ enum Pref {
             tempMinAgeDays: 3,
             largeFileMB: 500,
             oldFileMonths: 12,
+            leftoverPlainNames: false,
             excludedPaths: "",
             checkSparkle: true,
             checkHomebrew: true,

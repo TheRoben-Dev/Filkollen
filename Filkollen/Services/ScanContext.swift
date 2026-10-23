@@ -28,6 +28,8 @@ struct ScanContext: @unchecked Sendable {
     var largeFileMinBytes: Int64 = 500 * 1_048_576
     /// Also list files (50 MB+) not opened for this long; nil = size only.
     var largeFileMinAge: TimeInterval? = nil
+    /// Also guess at plain-named leftovers ("Application Support/Spotify").
+    var plainNameLeftovers = false
     /// Where scanners may keep caches between runs; nil keeps them in memory.
     var cacheDirectory: URL? = nil
     /// Set when the scan is cancelled. Unlike `Task.isCancelled` it's visible from
@@ -53,6 +55,7 @@ struct ScanContext: @unchecked Sendable {
             largeFileMinBytes: Int64(max(50, Pref.defaults.integer(forKey: Pref.largeFileMB))) * 1_048_576,
             largeFileMinAge: Pref.defaults.integer(forKey: Pref.oldFileMonths) > 0
                 ? TimeInterval(Pref.defaults.integer(forKey: Pref.oldFileMonths)) * 30 * 24 * 3600 : nil,
+            plainNameLeftovers: Pref.defaults.bool(forKey: Pref.leftoverPlainNames),
             cacheDirectory: ThreatDatabase.supportDirectory
         )
     }

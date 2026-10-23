@@ -141,7 +141,7 @@ private struct GroupCard: View {
     @Binding var isExpanded: Bool
 
     /// Items a group checkbox selects: never the kept duplicate or something in use.
-    private var selectable: [JunkItem] { items.filter { !$0.isKeeper && $0.inUseBy == nil } }
+    private var selectable: [JunkItem] { items.filter { !$0.isKeeper && $0.inUseBy == nil && $0.confidence != .low } }
     private var allSelected: Bool { !selectable.isEmpty && selectable.allSatisfy(\.isSelected) }
     private var total: Int64 { items.reduce(0) { $0 + $1.size } }
 
@@ -151,7 +151,7 @@ private struct GroupCard: View {
                 Toggle("", isOn: Binding(
                     get: { allSelected },
                     set: { v in
-                        for i in items where !i.isKeeper && (!v || i.inUseBy == nil) {
+                        for i in items where !i.isKeeper && (!v || (i.inUseBy == nil && i.confidence != .low)) {
                             model.setSelected(v, item: i.id, in: category)
                         }
                     }
@@ -222,6 +222,13 @@ private struct ItemRow: View {
                             .padding(.horizontal, 6).padding(.vertical, 1)
                             .background(Theme.safe, in: Capsule())
                     }
+                    if item.confidence == .low {
+                        Text("LOW CONFIDENCE")
+                            .font(.caption2.bold())
+                            .padding(.horizontal, 6).padding(.vertical, 1)
+                            .background(.gray.opacity(0.6), in: Capsule())
+                            .help("No removed app was confirmed for this folder. Check it before cleaning.")
+                    }
                     if item.inUseBy != nil {
                         Text("IN USE")
                             .font(.caption2.bold())
@@ -249,6 +256,7 @@ private struct ItemRow: View {
             .accessibilityLabel("Show \(item.name) in Finder")
         }
         .padding(.leading, 26)
+        .opacity(item.confidence == .low ? 0.75 : 1)
         .contentShape(Rectangle())
         .contextMenu { ItemContextMenu(item: item) }
     }

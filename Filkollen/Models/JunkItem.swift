@@ -22,6 +22,9 @@ struct JunkItem: Identifiable, Hashable, Sendable {
     /// What emptying the Trash would actually give back, when it's less than `size`
     /// (APFS clones, hard links). nil means all of `size`.
     var reclaimable: Int64? = nil
+    enum Confidence: Sendable { case high, low }
+    /// How sure a guess-based scanner is that this belongs to a removed app; nil = not a guess.
+    var confidence: Confidence? = nil
     /// Bundle IDs of apps that must be closed before this may be cleaned. The Cleaner enforces it.
     var requiresClosed: [String] = []
 

@@ -166,6 +166,39 @@ final class LeftoverScannerTests: XCTestCase {
         XCTAssertEqual(Set(items.map(\.detail)), ["Application Support", "Preferences"])
     }
 
+    func testPlainNameLeftoversAreOffByDefault() throws {
+        try fx.file("Library/Application Support/Spotify/x", bytes: 4_000)
+        XCTAssertTrue(LeftoverScanner(context: fx.context()).scan(progress: noProgress).isEmpty)
+    }
+
+    func testPlainNameLeftoversWithConfidence() throws {
+        try fx.app("Visual Studio Code", bundleID: "com.microsoft.VSCode")
+        try fx.file("Library/Application Support/com.spotify.client/x", bytes: 4_000)  // bundle-ID leftover: Spotify is gone
+        try fx.file("Library/Application Support/Spotify/x", bytes: 4_000)            // high
+        try fx.file("Library/Caches/SomeTool/x", bytes: 4_000)                        // low
+        try fx.file("Library/Application Support/Visual Studio Code/x", bytes: 4_000)  // installed app name
+        try fx.file("Library/Application Support/CrashReporter/x", bytes: 4_000)       // shared, never
+        try fx.file("Library/Application Support/Google/x", bytes: 4_000)              // vendor, never
+        var context = fx.context()
+        context.plainNameLeftovers = true
+        let items = LeftoverScanner(context: context).scan(progress: noProgress)
+        let byGroup = Dictionary(grouping: items, by: \.group)
+
+        XCTAssertEqual(byGroup["Spotify"]?.first?.confidence, .high)
+        XCTAssertEqual(byGroup["Spotify"]?.first?.isSelected, true)
+        XCTAssertEqual(byGroup["SomeTool"]?.first?.confidence, .low)
+        XCTAssertEqual(byGroup["SomeTool"]?.first?.isSelected, false)
+        XCTAssertNil(byGroup["Visual Studio Code"])
+        XCTAssertNil(byGroup["CrashReporter"])
+        XCTAssertNil(byGroup["Google"])
+        XCTAssertNil(byGroup["com.spotify.client"]?.first?.confidence, "bundle-ID matches aren't guesses")
+    }
+
+    func testNameTokens() {
+        XCTAssertEqual(LeftoverScanner.nameTokens(ofBundleID: "com.spotify.client"), ["spotify"])
+        XCTAssertEqual(LeftoverScanner.nameTokens(ofBundleID: "com.microsoft.VSCode"), ["microsoft", "vscode"])
+    }
+
     func testLaunchServicesHasTheFinalWord() throws {
         try fx.file("Library/Caches/com.elsewhere.app/x", bytes: 4_000)
         var context = fx.context()

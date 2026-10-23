@@ -108,6 +108,7 @@ private struct CleanupSettings: View {
     @AppStorage(Pref.tempMinAgeDays) private var tempMinAgeDays = 3
     @AppStorage(Pref.largeFileMB) private var largeFileMB = 500
     @AppStorage(Pref.oldFileMonths) private var oldFileMonths = 12
+    @AppStorage(Pref.leftoverPlainNames) private var leftoverPlainNames = false
     @AppStorage(Pref.excludedPaths) private var excludedPaths = ""
 
     var body: some View {
@@ -115,6 +116,11 @@ private struct CleanupSettings: View {
             Section("System Junk") {
                 Stepper("Only remove temporary files older than \(tempMinAgeDays) day\(tempMinAgeDays == 1 ? "" : "s")",
                         value: $tempMinAgeDays, in: 1...60)
+            }
+            Section("App Leftovers") {
+                Toggle("Also look for folders named after removed apps", isOn: $leftoverPlainNames)
+                Text("Finds folders like Application Support › Spotify. Matches that can't be confirmed are marked Low confidence and never pre-selected.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
             Section("Large & Old Files") {
                 Picker("Show files larger than", selection: $largeFileMB) {
