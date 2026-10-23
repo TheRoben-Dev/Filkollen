@@ -125,16 +125,28 @@ final class ContentHashCache: @unchecked Sendable {
 /// Runs `body` over `items` on all cores and collects the results in order.
 func parallelMap<T: Sendable, R: Sendable>(_ items: [T], _ body: @Sendable (T) -> R) -> [R] {
     guard items.count > 1 else { return items.map(body) }
-    let lock = NSLock()
-    var results = [R?](repeating: nil, count: items.count)
+    let results = Locked([R?](repeating: nil, count: items.count))
     let workers = min(items.count, ProcessInfo.processInfo.activeProcessorCount)
     DispatchQueue.concurrentPerform(iterations: workers) { worker in
         var i = worker
         while i < items.count {
             let r = body(items[i])
-            lock.withLock { results[i] = r }
+            results.withLock { $0[i] = r }
             i += workers
         }
     }
-    return results.map { $0! }
+    return results.withLock { $0.map { $0! } }
+}
+
+/// A value shared between threads, only touched under its lock.
+final class Locked<Value>: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value: Value
+
+    init(_ value: Value) { self.value = value }
+
+    func withLock<R>(_ body: (inout Value) -> R) -> R {
+        lock.lock(); defer { lock.unlock() }
+        return body(&value)
+    }
 }

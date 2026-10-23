@@ -1,5 +1,5 @@
 import Foundation
-import Security
+@preconcurrency import Security
 
 /// Who signed a piece of code, and whether macOS would trust it. Read-only:
 /// nothing here changes or launches what it checks.
@@ -53,10 +53,11 @@ enum CodeTrust {
         return SecRequirementCreateWithString(text as CFString, [], &req) == errSecSuccess ? req : nil
     }
 
-    private static let appleReq = requirement("anchor apple")
-    private static let notarizedReq = requirement("notarized")
-    private static let developerIDReq = requirement("anchor apple generic and certificate leaf[field.1.2.840.113635.100.6.1.13]")
-    private static let appStoreReq = requirement("anchor apple generic and certificate leaf[field.1.2.840.113635.100.6.1.9]")
+    // Built per call (microseconds): SecRequirement isn't Sendable, so it can't be a shared static.
+    private static var appleReq: SecRequirement? { requirement("anchor apple") }
+    private static var notarizedReq: SecRequirement? { requirement("notarized") }
+    private static var developerIDReq: SecRequirement? { requirement("anchor apple generic and certificate leaf[field.1.2.840.113635.100.6.1.13]") }
+    private static var appStoreReq: SecRequirement? { requirement("anchor apple generic and certificate leaf[field.1.2.840.113635.100.6.1.9]") }
 
     /// Checks an app bundle or a single executable. `deep` also validates every
     /// nested resource, which is slow for big apps; the default checks the main code.

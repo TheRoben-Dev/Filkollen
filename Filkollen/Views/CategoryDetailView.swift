@@ -283,12 +283,12 @@ struct ItemContextMenu: View {
 }
 
 private struct ShowQuickLookKey: EnvironmentKey {
-    static let defaultValue: (URL) -> Void = { _ in }
+    static let defaultValue: @MainActor @Sendable (URL) -> Void = { _ in }
 }
 
 extension EnvironmentValues {
     /// Opens the Quick Look panel for a file; set by the page that hosts `.quickLookPreview`.
-    var showQuickLook: (URL) -> Void {
+    var showQuickLook: @MainActor @Sendable (URL) -> Void {
         get { self[ShowQuickLookKey.self] }
         set { self[ShowQuickLookKey.self] = newValue }
     }
