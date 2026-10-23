@@ -36,11 +36,14 @@ final class InstallerScannerTests: XCTestCase {
         try fx.file("Downloads/OldTool.pkg", bytes: 9_000, modified: old)              // old: listed, unselected
         try fx.file("Downloads/photos-2019.zip", bytes: 9_000, modified: old)          // old archive: unselected
         try fx.file("Downloads/notes.txt", bytes: 9_000, modified: old)                // not an installer
-        try fx.file("Downloads/a/b/deep.dmg", bytes: 9_000, modified: old)             // too deep
+        let deep = try fx.file("Downloads/a/b/deep.dmg", bytes: 9_000, modified: old)  // too deep
+        try FileManager.default.setAttributes([.creationDate: old], ofItemAtPath: deep.path)
         for name in ["Firefox 131.0.dmg", "Thunderbird 128.dmg", "OldTool.pkg", "photos-2019.zip"] {
             let url = fx.home.appendingPathComponent("Downloads/\(name)")
+            let date = name.hasPrefix("Old") || name.hasPrefix("photos") ? old : recent
+            try FileManager.default.setAttributes([.creationDate: date, .modificationDate: date], ofItemAtPath: url.path)
             var values = URLResourceValues()
-            values.contentAccessDate = name.hasPrefix("Old") || name.hasPrefix("photos") ? old : recent
+            values.contentAccessDate = date
             var u = url
             try u.setResourceValues(values)
         }
