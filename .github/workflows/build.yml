@@ -8,4 +8,16 @@ jobs:
       - run: sudo xcode-select -s /Applications/Xcode_16.4.app || true
       - run: brew install xcodegen
       - run: xcodegen generate
-      - run: xcodebuild -project Filkollen.xcodeproj -scheme Filkollen -configuration Debug CODE_SIGNING_ALLOWED=NO build
+      - name: Build and test
+        run: |
+          set -o pipefail
+          xcodebuild -project Filkollen.xcodeproj -scheme Filkollen -configuration Debug \
+            -destination 'platform=macOS' -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO test | tee build.log | grep -E "error:|warning:|Test Suite|Executed|failed" || true
+          grep -q "TEST SUCCEEDED" build.log
+      - name: Upload test log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-log
+          path: build.log
