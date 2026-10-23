@@ -1,7 +1,7 @@
 import AppKit
 
 /// Finds user-level caches, logs, old temp files and developer build junk.
-struct CacheScanner {
+struct CacheScanner: Sendable {
     var context: ScanContext = .live
     private var fm: FileManager { context.fileManager }
 
@@ -12,7 +12,7 @@ struct CacheScanner {
     ]
 
     func scan(progress: @escaping @Sendable (String) -> Void) -> [JunkItem] {
-        let throttle = ProgressThrottle(progress)
+        let throttle = ProgressThrottle(progress, counting: true)
         let running = context.runningApps()
         var items: [JunkItem] = []
 
@@ -22,7 +22,7 @@ struct CacheScanner {
             of: context.library("Developer/Xcode/DerivedData"),
             group: "Xcode Derived Data", running: [], throttle: throttle
         )
-        if Task.isCancelled { return [] }
+        if context.isCancelled { return [] }
         items += oldTempFiles(throttle: throttle)
 
         return items.filter { $0.size > 0 }.sorted { $0.size > $1.size }
@@ -39,8 +39,9 @@ struct CacheScanner {
             return []
         }
 
-        return entries.compactMap { url in
-            guard !Task.isCancelled,
+        // Measuring is the slow part (a full walk per folder), so folders are measured in parallel.
+        return parallelMap(entries) { url -> JunkItem? in
+            guard !context.isCancelled,
                   !skipNames.contains(url.lastPathComponent),
                   fm.isDeletableFile(atPath: url.path) else { return nil }
             throttle.report(url.abbreviatedPath)
@@ -69,7 +70,7 @@ struct CacheScanner {
                 modified: FileSizer.modificationDate(url),
                 reclaimable: measured.reclaimable
             )
-        }
+        }.compactMap { $0 }
     }
 
     private func oldTempFiles(throttle: ProgressThrottle) -> [JunkItem] {
@@ -79,7 +80,7 @@ struct CacheScanner {
 
         let cutoff = context.now().addingTimeInterval(-context.tempMinAge)
         return entries.compactMap { url in
-            guard !Task.isCancelled,
+            guard !context.isCancelled,
                   let date = FileSizer.modificationDate(url), date < cutoff,
                   fm.isDeletableFile(atPath: url.path) else { return nil }
             throttle.report(url.lastPathComponent)

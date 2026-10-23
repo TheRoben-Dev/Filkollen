@@ -3,6 +3,13 @@ import XCTest
 
 private let noProgress: @Sendable (String) -> Void = { _ in }
 
+final class Messages: @unchecked Sendable {
+    private let lock = NSLock()
+    private var list: [String] = []
+    func append(_ m: String) { lock.withLock { list.append(m) } }
+    var all: [String] { lock.withLock { list } }
+}
+
 final class CacheScannerTests: XCTestCase {
     private var fx: Fixture!
     override func setUpWithError() throws { fx = try Fixture() }
@@ -80,6 +87,27 @@ final class CacheScannerTests: XCTestCase {
 
         let items = CacheScanner(context: fx.context()).scan(progress: noProgress)
         XCTAssertTrue(items.contains { $0.name == "fine" })
+    }
+
+    func testCancellationFlagStopsEveryScanner() throws {
+        try fx.file("Library/Caches/com.vendor.app/blob", bytes: 10_000)
+        try fx.file("Library/Application Support/com.gone.app/x", bytes: 4_000)
+        try fx.file("Pictures/a.jpg", bytes: 5_000)
+        try fx.file("Downloads/a.jpg", bytes: 5_000)
+        try fx.file("Movies/big.mov", bytes: 300_000)
+        let context = fx.context(largeFileMinBytes: 100_000)
+        context.cancellation.set()
+        XCTAssertTrue(CacheScanner(context: context).scan(progress: noProgress).isEmpty)
+        XCTAssertTrue(LeftoverScanner(context: context).scan(progress: noProgress).isEmpty)
+        XCTAssertTrue(DuplicatePhotoScanner(context: context).scan(progress: noProgress).isEmpty)
+        XCTAssertTrue(LargeFileScanner(context: context).scan(progress: noProgress).isEmpty)
+    }
+
+    func testProgressShowsCountAndRate() throws {
+        for i in 0..<5 { try fx.file("Library/Caches/c\(i)/x", bytes: 4_000) }
+        let messages = Messages()
+        _ = CacheScanner(context: fx.context()).scan(progress: { messages.append($0) })
+        XCTAssertTrue(messages.all.contains { $0.contains("items ·") && $0.contains("/s") })
     }
 
     func testMissingFoldersYieldNothing() throws {

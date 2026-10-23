@@ -86,23 +86,38 @@ enum FileSizer {
     }
 }
 
-/// Rate-limits progress callbacks so scanners don't flood the main thread.
+/// Rate-limits progress callbacks so scanners don't flood the main thread,
+/// and counts items so the status line can show a live rate.
 final class ProgressThrottle: @unchecked Sendable {
     private let handler: @Sendable (String) -> Void
+    private let counting: Bool
     private var last = Date.distantPast
+    private let started = Date()
+    private var count = 0
     private let lock = NSLock()
 
-    init(_ handler: @escaping @Sendable (String) -> Void) { self.handler = handler }
+    /// `counting` prefixes messages with "1,234 items · 850/s".
+    init(_ handler: @escaping @Sendable (String) -> Void, counting: Bool = false) {
+        self.handler = handler
+        self.counting = counting
+    }
 
     /// Safe to call from many threads at once (the malware scan hashes in parallel).
     func report(_ message: @autoclosure () -> String) {
         let now = Date()
-        let due = lock.withLock {
-            guard now.timeIntervalSince(last) > 0.08 else { return false }
+        let snapshot: Int? = lock.withLock {
+            count += 1
+            guard now.timeIntervalSince(last) > 0.08 else { return nil }
             last = now
-            return true
+            return count
         }
-        if due { handler(message()) }
+        guard let n = snapshot else { return }
+        if counting {
+            let rate = Double(n) / max(0.001, now.timeIntervalSince(started))
+            handler("\(n.formatted()) items · \(Int(rate).formatted())/s · \(message())")
+        } else {
+            handler(message())
+        }
     }
 }
 

@@ -8,7 +8,7 @@ struct LargeFileScanner {
     private var home: URL { context.home }
 
     func scan(progress: @escaping @Sendable (String) -> Void) -> [JunkItem] {
-        let throttle = ProgressThrottle(progress)
+        let throttle = ProgressThrottle(progress, counting: true)
         let minSize = context.largeFileMinBytes
         let keys: [URLResourceKey] = [
             .isRegularFileKey, .totalFileAllocatedSizeKey, .contentAccessDateKey, .contentModificationDateKey,
@@ -28,7 +28,7 @@ struct LargeFileScanner {
         // folder comes from the walk itself rather than from comparing path components.
         var currentTop = "Home"
         for case let url as URL in enumerator {
-            if Task.isCancelled { return [] }
+            if context.isCancelled { return [] }
             if enumerator.level == 1 {
                 if skipTopLevel.contains(url.lastPathComponent) { enumerator.skipDescendants(); continue }
                 currentTop = url.lastPathComponent

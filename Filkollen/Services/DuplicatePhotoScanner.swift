@@ -32,7 +32,7 @@ struct DuplicatePhotoScanner {
                 errorHandler: { _, _ in true }
             ) else { continue }
             for case let url as URL in enumerator {
-                if Task.isCancelled { return [] }
+                if context.isCancelled { return [] }
                 // Not always registered as a package (no Photos app, external drive), so skip by name too.
                 if url.pathExtension.lowercased() == "photoslibrary" { enumerator.skipDescendants(); continue }
                 guard Self.imageExtensions.contains(url.pathExtension.lowercased()),
@@ -52,7 +52,7 @@ struct DuplicatePhotoScanner {
         let candidates = bySize.filter { $0.value.count > 1 }
         var compared = 0
         for (size, urls) in candidates {
-            if Task.isCancelled { return [] }
+            if context.isCancelled { return [] }
             let files = urls.compactMap { url in FileIdentity(url).map { (url, $0) } }
             seen.formUnion(files.map(\.1.key))
             compared += files.count
@@ -62,7 +62,9 @@ struct DuplicatePhotoScanner {
             let tiers: [ContentHashCache.Kind] = size <= Int64(ContentHashCache.chunk) ? [.head] : [.head, .tail, .full]
             for tier in tiers {
                 groups = groups.flatMap { group -> [[(URL, FileIdentity)]] in
-                    let hashes = parallelMap(group) { cache.hash(tier, of: $0.0, identity: $0.1) }
+                    let hashes = parallelMap(group) { [context] file in
+                        context.isCancelled ? nil : cache.hash(tier, of: file.0, identity: file.1)
+                    }
                     var byHash: [String: [(URL, FileIdentity)]] = [:]
                     for (file, hash) in zip(group, hashes) {
                         guard let hash else { continue } // unreadable: can't prove it's a duplicate
@@ -70,9 +72,9 @@ struct DuplicatePhotoScanner {
                     }
                     return byHash.values.filter { $0.count > 1 }
                 }
-                if groups.isEmpty || Task.isCancelled { break }
+                if groups.isEmpty || context.isCancelled { break }
             }
-            if Task.isCancelled { return [] }
+            if context.isCancelled { return [] }
             for group in groups {
                 let digest = cache.hash(tiers.last!, of: group[0].0, identity: group[0].1) ?? UUID().uuidString
                 items += makeGroup(group.map(\.0), size: size, digest: digest)

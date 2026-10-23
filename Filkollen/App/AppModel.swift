@@ -38,7 +38,10 @@ final class AppModel: ObservableObject {
     @Published var onboardingDismissed = UserDefaults.standard.bool(forKey: "onboardingDismissed")
 
     @Published private(set) var results: [JunkCategory: CategoryResult] = [:]
-    @Published private(set) var scanningCategory: JunkCategory?
+    /// Categories still being scanned; they run side by side.
+    @Published private(set) var scanningCategories: Set<JunkCategory> = []
+    /// The category shown as "now scanning": the first unfinished one in display order.
+    var scanningCategory: JunkCategory? { JunkCategory.allCases.first { scanningCategories.contains($0) } }
     @Published private(set) var scanStatus = ""
 
     private var scanTask: Task<Void, Never>?
@@ -111,25 +114,34 @@ final class AppModel: ObservableObject {
         let started = Date()
 
         scanTask = Task {
-            for category in categories {
-                if Task.isCancelled { break }
-                scanningCategory = category
-                scanStatus = category.scanningMessage
-                let items = await Self.runScanner(for: category) { path in
-                    Task { @MainActor in
-                        guard self.scanGeneration == generation else { return }
-                        self.scanStatus = path
+            scanningCategories = Set(categories)
+            scanStatus = categories.first?.scanningMessage ?? ""
+            // Scanners run concurrently (each one also hashes/measures in parallel);
+            // results appear as each finishes.
+            await withTaskGroup(of: (JunkCategory, [JunkItem]).self) { group in
+                for category in categories {
+                    group.addTask {
+                        let items = await Self.runScanner(for: category) { message in
+                            Task { @MainActor in
+                                guard self.scanGeneration == generation, self.scanningCategories.contains(category) else { return }
+                                self.scanStatus = message
+                            }
+                        }
+                        return (category, items)
                     }
                 }
-                guard !Task.isCancelled, scanGeneration == generation else { break }
-                let excluded = Exclusions.paths
-                results[category] = CategoryResult(
-                    category: category,
-                    items: excluded.isEmpty ? items : items.filter { !Exclusions.isExcluded($0.url, in: excluded) }
-                )
+                for await (category, items) in group {
+                    guard !Task.isCancelled, scanGeneration == generation else { continue }
+                    let excluded = Exclusions.paths
+                    results[category] = CategoryResult(
+                        category: category,
+                        items: excluded.isEmpty ? items : items.filter { !Exclusions.isExcluded($0.url, in: excluded) }
+                    )
+                    scanningCategories.remove(category)
+                }
             }
             guard scanGeneration == generation else { return }
-            scanningCategory = nil
+            scanningCategories = []
             scanStatus = ""
             if Task.isCancelled {
                 phase = .idle
@@ -147,7 +159,7 @@ final class AppModel: ObservableObject {
         scanTask?.cancel()
         scanTask = nil
         scanGeneration += 1
-        scanningCategory = nil
+        scanningCategories = []
         scanStatus = ""
         phase = .idle
     }
@@ -158,8 +170,8 @@ final class AppModel: ObservableObject {
     ) async -> [JunkItem] {
         // Detached so the work runs off the main actor; cancellation is forwarded
         // by hand because detached tasks don't inherit it.
+        let context = ScanContext.live
         let work = Task.detached(priority: .userInitiated) { () -> [JunkItem] in
-            let context = ScanContext.live
             let found: [JunkItem]
             switch category {
             case .systemJunk: found = CacheScanner(context: context).scan(progress: progress)
@@ -167,10 +179,13 @@ final class AppModel: ObservableObject {
             case .duplicatePhotos: found = DuplicatePhotoScanner(context: context).scan(progress: progress)
             case .largeFiles: found = LargeFileScanner(context: context).scan(progress: progress)
             }
-            if Task.isCancelled { return [] }
+            if context.isCancelled { return [] }
             return screened(found, category: category)
         }
-        return await withTaskCancellationHandler { await work.value } onCancel: { work.cancel() }
+        return await withTaskCancellationHandler { await work.value } onCancel: {
+            work.cancel()
+            context.cancellation.set()
+        }
     }
 
     /// Drops anything SafetyGuard would refuse, so it's never shown as cleanable,

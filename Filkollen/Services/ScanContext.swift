@@ -26,6 +26,11 @@ struct ScanContext: @unchecked Sendable {
     var largeFileMinBytes: Int64 = 500 * 1_048_576
     /// Where scanners may keep caches between runs; nil keeps them in memory.
     var cacheDirectory: URL? = nil
+    /// Set when the scan is cancelled. Unlike `Task.isCancelled` it's visible from
+    /// the worker threads scanners fan out to.
+    var cancellation = CancellationFlag()
+
+    var isCancelled: Bool { cancellation.isSet || Task.isCancelled }
 
     static var live: ScanContext {
         let home = FileManager.default.homeDirectoryForCurrentUser
@@ -49,6 +54,13 @@ struct ScanContext: @unchecked Sendable {
     func library(_ relative: String) -> URL {
         home.appendingPathComponent("Library").appendingPathComponent(relative)
     }
+}
+
+final class CancellationFlag: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = false
+    var isSet: Bool { lock.withLock { value } }
+    func set() { lock.withLock { value = true } }
 }
 
 enum RunningApps {

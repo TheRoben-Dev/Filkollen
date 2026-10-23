@@ -27,20 +27,20 @@ struct LeftoverScanner {
     )
 
     func scan(progress: @escaping @Sendable (String) -> Void) -> [JunkItem] {
-        let throttle = ProgressThrottle(progress)
+        let throttle = ProgressThrottle(progress, counting: true)
         throttle.report("Indexing installed apps…")
         let installed = installedBundleIDs()
         var items: [JunkItem] = []
 
         for location in locations {
-            if Task.isCancelled { return [] }
+            if context.isCancelled { return [] }
             let dir = context.home.appendingPathComponent(location.path)
             guard let entries = try? fm.contentsOfDirectory(
                 at: dir, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]
             ) else { continue }
 
             for url in entries {
-                if Task.isCancelled { return [] }
+                if context.isCancelled { return [] }
                 throttle.report(url.abbreviatedPath)
                 guard let bundleID = Self.bundleID(from: url.lastPathComponent),
                       !isInstalled(bundleID, installed: installed),
