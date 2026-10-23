@@ -12,15 +12,16 @@ struct CacheScanner: Sendable {
     ]
 
     func scan(progress: @escaping @Sendable (String) -> Void) -> [JunkItem] {
+        let skipNames = self.skipNames.union(DeveloperScanner.claimedCacheNames)
         let throttle = ProgressThrottle(progress, counting: true)
         let running = context.runningApps()
         var items: [JunkItem] = []
 
-        items += children(of: context.library("Caches"), group: "User Caches", running: running, throttle: throttle)
-        items += children(of: context.library("Logs"), group: "User Logs", running: running, throttle: throttle)
+        items += children(of: context.library("Caches"), group: "User Caches", skip: skipNames, running: running, throttle: throttle)
+        items += children(of: context.library("Logs"), group: "User Logs", skip: self.skipNames, running: running, throttle: throttle)
         items += children(
             of: context.library("Developer/Xcode/DerivedData"),
-            group: "Xcode Derived Data", running: [], throttle: throttle
+            group: "Xcode Derived Data", skip: [], running: [], throttle: throttle
         )
         if context.isCancelled { return [] }
         items += oldTempFiles(throttle: throttle)
@@ -29,7 +30,7 @@ struct CacheScanner: Sendable {
     }
 
     private func children(
-        of dir: URL, group: String, running: [ScanContext.RunningApp], throttle: ProgressThrottle
+        of dir: URL, group: String, skip skipNames: Set<String>, running: [ScanContext.RunningApp], throttle: ProgressThrottle
     ) -> [JunkItem] {
         let entries: [URL]
         do {

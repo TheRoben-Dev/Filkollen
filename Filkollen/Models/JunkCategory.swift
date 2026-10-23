@@ -5,10 +5,12 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
     case appLeftovers
     case duplicatePhotos
     case largeFiles
+    case developerJunk
 
     var id: String { rawValue }
 
-    /// What Smart Scan covers. Large files are your own data, so they're opt-in.
+    /// What Smart Scan covers. Large files are your own data and developer caches
+    /// can be slow to get back, so both are opt-in.
     static let smartScan: [JunkCategory] = [.systemJunk, .appLeftovers, .duplicatePhotos]
 
     var title: String {
@@ -17,6 +19,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .appLeftovers: return "App Leftovers"
         case .duplicatePhotos: return "Duplicate Photos"
         case .largeFiles: return "Large & Old Files"
+        case .developerJunk: return "Developer Junk"
         }
     }
 
@@ -26,6 +29,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .appLeftovers: return "Files left behind by apps you removed"
         case .duplicatePhotos: return "Identical copies of the same image"
         case .largeFiles: return "Big files in your home folder you may not need"
+        case .developerJunk: return "Xcode, simulator and package-manager caches"
         }
     }
 
@@ -35,6 +39,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .appLeftovers: return "shippingbox.circle.fill"
         case .duplicatePhotos: return "photo.on.rectangle.angled"
         case .largeFiles: return "archivebox.fill"
+        case .developerJunk: return "hammer.circle.fill"
         }
     }
 
@@ -44,6 +49,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .appLeftovers: return "Matching leftovers against installed apps…"
         case .duplicatePhotos: return "Comparing photos…"
         case .largeFiles: return "Looking for large files…"
+        case .developerJunk: return "Looking for build caches and downloads…"
         }
     }
 
@@ -53,6 +59,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .appLeftovers: return Theme.gradient(.teal, .blue)
         case .duplicatePhotos: return Theme.gradient(.purple, .indigo)
         case .largeFiles: return Theme.gradient(.yellow, .orange)
+        case .developerJunk: return Theme.gradient(.blue, .cyan)
         }
     }
 
@@ -62,6 +69,7 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .appLeftovers: return .teal
         case .duplicatePhotos: return .purple
         case .largeFiles: return .orange
+        case .developerJunk: return .cyan
         }
     }
 }
