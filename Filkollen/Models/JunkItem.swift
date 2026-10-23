@@ -3,6 +3,7 @@ import Foundation
 struct JunkItem: Identifiable, Hashable, Sendable {
     var id: URL { url }
     let url: URL
+    /// Allocated (on-disk) size.
     let size: Int64
     let category: JunkCategory
     /// Human-friendly grouping, e.g. "Safari Cache", "com.spotify.client", or a duplicate group id.
@@ -18,7 +19,12 @@ struct JunkItem: Identifiable, Hashable, Sendable {
     /// Canonical location when scanned. The Cleaner refuses the item if it resolves elsewhere later.
     var resolvedPath: String? = nil
 
+    /// What emptying the Trash would actually give back, when it's less than `size`
+    /// (APFS clones, hard links). nil means all of `size`.
+    var reclaimable: Int64? = nil
+
     var name: String { url.lastPathComponent }
+    var reclaimableSize: Int64 { reclaimable ?? size }
 }
 
 extension Int64 {

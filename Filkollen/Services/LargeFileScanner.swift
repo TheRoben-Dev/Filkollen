@@ -10,7 +10,10 @@ struct LargeFileScanner {
     func scan(progress: @escaping @Sendable (String) -> Void) -> [JunkItem] {
         let throttle = ProgressThrottle(progress)
         let minSize = context.largeFileMinBytes
-        let keys: [URLResourceKey] = [.isRegularFileKey, .totalFileAllocatedSizeKey, .contentAccessDateKey, .contentModificationDateKey]
+        let keys: [URLResourceKey] = [
+            .isRegularFileKey, .totalFileAllocatedSizeKey, .contentAccessDateKey, .contentModificationDateKey,
+            .mayShareFileContentKey, .linkCountKey,
+        ]
         let keySet = Set(keys)
         let skipTopLevel: Set<String> = ["Library", ".Trash"]
         var items: [JunkItem] = []
@@ -43,7 +46,9 @@ struct LargeFileScanner {
                 group: top,
                 detail: lastUsed.map { "Last opened \($0.formatted(.relative(presentation: .named)))" } ?? url.abbreviatedPath,
                 isSelected: false,
-                modified: lastUsed
+                modified: lastUsed,
+                // A clone or an extra hard link gives nothing back when deleted.
+                reclaimable: v.mayShareFileContent == true || (v.linkCount ?? 1) > 1 ? 0 : nil
             ))
         }
         return items.sorted { $0.size > $1.size }

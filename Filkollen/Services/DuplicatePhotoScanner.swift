@@ -62,23 +62,35 @@ struct DuplicatePhotoScanner {
         return items.sorted { $0.group != $1.group ? $0.group < $1.group : ($0.isKeeper && !$1.isKeeper) }
     }
 
-    /// Keeps the oldest copy (most likely the original), marks the rest for removal.
-    private func makeGroup(_ urls: [URL], size: Int64, digest: String) -> [JunkItem] {
-        let dated = urls.map { url -> (URL, Date) in
-            let created = (try? url.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? .distantFuture
-            return (url, created)
-        }.sorted { ($0.1, $0.0.path.count) < ($1.1, $1.0.path.count) }
+    private static let groupKeys: Set<URLResourceKey> = [
+        .creationDateKey, .totalFileAllocatedSizeKey, .fileContentIdentifierKey, .mayShareFileContentKey, .linkCountKey,
+    ]
 
-        return dated.enumerated().map { index, pair in
-            JunkItem(
-                url: pair.0,
-                size: size,
+    /// Keeps the oldest copy (most likely the original), marks the rest for removal.
+    /// A copy that's an APFS clone of the kept one shares its blocks, so trashing it
+    /// gives back almost nothing; it's still listed, but counted as 0 reclaimable.
+    private func makeGroup(_ urls: [URL], size: Int64, digest: String) -> [JunkItem] {
+        let dated = urls.map { url -> (url: URL, created: Date, values: URLResourceValues?) in
+            let values = try? url.resourceValues(forKeys: Self.groupKeys)
+            return (url, values?.creationDate ?? .distantFuture, values)
+        }.sorted { ($0.created, $0.url.path.count) < ($1.created, $1.url.path.count) }
+        let keeperContent = dated.first?.values?.fileContentIdentifier
+
+        return dated.enumerated().map { index, entry in
+            let v = entry.values
+            let isClone = index != 0 && keeperContent != nil && v?.fileContentIdentifier == keeperContent
+            let shares = v?.mayShareFileContent == true || (v?.linkCount ?? 1) > 1
+            let folder = entry.url.deletingLastPathComponent().abbreviatedPath
+            return JunkItem(
+                url: entry.url,
+                size: v?.totalFileAllocatedSize.map(Int64.init) ?? size,
                 category: .duplicatePhotos,
                 group: String(digest.prefix(16)),
-                detail: pair.0.deletingLastPathComponent().abbreviatedPath,
+                detail: isClone ? "\(folder) · clone of the kept copy, frees almost no space" : folder,
                 isSelected: index != 0,
                 isKeeper: index == 0,
-                modified: pair.1
+                modified: entry.created,
+                reclaimable: index != 0 && (isClone || shares) ? 0 : nil
             )
         }
     }

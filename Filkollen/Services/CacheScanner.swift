@@ -45,26 +45,29 @@ struct CacheScanner {
                   fm.isDeletableFile(atPath: url.path) else { return nil }
             throttle.report(url.abbreviatedPath)
             let friendly = AppNames.friendlyName(for: url.lastPathComponent)
+            let measured = FileSizer.measure(url, fileManager: fm)
             // A running app may be writing to its cache right now; let the user decide.
             if let owner = RunningApps.owner(of: url.lastPathComponent, in: running) {
                 return JunkItem(
                     url: url,
-                    size: FileSizer.allocatedSize(of: url),
+                    size: measured.allocated,
                     category: .systemJunk,
                     group: group,
                     detail: "\(owner.name.isEmpty ? owner.bundleID : owner.name) is running. Quit it first to clean this safely.",
                     isSelected: false,
                     modified: FileSizer.modificationDate(url),
-                    inUseBy: owner.name.isEmpty ? owner.bundleID : owner.name
+                    inUseBy: owner.name.isEmpty ? owner.bundleID : owner.name,
+                    reclaimable: measured.reclaimable
                 )
             }
             return JunkItem(
                 url: url,
-                size: FileSizer.allocatedSize(of: url),
+                size: measured.allocated,
                 category: .systemJunk,
                 group: group,
                 detail: friendly ?? url.abbreviatedPath,
-                modified: FileSizer.modificationDate(url)
+                modified: FileSizer.modificationDate(url),
+                reclaimable: measured.reclaimable
             )
         }
     }
@@ -80,13 +83,15 @@ struct CacheScanner {
                   let date = FileSizer.modificationDate(url), date < cutoff,
                   fm.isDeletableFile(atPath: url.path) else { return nil }
             throttle.report(url.lastPathComponent)
+            let measured = FileSizer.measure(url, fileManager: fm)
             return JunkItem(
                 url: url,
-                size: FileSizer.allocatedSize(of: url),
+                size: measured.allocated,
                 category: .systemJunk,
                 group: "Temporary Files",
                 detail: "Untouched since \(date.formatted(date: .abbreviated, time: .omitted))",
-                modified: date
+                modified: date,
+                reclaimable: measured.reclaimable
             )
         }
     }

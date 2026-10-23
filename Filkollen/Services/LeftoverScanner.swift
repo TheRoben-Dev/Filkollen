@@ -46,15 +46,16 @@ struct LeftoverScanner {
                       !isInstalled(bundleID, installed: installed),
                       fm.isDeletableFile(atPath: url.path) else { continue }
 
-                let size = FileSizer.allocatedSize(of: url)
-                guard size > 0 else { continue }
+                let measured = FileSizer.measure(url, fileManager: fm)
+                guard measured.allocated > 0 else { continue }
                 items.append(JunkItem(
                     url: url,
-                    size: size,
+                    size: measured.allocated,
                     category: .appLeftovers,
                     group: bundleID,
                     detail: location.label,
-                    modified: FileSizer.modificationDate(url)
+                    modified: FileSizer.modificationDate(url),
+                    reclaimable: measured.reclaimable
                 ))
             }
         }

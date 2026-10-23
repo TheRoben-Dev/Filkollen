@@ -7,6 +7,8 @@ enum Cleaner {
         var trashLocations: [URL: URL] = [:]
         /// Size of what was moved to the Trash. Disk space only comes back once the Trash is emptied.
         var trashedBytes: Int64 = 0
+        /// The part of `trashedBytes` that emptying the Trash actually frees (APFS clones excluded).
+        var reclaimableBytes: Int64 = 0
         /// Items that were already gone when we got to them (an app cleaned up after itself).
         var alreadyGone = 0
         var failures: [Failure] = []
@@ -64,6 +66,7 @@ enum Cleaner {
                     outcome.trashed.insert(item.url)
                     if let dest { outcome.trashLocations[item.url] = dest }
                     outcome.trashedBytes += item.size
+                    outcome.reclaimableBytes += item.reclaimableSize
                 } catch {
                     outcome.failures.append(.init(url: item.url, reason: Self.describe(error)))
                     Log.cleaner.error("Trash failed: \(error.localizedDescription, privacy: .public)")

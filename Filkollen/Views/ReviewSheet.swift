@@ -21,6 +21,8 @@ struct ReviewSheet: View {
                     Text("Ready to clean").font(.title2.bold())
                     Text("\(items.count) items, \(items.reduce(0) { $0 + $1.size }.formattedBytes), will be moved to the Trash. You can put anything back from there.")
                         .foregroundStyle(.secondary)
+                    Text(reclaimNote(selected: items.reduce(0) { $0 + $1.size }, reclaimable: items.reduce(0) { $0 + $1.reclaimableSize }))
+                        .font(.caption).foregroundStyle(.secondary)
                 }
             }
 

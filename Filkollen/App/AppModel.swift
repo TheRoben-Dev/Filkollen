@@ -77,6 +77,7 @@ final class AppModel: ObservableObject {
 
     var smartScanTotal: Int64 { JunkCategory.smartScan.reduce(0) { $0 + (results[$1]?.totalSize ?? 0) } }
     var smartScanSelected: Int64 { JunkCategory.smartScan.reduce(0) { $0 + (results[$1]?.selectedSize ?? 0) } }
+    var smartScanReclaimable: Int64 { JunkCategory.smartScan.reduce(0) { $0 + (results[$1]?.selectedReclaimable ?? 0) } }
 
     func startSmartScan(onFinish: (() -> Void)? = nil) {
         scan(JunkCategory.smartScan) { [weak self] in
@@ -241,11 +242,13 @@ final class AppModel: ObservableObject {
 struct CleanupSummary: Equatable {
     var trashedCount: Int
     var trashedBytes: Int64
+    var reclaimableBytes: Int64
     var failures: [Cleaner.Failure]
 
     init(_ outcome: Cleaner.Outcome) {
         trashedCount = outcome.trashed.count - outcome.alreadyGone
         trashedBytes = outcome.trashedBytes
+        reclaimableBytes = outcome.reclaimableBytes
         failures = outcome.failures
     }
 }
@@ -257,4 +260,6 @@ struct CategoryResult {
     var totalSize: Int64 { items.reduce(0) { $0 + $1.size } }
     var selectedItems: [JunkItem] { items.filter(\.isSelected) }
     var selectedSize: Int64 { selectedItems.reduce(0) { $0 + $1.size } }
+    /// What emptying the Trash would give back for the selection (clones and hard links excluded).
+    var selectedReclaimable: Int64 { selectedItems.reduce(0) { $0 + $1.reclaimableSize } }
 }

@@ -79,6 +79,10 @@ struct SmartScanView: View {
                     .foregroundStyle(Theme.accent)
                 Text("of junk found")
                     .font(.title3).foregroundStyle(.white.opacity(0.75))
+                if model.smartScanSelected > 0 {
+                    Text(reclaimNote(selected: model.smartScanSelected, reclaimable: model.smartScanReclaimable))
+                        .font(.callout).foregroundStyle(.white.opacity(0.55))
+                }
             }
             .padding(.top, 20)
 
@@ -124,7 +128,10 @@ struct SmartScanView: View {
             )
             Text(summary.failures.isEmpty ? "Nice and clean!" : (summary.trashedCount > 0 ? "Mostly clean" : "Nothing was moved"))
                 .font(.system(size: 34, weight: .bold, design: .rounded))
-            Text("\(summary.trashedBytes.formattedBytes) moved to the Trash. The space comes back once you empty it.")
+            Text(summary.reclaimableBytes < summary.trashedBytes
+                 ? "\(summary.trashedBytes.formattedBytes) moved to the Trash. About \(summary.reclaimableBytes.formattedBytes) comes back once you empty it; the rest was shared with other files."
+                 : "\(summary.trashedBytes.formattedBytes) moved to the Trash. The space comes back once you empty it.")
+                .multilineTextAlignment(.center)
                 .foregroundStyle(.white.opacity(0.75))
             if !summary.failures.isEmpty {
                 FailureList(failures: summary.failures)
@@ -141,6 +148,13 @@ struct SmartScanView: View {
             Spacer()
         }
     }
+}
+
+/// "You'll get about X back once you empty the Trash", honest about clones.
+func reclaimNote(selected: Int64, reclaimable: Int64) -> String {
+    reclaimable < selected
+        ? "About \(reclaimable.formattedBytes) of that comes back once you empty the Trash; the rest is shared with other files (APFS clones or hard links)."
+        : "The space comes back once you empty the Trash."
 }
 
 /// Items a cleanup couldn't move, with the reason for each.
