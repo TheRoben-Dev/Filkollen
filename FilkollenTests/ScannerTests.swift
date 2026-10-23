@@ -46,18 +46,18 @@ final class CacheScannerTests: XCTestCase {
     func testRunningAppsCachesAreUnselectedAndFlagged() throws {
         try fx.file("Library/Caches/com.spotify.client/data", bytes: 8_000)
         try fx.file("Library/Caches/com.spotify.client.ShipIt/data", bytes: 8_000)
-        try fx.file("Library/Caches/Firefox/Profiles/x", bytes: 8_000)
-        try fx.file("Library/Caches/Google/Chrome/x", bytes: 8_000)
+        try fx.file("Library/Caches/Slack/x", bytes: 8_000)
+        try fx.file("Library/Caches/Adobe/Acrobat/x", bytes: 8_000)
         try fx.file("Library/Caches/com.idle.app/data", bytes: 8_000)
         let running: [ScanContext.RunningApp] = [
             .init(bundleID: "com.spotify.client", name: "Spotify", executable: "Spotify"),
-            .init(bundleID: "org.mozilla.firefox", name: "Firefox", executable: "firefox"),
-            .init(bundleID: "com.google.Chrome", name: "Google Chrome", executable: "Google Chrome"),
+            .init(bundleID: "com.tinyspeck.slackmacgap", name: "Slack", executable: "Slack"),
+            .init(bundleID: "com.adobe.Reader", name: "Adobe Acrobat Reader", executable: "AdobeReader"),
         ]
         let items = CacheScanner(context: fx.context(running: running)).scan(progress: noProgress)
         let byName = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0) })
 
-        for name in ["com.spotify.client", "com.spotify.client.ShipIt", "Firefox", "Google"] {
+        for name in ["com.spotify.client", "com.spotify.client.ShipIt", "Slack", "Adobe"] {
             XCTAssertEqual(byName[name]?.isSelected, false, name)
             XCTAssertNotNil(byName[name]?.inUseBy, name)
         }
@@ -274,7 +274,37 @@ final class LargeFileScannerTests: XCTestCase {
         let items = LargeFileScanner(context: fx.context(largeFileMinBytes: 100_000)).scan(progress: noProgress)
 
         XCTAssertEqual(items.map(\.name), ["big.mov"])
-        XCTAssertEqual(items.first?.group, "Movies")
+        XCTAssertEqual(items.first?.group, "Videos")
         XCTAssertEqual(items.first?.isSelected, false, "large files are never pre-selected")
+    }
+
+    func testOldFilesAreListedWhenAgeFilterIsOn() throws {
+        let now = Date()
+        let old = now.addingTimeInterval(-400 * 86_400)
+        let oldBig = try fx.file("Documents/old-backup.zip", bytes: Int(LargeFileScanner.oldFileMinBytes) + 10_000, modified: old)
+        let oldSmall = try fx.file("Documents/old-note.txt", bytes: 1_000, modified: old)
+        for url in [oldBig, oldSmall] {
+            var values = URLResourceValues()
+            values.contentAccessDate = old
+            var u = url
+            try u.setResourceValues(values)
+        }
+        let threshold: Int64 = 500 * 1_048_576
+        let sizeOnly = LargeFileScanner(context: fx.context(now: now, largeFileMinBytes: threshold)).scan(progress: noProgress)
+        XCTAssertTrue(sizeOnly.isEmpty)
+
+        let withAge = LargeFileScanner(context: fx.context(now: now, largeFileMinBytes: threshold,
+                                                           largeFileMinAge: 365 * 86_400)).scan(progress: noProgress)
+        XCTAssertEqual(withAge.map(\.name), ["old-backup.zip"])
+        XCTAssertEqual(withAge.first?.group, "Archives")
+    }
+
+    func testKinds() {
+        XCTAssertEqual(LargeFileScanner.kind(of: nil, ext: "mov"), "Videos")
+        XCTAssertEqual(LargeFileScanner.kind(of: nil, ext: "dmg"), "Disk Images")
+        XCTAssertEqual(LargeFileScanner.kind(of: nil, ext: "zip"), "Archives")
+        XCTAssertEqual(LargeFileScanner.kind(of: nil, ext: "pdf"), "Documents")
+        XCTAssertEqual(LargeFileScanner.kind(of: nil, ext: "heic"), "Photos & Images")
+        XCTAssertEqual(LargeFileScanner.kind(of: nil, ext: "zzzunknown"), "Other")
     }
 }

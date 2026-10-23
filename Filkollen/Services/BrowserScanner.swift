@@ -50,7 +50,10 @@ struct BrowserScanner: Sendable {
     ]
 
     /// Top-level ~/Library/Caches entries this module reports, so System Junk skips them.
-    static let claimedCacheNames: Set<String> = ["Google", "Microsoft Edge", "BraveSoftware", "Arc", "Firefox", "com.apple.Safari"]
+    static let claimedCacheNames: Set<String> = ["Microsoft Edge", "Arc", "Firefox", "com.apple.Safari"]
+    /// Vendor folders in ~/Library/Caches shared with other apps: System Junk lists
+    /// their other entries, this module the browser's.
+    static let claimedVendorEntries: [String: Set<String>] = ["Google": ["Chrome"], "BraveSoftware": ["Brave-Browser"]]
 
     func scan(progress: @escaping @Sendable (String) -> Void) -> [JunkItem] {
         let throttle = ProgressThrottle(progress, counting: true)

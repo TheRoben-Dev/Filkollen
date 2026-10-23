@@ -32,12 +32,21 @@ struct CacheScanner: Sendable {
     private func children(
         of dir: URL, group: String, skip skipNames: Set<String>, running: [ScanContext.RunningApp], throttle: ProgressThrottle
     ) -> [JunkItem] {
-        let entries: [URL]
+        var entries: [URL]
         do {
             entries = try fm.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])
         } catch {
             Log.scan.notice("Can't list \(dir.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)")
             return []
+        }
+
+        // A vendor folder shared with a browser (Google → Chrome) is listed entry by entry, minus the browser's.
+        if dir.lastPathComponent == "Caches" {
+            entries = entries.flatMap { url -> [URL] in
+                guard let claimed = BrowserScanner.claimedVendorEntries[url.lastPathComponent] else { return [url] }
+                let inner = (try? fm.contentsOfDirectory(at: url, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])) ?? []
+                return inner.filter { !claimed.contains($0.lastPathComponent) }
+            }
         }
 
         // Measuring is the slow part (a full walk per folder), so folders are measured in parallel.

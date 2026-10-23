@@ -63,8 +63,11 @@ final class BrowserScannerTests: XCTestCase {
 
     func testSystemJunkSkipsBrowserFolders() throws {
         try populate()
+        try fx.file("Library/Caches/Google/DriveFS/x", bytes: 20_000)
         let names = CacheScanner(context: fx.context()).scan(progress: { _ in }).map(\.name)
         XCTAssertFalse(names.contains("Google"))
+        XCTAssertFalse(names.contains("Chrome"))
+        XCTAssertTrue(names.contains("DriveFS"), "other Google caches stay in System Junk")
         XCTAssertFalse(names.contains("Firefox"))
         XCTAssertFalse(names.contains("com.apple.Safari"))
     }
