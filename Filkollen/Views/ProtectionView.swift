@@ -7,7 +7,7 @@ struct ProtectionView: View {
     @State private var pendingDelete: [Threat] = []
     @State private var pendingQuarantineDelete: [Quarantine.Entry] = []
 
-    enum Tab: String, CaseIterable { case scan = "Scan", quarantine = "Quarantine" }
+    enum Tab: String, CaseIterable { case scan = "Scan", quarantine = "Quarantine", trust = "App Trust" }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -19,7 +19,7 @@ struct ProtectionView: View {
                          ? "\(t.rawValue) (\(protection.quarantined.count))" : t.rawValue).tag(t)
                 }
             }
-            .pickerStyle(.segmented).labelsHidden().frame(width: 260)
+            .pickerStyle(.segmented).labelsHidden().frame(width: 380)
             .padding(.bottom, 16)
 
             if let error = protection.errorMessage {
@@ -31,6 +31,7 @@ struct ProtectionView: View {
             switch tab {
             case .scan: scanTab
             case .quarantine: quarantineTab
+            case .trust: AppTrustView()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -141,14 +142,19 @@ struct ProtectionView: View {
                 }
                 engineCard(
                     title: "ClamAV (optional)",
-                    detail: protection.clamAVInstalled
-                        ? "Installed. Deeper signature scan, slower"
-                        : "Install with: brew install clamav",
-                    ok: protection.clamAVInstalled,
+                    detail: clamDetail,
+                    ok: protection.clamAVInstalled && !protection.clamSignaturesAreStale,
                     toggle: protection.clamAVInstalled ? $protection.useClamAV : nil
                 )
             }
             .padding(.horizontal, 28)
+
+            if protection.databaseCount > 0 && protection.databaseIsStale {
+                Label("The threat database is more than a week old. Update it before scanning to catch recent malware.",
+                      systemImage: "clock.badge.exclamationmark")
+                    .font(.callout).foregroundStyle(.orange)
+                    .padding(.horizontal, 28)
+            }
 
             Spacer(minLength: 12)
             BigScanButton(title: "Scan") { protection.scan() }
@@ -160,6 +166,17 @@ struct ProtectionView: View {
             Spacer(minLength: 12)
         }
         .padding(.vertical, 8)
+    }
+
+    private var clamDetail: String {
+        guard protection.clamAVInstalled else { return "Install with: brew install clamav" }
+        guard let date = protection.clamSignaturesDate else {
+            return "Installed, but no signatures yet. Run freshclam in Terminal first."
+        }
+        let age = "signatures from \(date.formatted(.relative(presentation: .named)))"
+        return protection.clamSignaturesAreStale
+            ? "Installed, \(age). Run freshclam in Terminal to update them."
+            : "Installed, \(age). Deeper signature scan, slower"
     }
 
     private func engineCard(
@@ -232,15 +249,29 @@ struct ProtectionView: View {
                             HStack(spacing: 12) {
                                 Image(systemName: "lock.doc.fill").font(.title2).foregroundStyle(.orange)
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(entry.name).font(.headline).lineLimit(1)
-                                    Text("\(entry.engine.rawValue) · from \((entry.originalPath as NSString).abbreviatingWithTildeInPath)")
+                                    HStack(spacing: 6) {
+                                        Text(entry.name).font(.headline).lineLimit(1)
+                                        if entry.isMissing {
+                                            Text("MISSING")
+                                                .font(.caption2.bold())
+                                                .padding(.horizontal, 6).padding(.vertical, 1)
+                                                .background(.gray.opacity(0.6), in: Capsule())
+                                                .help("The quarantined copy is no longer in the quarantine folder.")
+                                        }
+                                    }
+                                    Text("\(entry.engine.rawValue) · \(entry.identifier.prefix(40)) · from \((entry.originalPath as NSString).abbreviatingWithTildeInPath)")
                                         .font(.caption).foregroundStyle(.white.opacity(0.55))
                                         .lineLimit(1).truncationMode(.middle)
+                                        .textSelection(.enabled)
                                 }
                                 Spacer()
-                                Text(entry.date.formatted(date: .abbreviated, time: .shortened))
-                                    .font(.caption).foregroundStyle(.white.opacity(0.55))
+                                VStack(alignment: .trailing, spacing: 2) {
+                                    Text(entry.date.formatted(date: .abbreviated, time: .shortened))
+                                    Text(entry.size.formattedBytes)
+                                }
+                                .font(.caption).foregroundStyle(.white.opacity(0.55))
                                 Button("Restore") { protection.restore(entry) }.buttonStyle(GhostButtonStyle())
+                                    .disabled(entry.isMissing)
                                 Button("Delete") { pendingQuarantineDelete = [entry] }
                                     .buttonStyle(PillButtonStyle(fill: Theme.danger))
                             }
@@ -250,7 +281,15 @@ struct ProtectionView: View {
                     .padding(.horizontal, 28).padding(.bottom, 16)
                 }
                 HStack {
+                    Button("Export Report…") { protection.exportQuarantineReport() }
+                        .buttonStyle(GhostButtonStyle())
+                        .help("Saves what was quarantined, from where and its SHA-256, as JSON. The files themselves stay here.")
                     Spacer()
+                    let old = protection.quarantined(olderThanDays: 30)
+                    if !old.isEmpty {
+                        Button("Delete \(old.count) Older Than 30 Days…") { pendingQuarantineDelete = old }
+                            .buttonStyle(GhostButtonStyle())
+                    }
                     Button("Delete All Quarantined…") { pendingQuarantineDelete = protection.quarantined }
                         .buttonStyle(PillButtonStyle(fill: Theme.danger))
                 }
@@ -290,6 +329,7 @@ private struct ThreatRow: View {
                 NSWorkspace.shared.activateFileViewerSelecting([threat.url])
             } label: { Image(systemName: "magnifyingglass") }
                 .buttonStyle(.plain).help("Show in Finder")
+                .accessibilityLabel("Show \(threat.name) in Finder")
             Button("Quarantine", action: quarantine).buttonStyle(GhostButtonStyle())
             Button("Delete", action: delete).buttonStyle(PillButtonStyle(fill: Theme.danger))
         }

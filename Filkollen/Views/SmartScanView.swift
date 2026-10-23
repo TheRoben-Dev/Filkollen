@@ -11,7 +11,7 @@ struct SmartScanView: View {
             case .scanning: scanning
             case .results: results
             case .cleaning: cleaning
-            case .done(let freed, let failed): done(freed: freed, failed: failed)
+            case .done(let summary): done(summary)
             }
         }
         .padding(40)
@@ -79,6 +79,10 @@ struct SmartScanView: View {
                     .foregroundStyle(Theme.accent)
                 Text("of junk found")
                     .font(.title3).foregroundStyle(.white.opacity(0.75))
+                if model.smartScanSelected > 0 {
+                    Text(reclaimNote(selected: model.smartScanSelected, reclaimable: model.smartScanReclaimable))
+                        .font(.callout).foregroundStyle(.white.opacity(0.55))
+                }
             }
             .padding(.top, 20)
 
@@ -115,19 +119,33 @@ struct SmartScanView: View {
         }
     }
 
-    private func done(freed: Int64, failed: Int) -> some View {
+    private func done(_ summary: CleanupSummary) -> some View {
         VStack(spacing: 20) {
             Spacer()
-            GradientIcon(symbol: "checkmark", gradient: Theme.safe, size: 110)
-            Text("Nice and clean!")
+            GradientIcon(
+                symbol: summary.failures.isEmpty ? "checkmark" : "exclamationmark",
+                gradient: summary.failures.isEmpty ? Theme.safe : Theme.gradient(.orange, .pink), size: 110
+            )
+            Text(summary.failures.isEmpty ? "Nice and clean!" : (summary.trashedCount > 0 ? "Mostly clean" : "Nothing was moved"))
                 .font(.system(size: 34, weight: .bold, design: .rounded))
-            Text("\(freed.formattedBytes) moved to the Trash. Empty it when you're sure.")
+            Text(summary.reclaimableBytes < summary.trashedBytes
+                 ? "\(summary.trashedBytes.formattedBytes) moved to the Trash. About \(summary.reclaimableBytes.formattedBytes) comes back once you empty it; the rest was shared with other files."
+                 : "\(summary.trashedBytes.formattedBytes) moved to the Trash. The space comes back once you empty it.")
+                .multilineTextAlignment(.center)
                 .foregroundStyle(.white.opacity(0.75))
-            if failed > 0 {
-                Text("\(failed) item(s) couldn't be moved, most likely because they're in use.")
-                    .font(.callout).foregroundStyle(.orange)
+            if !summary.failures.isEmpty {
+                FailureList(failures: summary.failures)
+                    .frame(maxWidth: 560)
+            }
+            if let message = model.putBackMessage {
+                Text(message).font(.callout).foregroundStyle(.white.opacity(0.8))
             }
             HStack {
+                if let id = summary.recordID, model.putBackMessage == nil {
+                    Button("Undo") { model.putBack(id) }
+                        .buttonStyle(GhostButtonStyle())
+                        .help("Puts everything from this cleanup back where it was")
+                }
                 Button("Open Trash") {
                     NSWorkspace.shared.open(FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".Trash"))
                 }
@@ -137,6 +155,55 @@ struct SmartScanView: View {
             }
             Spacer()
         }
+    }
+}
+
+/// "You'll get about X back once you empty the Trash", honest about clones.
+func reclaimNote(selected: Int64, reclaimable: Int64) -> String {
+    reclaimable < selected
+        ? "About \(reclaimable.formattedBytes) of that comes back once you empty the Trash; the rest is shared with other files (APFS clones or hard links)."
+        : "The space comes back once you empty the Trash."
+}
+
+/// Items a cleanup couldn't move, with the reason for each.
+struct FailureList: View {
+    let failures: [Cleaner.Failure]
+    @State private var expanded = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) { expanded.toggle() }
+            } label: {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                    Text("\(failures.count) item\(failures.count == 1 ? "" : "s") couldn't be moved")
+                        .font(.callout.weight(.semibold))
+                    Spacer()
+                    Image(systemName: "chevron.right").rotationEffect(.degrees(expanded ? 90 : 0))
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint(expanded ? "Hides the list" : "Shows each item and why")
+
+            if expanded {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(failures, id: \.self) { failure in
+                            HStack(alignment: .firstTextBaseline) {
+                                Text(failure.url.abbreviatedPath)
+                                    .font(.caption.monospaced()).lineLimit(1).truncationMode(.middle)
+                                Spacer()
+                                Text(failure.reason).font(.caption).foregroundStyle(.orange)
+                            }
+                        }
+                    }
+                }
+                .frame(maxHeight: 160)
+            }
+        }
+        .glassCard(padding: 12)
     }
 }
 

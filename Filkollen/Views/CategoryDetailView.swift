@@ -1,3 +1,4 @@
+import QuickLook
 import SwiftUI
 
 struct CategoryDetailView: View {
@@ -5,6 +6,7 @@ struct CategoryDetailView: View {
     let category: JunkCategory
     @State private var showReview = false
     @State private var expanded: Set<String> = []
+    @State private var previewURL: URL?
 
     private var result: CategoryResult? { model.result(for: category) }
 
@@ -30,6 +32,8 @@ struct CategoryDetailView: View {
         }
         .foregroundStyle(.white)
         .sheet(isPresented: $showReview) { ReviewSheet(only: category).environmentObject(model) }
+        .quickLookPreview($previewURL)
+        .environment(\.showQuickLook, { previewURL = $0 })
     }
 
     private var header: some View {
@@ -72,7 +76,7 @@ struct CategoryDetailView: View {
                         title: groupTitle(group.key, items: group.items),
                         items: group.items,
                         isExpanded: Binding(
-                            get: { expanded.contains(group.key) || category == .duplicatePhotos },
+                            get: { expanded.contains(group.key) || category.isDuplicates },
                             set: { if $0 { expanded.insert(group.key) } else { expanded.remove(group.key) } }
                         )
                     )
@@ -84,8 +88,8 @@ struct CategoryDetailView: View {
 
     private func groupTitle(_ key: String, items: [JunkItem]) -> String {
         switch category {
-        case .duplicatePhotos: return items.first(where: \.isKeeper)?.name ?? key
-        case .appLeftovers, .systemJunk, .largeFiles: return key
+        case .duplicatePhotos, .duplicateFiles: return items.first(where: \.isKeeper)?.name ?? key
+        case .appLeftovers, .systemJunk, .largeFiles, .developerJunk, .oldInstallers, .iosBackups, .browserCaches: return key
         }
     }
 
@@ -136,7 +140,9 @@ private struct GroupCard: View {
     let items: [JunkItem]
     @Binding var isExpanded: Bool
 
-    private var allSelected: Bool { items.filter { !$0.isKeeper }.allSatisfy(\.isSelected) }
+    /// Items a group checkbox selects: never the kept duplicate or something in use.
+    private var selectable: [JunkItem] { items.filter { !$0.isKeeper && $0.inUseBy == nil && $0.confidence != .low } }
+    private var allSelected: Bool { !selectable.isEmpty && selectable.allSatisfy(\.isSelected) }
     private var total: Int64 { items.reduce(0) { $0 + $1.size } }
 
     var body: some View {
@@ -144,9 +150,14 @@ private struct GroupCard: View {
             HStack(spacing: 12) {
                 Toggle("", isOn: Binding(
                     get: { allSelected },
-                    set: { v in for i in items where !i.isKeeper { model.setSelected(v, item: i.id, in: category) } }
+                    set: { v in
+                        for i in items where !i.isKeeper && (!v || (i.inUseBy == nil && i.confidence != .low)) {
+                            model.setSelected(v, item: i.id, in: category)
+                        }
+                    }
                 ))
                 .toggleStyle(.checkbox).labelsHidden()
+                .accessibilityLabel("Select all in \(title)")
 
                 if category == .duplicatePhotos, let first = items.first {
                     Thumbnail(url: first.url, size: 40)
@@ -157,7 +168,7 @@ private struct GroupCard: View {
                 }
                 Spacer()
                 Text(total.formattedBytes).font(.callout.weight(.semibold).monospacedDigit())
-                if category != .duplicatePhotos {
+                if !category.isDuplicates {
                     Button {
                         withAnimation(.easeInOut(duration: 0.2)) { isExpanded.toggle() }
                     } label: {
@@ -165,6 +176,7 @@ private struct GroupCard: View {
                             .rotationEffect(.degrees(isExpanded ? 90 : 0))
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel(isExpanded ? "Hide items in \(title)" : "Show items in \(title)")
                 }
             }
 
@@ -178,10 +190,12 @@ private struct GroupCard: View {
 
     private var subtitle: String {
         switch category {
-        case .duplicatePhotos: return "\(items.count) identical copies"
+        case .duplicatePhotos, .duplicateFiles: return "\(items.count) identical copies"
         case .appLeftovers:
             return Set(items.map(\.detail)).sorted().joined(separator: ", ")
-        case .systemJunk, .largeFiles: return "\(items.count) items"
+        case .developerJunk:
+            return items.count == 1 ? items[0].detail : "\(items.count) items · \(items[0].detail)"
+        case .systemJunk, .largeFiles, .oldInstallers, .iosBackups, .browserCaches: return "\(items.count) items"
         }
     }
 }
@@ -197,6 +211,7 @@ private struct ItemRow: View {
                 set: { model.setSelected($0, item: item.id, in: item.category) }
             ))
             .toggleStyle(.checkbox).labelsHidden()
+            .accessibilityLabel("Clean \(item.name)")
 
             if item.category == .duplicatePhotos {
                 Thumbnail(url: item.url, size: 32)
@@ -210,12 +225,30 @@ private struct ItemRow: View {
                             .padding(.horizontal, 6).padding(.vertical, 1)
                             .background(Theme.safe, in: Capsule())
                     }
+                    if item.confidence == .low {
+                        Text("LOW CONFIDENCE")
+                            .font(.caption2.bold())
+                            .padding(.horizontal, 6).padding(.vertical, 1)
+                            .background(.gray.opacity(0.6), in: Capsule())
+                            .help("No removed app was confirmed for this folder. Check it before cleaning.")
+                    }
+                    if item.inUseBy != nil {
+                        Text("IN USE")
+                            .font(.caption2.bold())
+                            .padding(.horizontal, 6).padding(.vertical, 1)
+                            .background(.orange, in: Capsule())
+                            .accessibilityLabel("In use by \(item.inUseBy ?? "a running app")")
+                    }
                 }
                 Text(item.detail).font(.caption).foregroundStyle(.white.opacity(0.5))
                     .lineLimit(1).truncationMode(.middle)
             }
             Spacer()
             Text(item.size.formattedBytes).font(.caption.monospacedDigit()).foregroundStyle(.white.opacity(0.7))
+            Button { showQuickLook(item.url) } label: { Image(systemName: "eye") }
+                .buttonStyle(.plain)
+                .help("Quick Look")
+                .accessibilityLabel("Quick Look \(item.name)")
             Button {
                 NSWorkspace.shared.activateFileViewerSelecting([item.url])
             } label: {
@@ -223,7 +256,40 @@ private struct ItemRow: View {
             }
             .buttonStyle(.plain)
             .help("Show in Finder")
+            .accessibilityLabel("Show \(item.name) in Finder")
         }
         .padding(.leading, 26)
+        .opacity(item.confidence == .low ? 0.75 : 1)
+        .contentShape(Rectangle())
+        .contextMenu { ItemContextMenu(item: item) }
+    }
+
+    @Environment(\.showQuickLook) private var showQuickLook
+}
+
+/// Right-click actions shared by item rows.
+struct ItemContextMenu: View {
+    @EnvironmentObject private var model: AppModel
+    @Environment(\.showQuickLook) private var showQuickLook
+    let item: JunkItem
+
+    var body: some View {
+        Button("Quick Look") { showQuickLook(item.url) }
+        Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([item.url]) }
+        Divider()
+        Button("Always Ignore This Item") { model.alwaysIgnore(item.url) }
+        Button("Always Ignore Its Folder") { model.alwaysIgnore(item.url.deletingLastPathComponent()) }
+    }
+}
+
+private struct ShowQuickLookKey: EnvironmentKey {
+    static let defaultValue: @MainActor @Sendable (URL) -> Void = { _ in }
+}
+
+extension EnvironmentValues {
+    /// Opens the Quick Look panel for a file; set by the page that hosts `.quickLookPreview`.
+    var showQuickLook: @MainActor @Sendable (URL) -> Void {
+        get { self[ShowQuickLookKey.self] }
+        set { self[ShowQuickLookKey.self] = newValue }
     }
 }

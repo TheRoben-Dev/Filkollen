@@ -17,6 +17,7 @@ struct SettingsView: View {
 
 private struct GeneralSettings: View {
     @EnvironmentObject private var model: AppModel
+    @EnvironmentObject private var selfUpdater: SelfUpdater
     @AppStorage(Pref.showMenuBarIcon) private var showMenuBarIcon = true
     @AppStorage(Pref.keepRunningInMenuBar) private var keepRunning = true
     @AppStorage(Pref.alwaysStartHidden) private var startHidden = false
@@ -29,6 +30,13 @@ private struct GeneralSettings: View {
 
     var body: some View {
         Form {
+            if selfUpdater.isAvailable {
+                Section("Filkollen updates") {
+                    Toggle("Check for new versions of Filkollen automatically",
+                           isOn: Binding(get: { selfUpdater.automaticallyChecks }, set: { selfUpdater.automaticallyChecks = $0 }))
+                    Button("Check Now") { selfUpdater.checkForUpdates() }
+                }
+            }
             Section("Startup") {
                 Toggle("Open Filkollen at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { enabled in
@@ -107,6 +115,8 @@ private struct GeneralSettings: View {
 private struct CleanupSettings: View {
     @AppStorage(Pref.tempMinAgeDays) private var tempMinAgeDays = 3
     @AppStorage(Pref.largeFileMB) private var largeFileMB = 500
+    @AppStorage(Pref.oldFileMonths) private var oldFileMonths = 12
+    @AppStorage(Pref.leftoverPlainNames) private var leftoverPlainNames = false
     @AppStorage(Pref.excludedPaths) private var excludedPaths = ""
 
     var body: some View {
@@ -114,6 +124,11 @@ private struct CleanupSettings: View {
             Section("System Junk") {
                 Stepper("Only remove temporary files older than \(tempMinAgeDays) day\(tempMinAgeDays == 1 ? "" : "s")",
                         value: $tempMinAgeDays, in: 1...60)
+            }
+            Section("App Leftovers") {
+                Toggle("Also look for folders named after removed apps", isOn: $leftoverPlainNames)
+                Text("Finds folders like Application Support › Spotify. Matches that can't be confirmed are marked Low confidence and never pre-selected.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
             Section("Large & Old Files") {
                 Picker("Show files larger than", selection: $largeFileMB) {
@@ -123,6 +138,13 @@ private struct CleanupSettings: View {
                     Text("1 GB").tag(1000)
                     Text("2 GB").tag(2000)
                 }
+                Picker("Also show files not opened for", selection: $oldFileMonths) {
+                    Text("Off").tag(0)
+                    Text("6 months").tag(6)
+                    Text("1 year").tag(12)
+                    Text("2 years").tag(24)
+                }
+                Text("Old files are only listed from 50 MB up.").font(.caption).foregroundStyle(.secondary)
             }
             Section {
                 TextEditor(text: $excludedPaths)
@@ -166,6 +188,7 @@ private struct ProtectionSettings: View {
     @EnvironmentObject private var protection: ProtectionModel
     @AppStorage("abuseChAuthKey") private var abuseChAuthKey = ""
     @AppStorage(Pref.autoUpdateThreatDB) private var autoUpdate = true
+    @AppStorage(Pref.watchDownloads) private var watchDownloads = false
 
     var body: some View {
         Form {
@@ -197,11 +220,15 @@ private struct ProtectionSettings: View {
                     Text("Install ClamAV with Homebrew (brew install clamav) for a second opinion.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
+                Toggle(isOn: Binding(get: { watchDownloads }, set: { watchDownloads = $0; protection.setWatchingDownloads($0) })) {
+                    Text("Check new downloads as they arrive")
+                    Text("Compares each new file in Downloads with the local threat database and notifies you on a match. Nothing is moved automatically.")
+                }
                 Button("Open Quarantine Folder") { NSWorkspace.shared.open(Quarantine.directory) }
             }
         }
         .formStyle(.grouped)
-        .frame(height: 440)
+        .frame(height: 500)
     }
 }
 

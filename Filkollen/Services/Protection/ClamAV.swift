@@ -42,9 +42,15 @@ enum ClamAV {
         }
     }
 
-    static func updateSignatures() throws -> String {
-        guard let freshclam else { return "freshclam not found" }
-        return try run(freshclam, []).text
+    /// Where Homebrew and MacPorts keep ClamAV's signature databases.
+    static let databaseDirectories = ["/opt/homebrew/var/lib/clamav", "/usr/local/var/lib/clamav", "/opt/local/share/clamav"]
+
+    /// When the newest signature file (daily.cvd / daily.cld) was written, nil if none.
+    /// Filkollen doesn't run freshclam itself: it only talks to MalwareBazaar.
+    static func signaturesDate(in dirs: [String] = databaseDirectories) -> Date? {
+        dirs.flatMap { dir in ["daily.cld", "daily.cvd", "main.cld", "main.cvd"].map { "\(dir)/\($0)" } }
+            .compactMap { try? FileManager.default.attributesOfItem(atPath: $0)[.modificationDate] as? Date }
+            .max()
     }
 
     private static func run(_ tool: URL, _ args: [String]) throws -> (status: Int32, text: String) {

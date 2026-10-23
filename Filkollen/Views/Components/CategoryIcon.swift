@@ -15,6 +15,8 @@ struct GradientIcon: View {
                     .foregroundStyle(.white)
             )
             .shadow(color: .black.opacity(0.25), radius: size * 0.12, y: size * 0.06)
+            // Decorative: every use sits next to a title that says the same thing.
+            .accessibilityHidden(true)
     }
 }
 

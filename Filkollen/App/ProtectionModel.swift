@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// State for the Protection (malware) section. Separate from junk cleaning
 /// because findings are quarantined or deleted, never just trashed.
@@ -19,12 +20,44 @@ final class ProtectionModel: ObservableObject {
     @AppStorage("useClamAV") var useClamAV = true
 
     var clamAVInstalled: Bool { ClamAV.isInstalled }
+    @Published var clamSignaturesDate = ClamAV.signaturesDate()
     var isBusy: Bool { phase == .updating || phase == .scanning }
 
     /// Database older than a week is considered stale.
-    var databaseIsStale: Bool {
-        guard let date = databaseUpdated else { return true }
-        return date < Date().addingTimeInterval(-7 * 24 * 3600)
+    var databaseIsStale: Bool { Self.isStale(databaseUpdated) }
+    var clamSignaturesAreStale: Bool { Self.isStale(clamSignaturesDate) }
+
+    nonisolated static func isStale(_ date: Date?, now: Date = Date()) -> Bool {
+        guard let date else { return true }
+        return date < now.addingTimeInterval(-7 * 24 * 3600)
+    }
+
+    // MARK: Downloads watcher
+
+    private lazy var downloadsWatcher = DownloadsWatcher(
+        folder: FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Downloads")
+    ) { [weak self] found in
+        Task { @MainActor in self?.downloadsWatcherFound(found) }
+    }
+
+    /// Starts or stops watching Downloads, and remembers the choice.
+    func setWatchingDownloads(_ on: Bool) {
+        Pref.defaults.set(on, forKey: Pref.watchDownloads)
+        on ? downloadsWatcher.start() : downloadsWatcher.stop()
+    }
+
+    func startBackgroundWatchers() {
+        if Pref.defaults.bool(forKey: Pref.watchDownloads) { downloadsWatcher.start() }
+    }
+
+    private func downloadsWatcherFound(_ found: [Threat]) {
+        let new = found.filter { t in !threats.contains { $0.url == t.url } }
+        guard !new.isEmpty else { return }
+        threats += new
+        if phase == .idle { phase = .finished }
+        Notifier.post("Known malware in Downloads",
+                      new.count == 1 ? "\(new[0].name) matches a known threat. Open Filkollen to quarantine it."
+                                     : "\(new.count) new downloads match known threats. Open Filkollen to quarantine them.")
     }
 
     func updateDatabase() {
@@ -49,6 +82,7 @@ final class ProtectionModel: ObservableObject {
 
     func scan() {
         guard !isBusy else { return }
+        clamSignaturesDate = ClamAV.signaturesDate()
         phase = .scanning
         threats = []
         errorMessage = nil
@@ -63,6 +97,7 @@ final class ProtectionModel: ObservableObject {
             threats = result.threats
             filesChecked = result.filesChecked
             if let e = result.clamError { errorMessage = "ClamAV: \(e)" }
+            if let e = result.databaseError { errorMessage = [errorMessage, e].compactMap { $0 }.joined(separator: "\n") }
             status = ""
             phase = .finished
         }
@@ -98,6 +133,19 @@ final class ProtectionModel: ObservableObject {
 
     func deleteQuarantined(_ entries: [Quarantine.Entry]) {
         run { for e in entries { try Quarantine.delete(e) } }
+    }
+
+    /// Quarantined more than `days` ago.
+    func quarantined(olderThanDays days: Int) -> [Quarantine.Entry] {
+        Quarantine.entries(olderThan: Date().addingTimeInterval(-Double(days) * 86_400))
+    }
+
+    func exportQuarantineReport() {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = "Filkollen Quarantine \(Date().formatted(.iso8601.year().month().day())).json"
+        panel.allowedContentTypes = [.json]
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        run { try Quarantine.exportReport(to: url) }
     }
 
     private func run(_ body: () throws -> Void) {

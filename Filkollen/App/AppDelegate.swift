@@ -7,8 +7,12 @@ import SwiftUI
 final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     let model: AppModel
     let protection: ProtectionModel
+    let selfUpdater: SelfUpdater
     let updates: UpdatesModel
     private(set) var scheduler: BackgroundScheduler!
+
+    /// The running app's delegate, for App Intents (SwiftUI owns the instance).
+    private(set) static weak var shared: AppDelegate?
 
     /// Set by the first SwiftUI view that appears; reopens the main window later.
     var openMainWindowAction: (() -> Void)?
@@ -18,7 +22,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         model = AppModel()
         protection = ProtectionModel()
         updates = UpdatesModel()
+        selfUpdater = SelfUpdater()
         super.init()
+        Self.shared = self
         scheduler = BackgroundScheduler(model: model, protection: protection, updates: updates)
     }
 
@@ -49,7 +55,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         )
         // SwiftUI may create the window just after launch; RootView also calls this when it appears.
         DispatchQueue.main.async { [weak self] in self?.hideIfPending() }
+        // Unit tests run inside the app; keep them free of scheduled scans and network.
+        guard !AppEnvironment.isRunningTests else { return }
         scheduler.start()
+        protection.startBackgroundWatchers()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -116,6 +125,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     }
 }
 
+enum AppEnvironment {
+    static let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        || NSClassFromString("XCTestCase") != nil
+}
+
 /// Periodic work while the app runs, including with no window open.
 @MainActor
 final class BackgroundScheduler {
@@ -143,7 +157,7 @@ final class BackgroundScheduler {
         let d = Pref.defaults
 
         let hours = d.integer(forKey: Pref.autoScanHours)
-        if hours > 0, !model.isScanning, isDue(model.lastSmartScan, hours: hours) {
+        if hours > 0, model.canStartBackgroundScan, isDue(model.lastSmartScan, hours: hours) {
             model.startSmartScan { [weak self] in
                 guard let self else { return }
                 let total = self.model.smartScanTotal

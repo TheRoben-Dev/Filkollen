@@ -46,10 +46,14 @@ struct MainView: View {
         switch model.section {
         case .smartScan: SmartScanView()
         case .category(let category): CategoryDetailView(category: category)
+        case .uninstaller: UninstallerView()
+        case .history: HistoryView()
         case .protection: ProtectionView()
         case .updates: UpdatesView()
         case .system(.overview): SystemOverviewView()
         case .system(.startupItems): StartupItemsView()
+        case .system(.snapshots): TimeMachineView()
+        case .system(.diskUsage): DiskUsageView()
         }
     }
 
@@ -57,10 +61,14 @@ struct MainView: View {
         switch model.section {
         case .smartScan: return .pink
         case .category(let c): return c.tint
+        case .uninstaller: return .orange
+        case .history: return .teal
         case .protection: return .green
         case .updates: return .cyan
         case .system(.overview): return .teal
         case .system(.startupItems): return .orange
+        case .system(.snapshots): return .green
+        case .system(.diskUsage): return .blue
         }
     }
 }
@@ -91,6 +99,10 @@ struct SidebarView: View {
                     }
                     .tag(AppModel.Section.category(category))
                 }
+                Label("App Uninstaller", systemImage: "xmark.app.fill")
+                    .tag(AppModel.Section.uninstaller)
+                Label("History", systemImage: "arrow.uturn.backward.circle")
+                    .tag(AppModel.Section.history)
             }
 
             Section("Protection") {
@@ -109,7 +121,7 @@ struct SidebarView: View {
 
             Section("Maintenance") {
                 ForEach(AppModel.SystemPage.allCases, id: \.self) { page in
-                    Label(page.rawValue, systemImage: page.symbol)
+                    Label(page.title, systemImage: page.symbol)
                         .tag(AppModel.Section.system(page))
                 }
                 HStack {
@@ -133,9 +145,16 @@ struct SidebarView: View {
                 Button {
                     FullDiskAccess.openSettings()
                 } label: {
-                    Label("Full Disk Access is off", systemImage: "exclamationmark.lock.fill")
-                        .font(.caption.weight(.semibold))
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Label(model.fullDiskAccessRevoked ? "Full Disk Access was turned off" : "Full Disk Access is off",
+                              systemImage: "exclamationmark.lock.fill")
+                            .font(.caption.weight(.semibold))
+                        if model.fullDiskAccessRevoked {
+                            Text("Scans will miss most of your Library. Click to turn it back on.")
+                                .font(.caption2).foregroundStyle(.secondary)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.orange)

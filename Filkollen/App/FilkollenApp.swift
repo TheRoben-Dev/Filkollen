@@ -24,6 +24,15 @@ struct FilkollenApp: App {
         .windowResizability(.contentMinSize)
         .commands {
             CommandGroup(replacing: .newItem) {}
+            CommandGroup(replacing: .appInfo) {
+                Button("About Filkollen") { AboutPanel.show() }
+                if delegate.selfUpdater.isAvailable {
+                    Button("Check for Filkollen Updates…") { delegate.selfUpdater.checkForUpdates() }
+                }
+            }
+            CommandGroup(after: .help) {
+                Button("Export Diagnostics…") { Diagnostics.export() }
+            }
             CommandMenu("Scan") {
                 Button("Smart Scan") { delegate.model.startSmartScan() }
                     .keyboardShortcut("r", modifiers: .command)
@@ -47,6 +56,7 @@ struct FilkollenApp: App {
 
         Settings {
             SettingsView()
+                .environmentObject(delegate.selfUpdater)
                 .environmentObject(delegate.model)
                 .environmentObject(delegate.protection)
                 .environmentObject(delegate.updates)

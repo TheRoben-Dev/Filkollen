@@ -4,6 +4,11 @@ options:
   deploymentTarget:
     macOS: "13.0"
   createIntermediateGroups: true
+  developmentLanguage: en
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: "2.6.4"
 settings:
   base:
     SWIFT_VERSION: "5.9"
@@ -15,16 +20,27 @@ targets:
     platform: macOS
     sources:
       - path: Filkollen
+    dependencies:
+      - package: Sparkle
     info:
       path: Filkollen/Resources/Info.plist
       properties:
         CFBundleDisplayName: Filkollen
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, sv]
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         LSApplicationCategoryType: public.app-category.utilities
         LSMinimumSystemVersion: "13.0"
         NSHumanReadableCopyright: "© 2026 Roben"
         NSDesktopFolderUsageDescription: Filkollen scans your Desktop for duplicate photos.
         NSDownloadsFolderUsageDescription: Filkollen scans Downloads for duplicate photos.
         NSDocumentsFolderUsageDescription: Filkollen scans Documents for duplicate photos.
+        # Filkollen's own updates. Both stay empty (and Sparkle stays off) until
+        # FILKOLLEN_APPCAST_URL and FILKOLLEN_SPARKLE_PUBLIC_KEY are set below.
+        SUFeedURL: "$(FILKOLLEN_APPCAST_URL)"
+        SUPublicEDKey: "$(FILKOLLEN_SPARKLE_PUBLIC_KEY)"
+        SUEnableAutomaticChecks: false
     entitlements:
       path: Filkollen/Resources/Filkollen.entitlements
       properties:
@@ -32,8 +48,31 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.theroben.Filkollen
+        # Set both to turn on "Check for Filkollen Updates…" (see docs/RELEASING.md).
+        FILKOLLEN_APPCAST_URL: ""
+        FILKOLLEN_SPARKLE_PUBLIC_KEY: ""
         ENABLE_HARDENED_RUNTIME: YES
         CODE_SIGN_STYLE: Automatic
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         COMBINE_HIDPI_IMAGES: YES
+    scheme:
+      testTargets:
+        - FilkollenTests
+      gatherCoverageData: true
+  FilkollenTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: FilkollenTests
+    dependencies:
+      - target: Filkollen
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.theroben.FilkollenTests
+        # XCTest itself is built for macOS 14; tests still exercise the macOS 13 app.
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Filkollen.app/Contents/MacOS/Filkollen"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        CODE_SIGN_STYLE: Automatic

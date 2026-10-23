@@ -20,8 +20,19 @@ struct StartupItem: Identifiable, Hashable {
     /// The executable it points to is gone, usually because its app was deleted.
     let isBroken: Bool
     let ownerName: String?
+    /// What actually runs: the program, or the script an interpreter is given.
+    var target: String? = nil
+    /// Signature of `target`; nil when it can't be located.
+    var trust: CodeTrust.Report? = nil
+    /// Runs from a temp, shared or hidden folder, where legitimate software rarely lives.
+    var oddLocation: Bool = false
+    /// `target` is a script run by an interpreter (sh, python, osascript…).
+    var isScript: Bool = false
 
     var displayName: String { ownerName ?? label }
+
+    /// Worth a look: unsigned or broken code, a script, or an odd location. Not a verdict.
+    var needsReview: Bool { oddLocation || isScript || (trust?.level.isConcerning ?? false) }
 }
 
 enum StartupItems {
@@ -50,9 +61,15 @@ enum StartupItems {
         else { return nil }
 
         let label = plist["Label"] as? String ?? url.deletingPathExtension().lastPathComponent
-        let program = plist["Program"] as? String ?? (plist["ProgramArguments"] as? [String])?.first
+        let arguments = plist["ProgramArguments"] as? [String] ?? []
+        let program = plist["Program"] as? String ?? arguments.first
         // BundleProgram is relative to an app bundle we can't locate here, so don't call it broken.
         let broken = program.map { $0.hasPrefix("/") && !FileManager.default.fileExists(atPath: $0) } ?? false
+        let (target, isScript) = runTarget(program: program, arguments: arguments)
+        let trust = target.flatMap { path -> CodeTrust.Report? in
+            guard path.hasPrefix("/"), FileManager.default.fileExists(atPath: path) else { return nil }
+            return CodeTrust.evaluate(URL(fileURLWithPath: path))
+        }
 
         return StartupItem(
             plist: url,
@@ -62,8 +79,39 @@ enum StartupItems {
             disabled: plist["Disabled"] as? Bool ?? false,
             runAtLoad: plist["RunAtLoad"] as? Bool ?? false,
             isBroken: broken,
-            ownerName: AppNames.friendlyName(for: label) ?? ownerFromProgram(program)
+            ownerName: AppNames.friendlyName(for: label) ?? ownerFromProgram(program),
+            target: target,
+            trust: trust,
+            oddLocation: target.map(isOddLocation) ?? false,
+            isScript: isScript
         )
+    }
+
+    static let interpreters: Set<String> = [
+        "sh", "bash", "zsh", "dash", "ksh", "tcsh", "csh", "python", "python3", "perl", "ruby", "node",
+        "osascript", "php", "env",
+    ]
+
+    /// For `/bin/sh -c …` or `/usr/bin/python3 /path/x.py`, what runs is the script.
+    static func runTarget(program: String?, arguments: [String]) -> (target: String?, isScript: Bool) {
+        guard let program else { return (nil, false) }
+        let name = (program as NSString).lastPathComponent
+        guard interpreters.contains(name) || name.hasPrefix("python") else { return (program, false) }
+        let rest = arguments.dropFirst().filter { !$0.hasPrefix("-") }
+        if name == "env", let first = rest.first {
+            return runTarget(program: first, arguments: Array(rest))
+        }
+        // An inline command (`sh -c "…"`) has no file to check; show the interpreter but flag it.
+        let script = rest.first { $0.hasPrefix("/") || $0.hasPrefix("~") }
+        return (script.map { ($0 as NSString).expandingTildeInPath } ?? program, true)
+    }
+
+    /// Temp folders, /Users/Shared and hidden folders are where droppers park payloads.
+    static func isOddLocation(_ path: String) -> Bool {
+        let p = path.lowercased()
+        for prefix in ["/tmp/", "/private/tmp/", "/var/tmp/", "/private/var/tmp/", "/users/shared/", "/var/folders/", "/private/var/folders/"]
+        where p.hasPrefix(prefix) { return true }
+        return path.split(separator: "/").dropLast().contains { $0.hasPrefix(".") && $0 != "." && $0 != ".." }
     }
 
     /// "/Applications/Foo.app/Contents/..." → "Foo"

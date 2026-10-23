@@ -1,0 +1,10 @@
+# Mirrors the current style so `swiftformat .` is close to a no-op.
+--swiftversion 5.9
+--indent 4
+--maxwidth 170
+--wraparguments preserve
+--wrapcollections preserve
+--self remove
+--stripunusedargs closure-only
+--disable redundantReturn,wrapMultilineStatementBraces,trailingCommas,blankLinesAtStartOfScope
+--exclude build,DerivedData

@@ -7,6 +7,8 @@ final class AppModel: ObservableObject {
     enum Section: Hashable {
         case smartScan
         case category(JunkCategory)
+        case uninstaller
+        case history
         case protection
         case updates
         case system(SystemPage)
@@ -15,11 +17,17 @@ final class AppModel: ObservableObject {
     enum SystemPage: String, Hashable, CaseIterable {
         case overview = "System Overview"
         case startupItems = "Startup Items"
+        case snapshots = "Time Machine Snapshots"
+        case diskUsage = "Disk Usage"
+
+        var title: String { String(localized: String.LocalizationValue(rawValue)) }
 
         var symbol: String {
             switch self {
             case .overview: return "gauge.with.dots.needle.50percent"
             case .startupItems: return "power.circle.fill"
+            case .snapshots: return "clock.arrow.circlepath"
+            case .diskUsage: return "square.grid.3x3.square"
             }
         }
     }
@@ -29,27 +37,47 @@ final class AppModel: ObservableObject {
         case scanning
         case results
         case cleaning
-        case done(freed: Int64, failed: Int)
+        case done(CleanupSummary)
     }
 
     @Published var section: Section = .smartScan
     @Published var phase: Phase = .idle
-    @Published var hasFullDiskAccess = FullDiskAccess.isGranted
+    let history = CleanupHistory.live
+    /// Result of the last Put Back, shown on the done screen and in History.
+    @Published var putBackMessage: String?
+    @Published private(set) var hasFullDiskAccess = FullDiskAccess.isGranted
     @Published var onboardingDismissed = UserDefaults.standard.bool(forKey: "onboardingDismissed")
 
     @Published private(set) var results: [JunkCategory: CategoryResult] = [:]
-    @Published private(set) var scanningCategory: JunkCategory?
+    /// Categories still being scanned; they run side by side.
+    @Published private(set) var scanningCategories: Set<JunkCategory> = []
+    /// The category shown as "now scanning": the first unfinished one in display order.
+    var scanningCategory: JunkCategory? { JunkCategory.allCases.first { scanningCategories.contains($0) } }
     @Published private(set) var scanStatus = ""
 
     private var scanTask: Task<Void, Never>?
 
     var isScanning: Bool { phase == .scanning }
-    var showOnboarding: Bool { !hasFullDiskAccess && !onboardingDismissed }
+    var showOnboarding: Bool { !hasFullDiskAccess && !onboardingDismissed && !fullDiskAccessRevoked }
+
+    init() {
+        refreshFullDiskAccess()
+    }
 
     // MARK: Full Disk Access
 
+    /// Access was granted at some point and has since been turned off in System Settings.
+    @Published private(set) var fullDiskAccessRevoked = false
+
     func refreshFullDiskAccess() {
-        hasFullDiskAccess = FullDiskAccess.isGranted
+        let granted = FullDiskAccess.isGranted
+        let hadAccess = UserDefaults.standard.bool(forKey: "hadFullDiskAccess")
+        if granted != hasFullDiskAccess || (hadAccess && !granted) != fullDiskAccessRevoked {
+            Log.app.notice("Full Disk Access \(granted ? "granted" : (hadAccess ? "revoked" : "not granted"), privacy: .public)")
+        }
+        hasFullDiskAccess = granted
+        fullDiskAccessRevoked = hadAccess && !granted
+        if granted { UserDefaults.standard.set(true, forKey: "hadFullDiskAccess") }
     }
 
     func skipOnboarding() {
@@ -63,6 +91,7 @@ final class AppModel: ObservableObject {
 
     var smartScanTotal: Int64 { JunkCategory.smartScan.reduce(0) { $0 + (results[$1]?.totalSize ?? 0) } }
     var smartScanSelected: Int64 { JunkCategory.smartScan.reduce(0) { $0 + (results[$1]?.selectedSize ?? 0) } }
+    var smartScanReclaimable: Int64 { JunkCategory.smartScan.reduce(0) { $0 + (results[$1]?.selectedReclaimable ?? 0) } }
 
     func startSmartScan(onFinish: (() -> Void)? = nil) {
         scan(JunkCategory.smartScan) { [weak self] in
@@ -73,37 +102,76 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// Identifies the current scan, so a cancelled one that's still winding down
+    /// can never write its results over a newer scan's.
+    private var scanGeneration = 0
+
+    /// Whether a background (scheduled) scan may start now without disturbing the user:
+    /// not while they're looking at results or cleaning.
+    var canStartBackgroundScan: Bool {
+        switch phase {
+        case .idle, .done: return true
+        case .scanning, .results, .cleaning: return false
+        }
+    }
+
     func scan(_ categories: [JunkCategory], onFinish: (() -> Void)? = nil) {
         guard !isScanning else { return }
         refreshFullDiskAccess()
         phase = .scanning
         for c in categories { results[c] = nil }
+        scanGeneration += 1
+        let generation = scanGeneration
+        let started = Date()
 
         scanTask = Task {
-            for category in categories {
-                if Task.isCancelled { break }
-                scanningCategory = category
-                scanStatus = category.scanningMessage
-                let items = await Self.runScanner(for: category) { path in
-                    Task { @MainActor in self.scanStatus = path }
+            scanningCategories = Set(categories)
+            scanStatus = categories.first?.scanningMessage ?? ""
+            // Scanners run concurrently (each one also hashes/measures in parallel);
+            // results appear as each finishes.
+            await withTaskGroup(of: (JunkCategory, [JunkItem]).self) { group in
+                for category in categories {
+                    group.addTask {
+                        let items = await Self.runScanner(for: category) { message in
+                            Task { @MainActor in
+                                guard self.scanGeneration == generation, self.scanningCategories.contains(category) else { return }
+                                self.scanStatus = message
+                            }
+                        }
+                        return (category, items)
+                    }
                 }
-                let excluded = Exclusions.paths
-                results[category] = CategoryResult(
-                    category: category,
-                    items: excluded.isEmpty ? items : items.filter { !Exclusions.isExcluded($0.url, in: excluded) }
-                )
+                for await (category, items) in group {
+                    guard !Task.isCancelled, scanGeneration == generation else { continue }
+                    let excluded = Exclusions.paths
+                    results[category] = CategoryResult(
+                        category: category,
+                        items: excluded.isEmpty ? items : items.filter { !Exclusions.isExcluded($0.url, in: excluded) }
+                    )
+                    scanningCategories.remove(category)
+                }
             }
-            scanningCategory = nil
+            guard scanGeneration == generation else { return }
+            scanningCategories = []
             scanStatus = ""
-            phase = Task.isCancelled ? .idle : .results
-            if !Task.isCancelled { onFinish?() }
+            if Task.isCancelled {
+                phase = .idle
+                Log.scan.info("Scan cancelled after \(Date().timeIntervalSince(started), format: .fixed(precision: 1)) s")
+            } else {
+                phase = .results
+                Log.scan.info("Scan finished in \(Date().timeIntervalSince(started), format: .fixed(precision: 1)) s")
+                onFinish?()
+            }
         }
     }
 
+    /// Stops the scan for real: the scanner sees the cancellation and returns early.
     func cancelScan() {
         scanTask?.cancel()
         scanTask = nil
-        scanningCategory = nil
+        scanGeneration += 1
+        scanningCategories = []
+        scanStatus = ""
         phase = .idle
     }
 
@@ -111,14 +179,43 @@ final class AppModel: ObservableObject {
         for category: JunkCategory,
         progress: @escaping @Sendable (String) -> Void
     ) async -> [JunkItem] {
-        await Task.detached(priority: .userInitiated) {
+        // Detached so the work runs off the main actor; cancellation is forwarded
+        // by hand because detached tasks don't inherit it.
+        let context = ScanContext.live
+        let work = Task.detached(priority: .userInitiated) { () -> [JunkItem] in
+            let found: [JunkItem]
             switch category {
-            case .systemJunk: return CacheScanner().scan(progress: progress)
-            case .appLeftovers: return LeftoverScanner().scan(progress: progress)
-            case .duplicatePhotos: return DuplicatePhotoScanner().scan(progress: progress)
-            case .largeFiles: return LargeFileScanner().scan(progress: progress)
+            case .systemJunk: found = CacheScanner(context: context).scan(progress: progress)
+            case .appLeftovers: found = LeftoverScanner(context: context).scan(progress: progress)
+            case .duplicatePhotos: found = DuplicatePhotoScanner(context: context).scan(progress: progress)
+            case .duplicateFiles: found = DuplicatePhotoScanner(context: context, mode: .files).scan(progress: progress)
+            case .largeFiles: found = LargeFileScanner(context: context).scan(progress: progress)
+            case .developerJunk: found = DeveloperScanner(context: context).scan(progress: progress)
+            case .oldInstallers: found = InstallerScanner(context: context).scan(progress: progress)
+            case .iosBackups: found = IOSBackupScanner(context: context).scan(progress: progress)
+            case .browserCaches: found = BrowserScanner(context: context).scan(progress: progress)
             }
-        }.value
+            if context.isCancelled { return [] }
+            return screened(found, category: category)
+        }
+        return await withTaskCancellationHandler { await work.value } onCancel: {
+            work.cancel()
+            context.cancellation.set()
+        }
+    }
+
+    /// Drops anything SafetyGuard would refuse, so it's never shown as cleanable,
+    /// and records each item's resolved location for the delete-time re-check.
+    nonisolated static func screened(_ items: [JunkItem], category: JunkCategory, safety: SafetyGuard = .shared) -> [JunkItem] {
+        var refused = 0
+        let kept = items.compactMap { item -> JunkItem? in
+            guard case .allowed(let path) = safety.evaluate(item.url) else { refused += 1; return nil }
+            var item = item
+            item.resolvedPath = path
+            return item
+        }
+        Log.scan.info("\(category.rawValue, privacy: .public): \(kept.count) items, \(refused) refused by SafetyGuard")
+        return kept
     }
 
     // MARK: Selection
@@ -132,11 +229,24 @@ final class AppModel: ObservableObject {
         results[category] = result
     }
 
+    /// Adds a path to Settings › Cleanup › Excluded folders and drops matching
+    /// items from the current results.
+    func alwaysIgnore(_ url: URL) {
+        Exclusions.add(url)
+        for category in JunkCategory.allCases {
+            guard var r = results[category] else { continue }
+            r.items.removeAll { Exclusions.isExcluded($0.url, in: [url.standardizedFileURL.path]) }
+            results[category] = r
+        }
+        Log.scan.info("Added an item to the ignore list")
+    }
+
     func setAllSelected(_ selected: Bool, in category: JunkCategory) {
         guard var result = results[category] else { return }
         for i in result.items.indices {
-            // Never auto-select the copy we keep in a duplicate group.
-            if result.items[i].isKeeper { continue }
+            // Never auto-select the copy we keep in a duplicate group, or something an app is using.
+            let item = result.items[i]
+            if item.isKeeper || (selected && (item.inUseBy != nil || item.confidence == .low)) { continue }
             result.items[i].isSelected = selected
         }
         results[category] = result
@@ -162,13 +272,68 @@ final class AppModel: ObservableObject {
                 r.items.removeAll { outcome.trashed.contains($0.url) }
                 results[category] = r
             }
-            phase = .done(freed: outcome.freedBytes, failed: outcome.failures.count)
+            var summary = CleanupSummary(outcome)
+            let source = categories.count == 1 ? categories[0].title : "Smart Scan"
+            summary.recordID = history.record(outcome, items: items, source: source)?.id
+            putBackMessage = nil
+            phase = .done(summary)
+        }
+    }
+
+    /// Moves an app's remnants to the Trash (App Uninstaller). Same Cleaner and
+    /// checks as any cleanup; anything trashed also leaves the scan results.
+    func uninstall(_ items: [JunkItem], appName: String = "an app") async -> CleanupSummary {
+        let screened = Self.screened(items, category: .appLeftovers)
+        let outcome = await Task.detached(priority: .userInitiated) {
+            Cleaner.moveToTrash(screened)
+        }.value
+        for category in JunkCategory.allCases {
+            guard var r = results[category] else { continue }
+            r.items.removeAll { outcome.trashed.contains($0.url) }
+            results[category] = r
+        }
+        var summary = CleanupSummary(outcome)
+        summary.recordID = history.record(outcome, items: screened, source: "Uninstalled \(appName)")?.id
+        let refused = items.count - screened.count
+        if refused > 0 {
+            Log.cleaner.notice("Uninstaller: \(refused) items refused by SafetyGuard before cleaning")
+        }
+        summary.failures += items.filter { item in !screened.contains { $0.url == item.url } }
+            .map { Cleaner.Failure(url: $0.url, reason: "Filkollen doesn't remove items in this location.") }
+        return summary
+    }
+
+    /// Moves a cleanup's items back from the Trash. `only` limits it to some originals.
+    func putBack(_ recordID: UUID, only: Set<String>? = nil) {
+        let history = history
+        Task {
+            let failures = await Task.detached(priority: .userInitiated) { history.putBack(recordID, only: only) }.value
+            putBackMessage = failures.isEmpty
+                ? "Put back."
+                : "\(failures.count) item(s) couldn't go back: " + Set(failures.values.compactMap(\.errorDescription)).sorted().joined(separator: " ")
         }
     }
 
     func reset() {
         results = [:]
         phase = .idle
+    }
+}
+
+/// What the done screen shows after a cleanup.
+struct CleanupSummary: Equatable {
+    /// The history entry for Undo / Put Back; nil if nothing could be recorded.
+    var recordID: UUID?
+    var trashedCount: Int
+    var trashedBytes: Int64
+    var reclaimableBytes: Int64
+    var failures: [Cleaner.Failure]
+
+    init(_ outcome: Cleaner.Outcome) {
+        trashedCount = outcome.trashed.count - outcome.alreadyGone
+        trashedBytes = outcome.trashedBytes
+        reclaimableBytes = outcome.reclaimableBytes
+        failures = outcome.failures
     }
 }
 
@@ -179,4 +344,6 @@ struct CategoryResult {
     var totalSize: Int64 { items.reduce(0) { $0 + $1.size } }
     var selectedItems: [JunkItem] { items.filter(\.isSelected) }
     var selectedSize: Int64 { selectedItems.reduce(0) { $0 + $1.size } }
+    /// What emptying the Trash would give back for the selection (clones and hard links excluded).
+    var selectedReclaimable: Int64 { selectedItems.reduce(0) { $0 + $1.reclaimableSize } }
 }
