@@ -1,6 +1,6 @@
 # Privileged helper: design proposal (not built yet)
 
-Status: **proposal for review.** Nothing here is implemented. The helper is the only way Filkollen would ever delete outside your home folder, so its allowlist needs your sign-off before any code exists, and it can only be tested with a Developer ID–signed build (SMAppService daemons and the XPC signature checks don't work with the ad-hoc builds used during development).
+Status: **proposal; decided 2026-10-23 to build it later**, once Developer ID signing is set up. Nothing here is implemented. The helper is the only way Filkollen would ever delete outside your home folder, so its allowlist needs your sign-off before any code exists, and it can only be tested with a Developer ID–signed build (SMAppService daemons and the XPC signature checks don't work with the ad-hoc builds used during development).
 
 ## Goal
 

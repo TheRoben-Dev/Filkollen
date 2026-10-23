@@ -46,10 +46,10 @@ Work on `claude/project-thread-aiwa78`, stacked on PR #2 (`feature/menubar-updat
 1. **SafetyGuard exceptions** (all exact folders, whole items only, with tests for neighbours):
    - `~/Library/Caches/com.apple.Safari` and `~/Library/Containers/com.apple.Safari/Data/Library/Caches` (you approved "Allow both, narrowly").
    - `~/Library/Containers/com.apple.mail/Data/Library/Mail Downloads` (same approval).
-   - `~/Library/Application Support/MobileSync/Backup/<device>`: exactly one level below, never pre-selected. **Added by me under the backlog's iOS-backups item; please confirm.**
-2. **Helper allowlist** in `docs/HELPER.md`: nothing is built until you approve it.
-3. **PR #2 vs the no-network rule:** App Updates reads other apps' appcasts and runs `brew`/`mas`/`softwareupdate`. That's more network than "MalwareBazaar + Sparkle". Keep, gate behind a setting, or drop?
-4. **PR #2's whole-Trash Empty Trash** (System Overview, menu bar) deletes things Filkollen didn't put there. History now has a scoped version; consider removing or relabelling the whole-Trash one.
+   - `~/Library/Application Support/MobileSync/Backup/<device>`: exactly one level below, never pre-selected. Confirmed by Roben 2026-10-23.
+2. **Helper allowlist** in `docs/HELPER.md`: decided 2026-10-23 to keep it as a design doc and build it later, once signing is set up and the allowlist is reviewed.
+3. **PR #2 vs the no-network rule:** App Updates reads other apps' appcasts and runs `brew`/`mas`/`softwareupdate`. That's more network than "MalwareBazaar + Sparkle". Roben chose to keep it (2026-10-23).
+4. **PR #2's whole-Trash Empty Trash** (System Overview, menu bar) deletes things Filkollen didn't put there. History now has a scoped version. Roben chose to keep both (2026-10-23).
 5. **Sparkle 2** is a new package dependency (resolved to 2.10.0). It does nothing until `FILKOLLEN_APPCAST_URL` and `FILKOLLEN_SPARKLE_PUBLIC_KEY` are set.
 6. **Defaults:** plain-name leftovers off, Downloads watcher off, Duplicate Files and Large & Old Files never pre-selected, Duplicate Photos copies pre-selected (as before).
 7. **App Uninstaller** can't move apps in `/Applications` (SafetyGuard); it removes support files and sends you to Finder for the app itself.

@@ -42,7 +42,7 @@ Each exception allows whole items only (an exact folder, or exactly one level be
 |---|---|---|
 | `~/Library/Caches/com.apple.Safari` and `~/Library/Containers/com.apple.Safari/Data/Library/Caches` (exact folders) | Browser & Mail Caches | Safari's web cache, rebuilt as you browse. Approved by Roben 2026-10-23. Only offered while Safari is closed; the Cleaner refuses if it's running. History, cookies, passwords and everything else under `com.apple.Safari` stay refused. |
 | `~/Library/Containers/com.apple.mail/Data/Library/Mail Downloads` (exact folder) | Browser & Mail Caches | Copies of attachments you opened; originals stay in the mailbox. Approved by Roben 2026-10-23. Mail must be closed. The mailbox store (`~/Library/Mail`) and everything else in Mail's container stay refused. |
-| `~/Library/Application Support/MobileSync/Backup/<device>` | iOS Backups & Firmware | Finder's per-device backup folders. Listed with device name and date, never pre-selected, moved to the Trash whole. |
+| `~/Library/Application Support/MobileSync/Backup/<device>` | iOS Backups & Firmware | Finder's per-device backup folders. Listed with device name and date, never pre-selected, moved to the Trash whole. Confirmed by Roben 2026-10-23. |
 
 Finder aliases are ordinary files and are judged as the file they are. Trashing an alias never touches what it points to.
 
@@ -56,9 +56,9 @@ Finder aliases are ordinary files and are judged as the file they are. Trashing 
 - **Background scans only look.** Scheduled scans notify; nothing is cleaned without your review. The Downloads watcher (off by default) only notifies too.
 - **App Uninstaller** removes only what's in your home folder. Apple apps are refused; an app outside your home folder is removed by you in Finder, because the app itself may not delete there.
 - **Put Back** (History) never overwrites something that's back in the original place and only restores into places `SafetyGuard` allows.
-- **Empty Filkollen's Items from Trash** deletes only items Filkollen recorded moving, still sitting directly in `~/.Trash`, after a confirmation. Nothing else in the Trash is touched. (The whole-Trash Empty Trash on System Overview and the menu bar comes from PR #2 and is under review.)
+- **Empty Filkollen's Items from Trash** deletes only items Filkollen recorded moving, still sitting directly in `~/.Trash`, after a confirmation. Nothing else in the Trash is touched. (The whole-Trash Empty Trash on System Overview and the menu bar, from PR #2, stays by Roben's choice: it always asks first.)
 - **Code-signature checks never go online** (`kSecCSNoNetworkAccess`), and Filkollen never runs `freshclam` itself.
-- **No network** except MalwareBazaar updates (and Sparkle for Filkollen itself, once added). No telemetry. *Exception under review:* the App Updates page added in PR #2 reads other apps' update feeds and runs `brew`/`mas`/`softwareupdate`; see `docs/SESSION_SUMMARY.md`.
+- **No network** except MalwareBazaar updates (and Sparkle for Filkollen itself, once added). No telemetry. *Exception, kept by Roben's choice (2026-10-23):* the App Updates page reads other apps' update feeds and runs `brew`/`mas`/`softwareupdate`.
 
 ## Changing these rules
 
