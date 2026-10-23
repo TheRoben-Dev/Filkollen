@@ -28,6 +28,8 @@ struct ScanContext: @unchecked Sendable {
     var largeFileMinBytes: Int64 = 500 * 1_048_576
     /// Also list files (50 MB+) not opened for this long; nil = size only.
     var largeFileMinAge: TimeInterval? = nil
+    /// Old files smaller than this aren't worth listing, however old they are.
+    var oldFileMinBytes: Int64 = 50 * 1_048_576
     /// Also guess at plain-named leftovers ("Application Support/Spotify").
     var plainNameLeftovers = false
     /// Where scanners may keep caches between runs; nil keeps them in memory.

@@ -8,9 +8,6 @@ struct LargeFileScanner {
     private var fm: FileManager { context.fileManager }
     private var home: URL { context.home }
 
-    /// Old files smaller than this aren't worth listing, however old they are.
-    static let oldFileMinBytes: Int64 = 50 * 1_048_576
-
     func scan(progress: @escaping @Sendable (String) -> Void) -> [JunkItem] {
         let throttle = ProgressThrottle(progress, counting: true)
         let minSize = context.largeFileMinBytes
@@ -40,7 +37,7 @@ struct LargeFileScanner {
 
             let lastUsed = [v.contentAccessDate, v.contentModificationDate].compactMap { $0 }.max()
             let isLarge = size >= minSize
-            let isOld = oldCutoff.map { cutoff in size >= Self.oldFileMinBytes && (lastUsed ?? .distantPast) < cutoff } ?? false
+            let isOld = oldCutoff.map { cutoff in size >= context.oldFileMinBytes && (lastUsed ?? .distantPast) < cutoff } ?? false
             guard isLarge || isOld else { continue }
 
             let when = lastUsed.map { "last opened \($0.formatted(.relative(presentation: .named)))" } ?? "never opened"

@@ -314,7 +314,7 @@ final class LargeFileScannerTests: XCTestCase {
     func testOldFilesAreListedWhenAgeFilterIsOn() throws {
         let now = Date()
         let old = now.addingTimeInterval(-400 * 86_400)
-        let oldBig = try fx.file("Documents/old-backup.zip", bytes: Int(LargeFileScanner.oldFileMinBytes) + 10_000, modified: old)
+        let oldBig = try fx.file("Documents/old-backup.zip", bytes: 200_000, modified: old)
         let oldSmall = try fx.file("Documents/old-note.txt", bytes: 1_000, modified: old)
         for url in [oldBig, oldSmall] {
             var values = URLResourceValues()
@@ -323,11 +323,14 @@ final class LargeFileScannerTests: XCTestCase {
             try u.setResourceValues(values)
         }
         let threshold: Int64 = 500 * 1_048_576
-        let sizeOnly = LargeFileScanner(context: fx.context(now: now, largeFileMinBytes: threshold)).scan(progress: noProgress)
+        var sizeContext = fx.context(now: now, largeFileMinBytes: threshold)
+        sizeContext.oldFileMinBytes = 100_000
+        let sizeOnly = LargeFileScanner(context: sizeContext).scan(progress: noProgress)
         XCTAssertTrue(sizeOnly.isEmpty)
 
-        let withAge = LargeFileScanner(context: fx.context(now: now, largeFileMinBytes: threshold,
-                                                           largeFileMinAge: 365 * 86_400)).scan(progress: noProgress)
+        var ageContext = fx.context(now: now, largeFileMinBytes: threshold, largeFileMinAge: 365 * 86_400)
+        ageContext.oldFileMinBytes = 100_000
+        let withAge = LargeFileScanner(context: ageContext).scan(progress: noProgress)
         XCTAssertEqual(withAge.map(\.name), ["old-backup.zip"])
         XCTAssertEqual(withAge.first?.group, "Archives")
     }
