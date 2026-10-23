@@ -68,7 +68,8 @@ final class Fixture {
     func context(
         running: [ScanContext.RunningApp] = [],
         now: Date = Date(),
-        largeFileMinBytes: Int64 = 1_048_576
+        largeFileMinBytes: Int64 = 1_048_576,
+        largeFileMinAge: TimeInterval? = nil
     ) -> ScanContext {
         ScanContext(
             home: home,
@@ -78,7 +79,8 @@ final class Fixture {
             appRoots: [home.appendingPathComponent("Applications")],
             isRegisteredApp: { _ in false },
             tempMinAge: 3 * 24 * 3600,
-            largeFileMinBytes: largeFileMinBytes
+            largeFileMinBytes: largeFileMinBytes,
+            largeFileMinAge: largeFileMinAge
         )
     }
 

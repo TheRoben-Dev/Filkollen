@@ -5,6 +5,7 @@ struct CategoryDetailView: View {
     let category: JunkCategory
     @State private var showReview = false
     @State private var expanded: Set<String> = []
+    @State private var previewURL: URL?
 
     private var result: CategoryResult? { model.result(for: category) }
 
@@ -30,6 +31,8 @@ struct CategoryDetailView: View {
         }
         .foregroundStyle(.white)
         .sheet(isPresented: $showReview) { ReviewSheet(only: category).environmentObject(model) }
+        .quickLookPreview($previewURL)
+        .environment(\.showQuickLook) { previewURL = $0 }
     }
 
     private var header: some View {
@@ -231,6 +234,10 @@ private struct ItemRow: View {
             }
             Spacer()
             Text(item.size.formattedBytes).font(.caption.monospacedDigit()).foregroundStyle(.white.opacity(0.7))
+            Button { showQuickLook(item.url) } label: { Image(systemName: "eye") }
+                .buttonStyle(.plain)
+                .help("Quick Look")
+                .accessibilityLabel("Quick Look \(item.name)")
             Button {
                 NSWorkspace.shared.activateFileViewerSelecting([item.url])
             } label: {
@@ -238,7 +245,39 @@ private struct ItemRow: View {
             }
             .buttonStyle(.plain)
             .help("Show in Finder")
+            .accessibilityLabel("Show \(item.name) in Finder")
         }
         .padding(.leading, 26)
+        .contentShape(Rectangle())
+        .contextMenu { ItemContextMenu(item: item) }
+    }
+
+    @Environment(\.showQuickLook) private var showQuickLook
+}
+
+/// Right-click actions shared by item rows.
+struct ItemContextMenu: View {
+    @EnvironmentObject private var model: AppModel
+    @Environment(\.showQuickLook) private var showQuickLook
+    let item: JunkItem
+
+    var body: some View {
+        Button("Quick Look") { showQuickLook(item.url) }
+        Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([item.url]) }
+        Divider()
+        Button("Always Ignore This Item") { model.alwaysIgnore(item.url) }
+        Button("Always Ignore Its Folder") { model.alwaysIgnore(item.url.deletingLastPathComponent()) }
+    }
+}
+
+private struct ShowQuickLookKey: EnvironmentKey {
+    static let defaultValue: (URL) -> Void = { _ in }
+}
+
+extension EnvironmentValues {
+    /// Opens the Quick Look panel for a file; set by the page that hosts `.quickLookPreview`.
+    var showQuickLook: (URL) -> Void {
+        get { self[ShowQuickLookKey.self] }
+        set { self[ShowQuickLookKey.self] = newValue }
     }
 }

@@ -26,6 +26,8 @@ struct ScanContext: @unchecked Sendable {
     var installerMinAge: TimeInterval = 30 * 24 * 3600
     /// Large & Old Files threshold.
     var largeFileMinBytes: Int64 = 500 * 1_048_576
+    /// Also list files (50 MB+) not opened for this long; nil = size only.
+    var largeFileMinAge: TimeInterval? = nil
     /// Where scanners may keep caches between runs; nil keeps them in memory.
     var cacheDirectory: URL? = nil
     /// Set when the scan is cancelled. Unlike `Task.isCancelled` it's visible from
@@ -49,6 +51,8 @@ struct ScanContext: @unchecked Sendable {
             isRegisteredApp: { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0) != nil },
             tempMinAge: TimeInterval(max(1, Pref.defaults.integer(forKey: Pref.tempMinAgeDays))) * 24 * 3600,
             largeFileMinBytes: Int64(max(50, Pref.defaults.integer(forKey: Pref.largeFileMB))) * 1_048_576,
+            largeFileMinAge: Pref.defaults.integer(forKey: Pref.oldFileMonths) > 0
+                ? TimeInterval(Pref.defaults.integer(forKey: Pref.oldFileMonths)) * 30 * 24 * 3600 : nil,
             cacheDirectory: ThreatDatabase.supportDirectory
         )
     }

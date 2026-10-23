@@ -217,6 +217,18 @@ final class AppModel: ObservableObject {
         results[category] = result
     }
 
+    /// Adds a path to Settings › Cleanup › Excluded folders and drops matching
+    /// items from the current results.
+    func alwaysIgnore(_ url: URL) {
+        Exclusions.add(url)
+        for category in JunkCategory.allCases {
+            guard var r = results[category] else { continue }
+            r.items.removeAll { Exclusions.isExcluded($0.url, in: [url.standardizedFileURL.path]) }
+            results[category] = r
+        }
+        Log.scan.info("Added an item to the ignore list")
+    }
+
     func setAllSelected(_ selected: Bool, in category: JunkCategory) {
         guard var result = results[category] else { return }
         for i in result.items.indices {

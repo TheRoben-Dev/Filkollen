@@ -18,6 +18,7 @@ enum Pref {
     // Cleanup
     static let tempMinAgeDays = "tempMinAgeDays"
     static let largeFileMB = "largeFileMB"
+    static let oldFileMonths = "oldFileMonths"            // 0 = size only
     static let excludedPaths = "excludedPaths"            // one path per line
 
     // Updates
@@ -38,6 +39,7 @@ enum Pref {
             autoCheckUpdates: true,
             tempMinAgeDays: 3,
             largeFileMB: 500,
+            oldFileMonths: 12,
             excludedPaths: "",
             checkSparkle: true,
             checkHomebrew: true,
@@ -59,8 +61,20 @@ enum Exclusions {
             .filter { !$0.isEmpty }
     }
 
+    /// Appends a path (shown with ~) unless it's already covered.
+    static func add(_ url: URL) {
+        guard !isExcluded(url) else { return }
+        let current = Pref.defaults.string(forKey: Pref.excludedPaths) ?? ""
+        let line = url.standardizedFileURL.abbreviatedPath
+        Pref.defaults.set(current.isEmpty ? line : current + "\n" + line, forKey: Pref.excludedPaths)
+    }
+
     static func isExcluded(_ url: URL, in list: [String] = paths) -> Bool {
-        let path = url.standardizedFileURL.path
-        return list.contains { path == $0 || path.hasPrefix($0.hasSuffix("/") ? $0 : $0 + "/") }
+        // Case-insensitive like APFS, and NFC so decomposed names match too.
+        let path = SafetyGuard.fold(url.standardizedFileURL.path)
+        return list.contains {
+            let entry = SafetyGuard.fold($0)
+            return path == entry || path.hasPrefix(entry.hasSuffix("/") ? entry : entry + "/")
+        }
     }
 }

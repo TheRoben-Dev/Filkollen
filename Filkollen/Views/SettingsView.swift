@@ -107,6 +107,7 @@ private struct GeneralSettings: View {
 private struct CleanupSettings: View {
     @AppStorage(Pref.tempMinAgeDays) private var tempMinAgeDays = 3
     @AppStorage(Pref.largeFileMB) private var largeFileMB = 500
+    @AppStorage(Pref.oldFileMonths) private var oldFileMonths = 12
     @AppStorage(Pref.excludedPaths) private var excludedPaths = ""
 
     var body: some View {
@@ -123,6 +124,13 @@ private struct CleanupSettings: View {
                     Text("1 GB").tag(1000)
                     Text("2 GB").tag(2000)
                 }
+                Picker("Also show files not opened for", selection: $oldFileMonths) {
+                    Text("Off").tag(0)
+                    Text("6 months").tag(6)
+                    Text("1 year").tag(12)
+                    Text("2 years").tag(24)
+                }
+                Text("Old files are only listed from 50 MB up.").font(.caption).foregroundStyle(.secondary)
             }
             Section {
                 TextEditor(text: $excludedPaths)
