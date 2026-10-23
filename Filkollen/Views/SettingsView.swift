@@ -23,6 +23,7 @@ private struct GeneralSettings: View {
     @AppStorage(Pref.alwaysStartHidden) private var startHidden = false
     @AppStorage(Pref.notificationsEnabled) private var notifications = true
     @AppStorage(Pref.autoScanHours) private var autoScanHours = 24
+    @AppStorage(Pref.useBrandAccent) private var useBrandAccent = false
 
     @State private var launchAtLogin = LoginItem.isEnabled
     @State private var needsApproval = LoginItem.needsApproval
@@ -63,6 +64,13 @@ private struct GeneralSettings: View {
                 }
                 Text("When opened at login, Filkollen starts quietly in the menu bar with no window.")
                     .font(.caption).foregroundStyle(.secondary)
+            }
+
+            Section("Appearance") {
+                Toggle(isOn: $useBrandAccent) {
+                    Text("Use Filkollen's teal for buttons and controls")
+                    Text("Off: Filkollen follows the accent colour you chose in System Settings › Appearance.")
+                }
             }
 
             Section("Menu bar") {

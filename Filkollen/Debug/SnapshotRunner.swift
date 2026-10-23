@@ -44,6 +44,7 @@ final class SnapshotRunner {
             await hostedViews()
             await settingsTabs()
             await aboutPanel()
+            await gallery()
         }
         try? index.joined(separator: "\n").write(to: root.appendingPathComponent("index.txt"), atomically: true, encoding: .utf8)
         NSApp.terminate(nil)
@@ -54,6 +55,7 @@ final class SnapshotRunner {
     private var mainWindow: NSWindow? {
         NSApp.windows.first {
             $0.isVisible && $0.canBecomeMain && !($0 is NSPanel) && $0.frame.width >= 900
+                && !($0.identifier?.rawValue.contains(DebugCommands.galleryID) ?? false)
         }
     }
 
@@ -171,7 +173,12 @@ final class SnapshotRunner {
     private func shot(_ name: String, settle: Double = 1.1) async {
         await sleep(settle)
         guard let window = mainWindow else { index.append("\(name): no main window"); return }
-        save(window, name)
+        // A capture can land mid-redraw and come back blank. Take two a beat
+        // apart and keep the one with more detail (the larger PNG).
+        let first = capture(window)
+        await sleep(0.6)
+        let second = capture(window)
+        write([first, second].compactMap { $0 }.max { $0.data.count < $1.data.count }, name)
     }
 
     // MARK: Views that normally live in a sheet or the menu bar
@@ -192,9 +199,9 @@ final class SnapshotRunner {
         m.reset()
     }
 
-    private func host<V: View>(_ name: String, _ view: V, settle: Double = 1.5) async {
+    private func host<V: View>(_ name: String, _ view: V, size: NSSize? = nil, settle: Double = 1.5) async {
         let hosting = NSHostingView(rootView: view)
-        hosting.frame.size = hosting.fittingSize
+        hosting.frame.size = size ?? hosting.fittingSize
         let window = NSWindow(contentRect: hosting.frame, styleMask: [.borderless], backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
         window.backgroundColor = .windowBackgroundColor
@@ -211,12 +218,22 @@ final class SnapshotRunner {
     private func settingsTabs() async {
         let before = Set(NSApp.windows.map { ObjectIdentifier($0) })
         app.showSettings()
-        await sleep(1.5)
-        guard let window = NSApp.windows.first(where: { !before.contains(ObjectIdentifier($0)) && $0.isVisible })
-                ?? NSApp.keyWindow, window !== mainWindow else {
-            index.append("60-settings: window not found")
+        var window: NSWindow?
+        for attempt in 0..<10 {
+            await sleep(0.5)
+            if attempt == 3 { NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil) }
+            window = NSApp.windows.first {
+                $0.isVisible && $0 !== mainWindow && !($0 is NSPanel)
+                    && (!before.contains(ObjectIdentifier($0)) || ($0.identifier?.rawValue.localizedCaseInsensitiveContains("settings") ?? false))
+            }
+            if window != nil { break }
+        }
+        guard let window else {
+            let seen = NSApp.windows.map { "\(type(of: $0)) '\($0.title)' id=\($0.identifier?.rawValue ?? "-") visible=\($0.isVisible)" }
+            index.append("60-settings: window not found. Windows: \(seen.joined(separator: "; "))")
             return
         }
+        await sleep(1)
         let items = window.toolbar?.items.filter { $0.action != nil } ?? []
         if items.isEmpty {
             save(window, "60-settings")
@@ -241,6 +258,14 @@ final class SnapshotRunner {
         panel.close()
     }
 
+    private func gallery() async {
+        for (i, page) in DesignGalleryView.Page.allCases.enumerated() {
+            await host("8\(i)-gallery-\(page.id.lowercased().replacingOccurrences(of: " & ", with: "-"))",
+                       DesignGalleryView(page: page).environmentObject(app.model),
+                       size: NSSize(width: 1400, height: 1100))
+        }
+    }
+
     // MARK: Capture
 
     /// `CGWindowListCreateImage` is unavailable to Swift in the macOS 15 SDK but
@@ -253,23 +278,29 @@ final class SnapshotRunner {
     }()
 
     private func save(_ window: NSWindow, _ name: String) {
-        var method = "window server"
-        var data: Data?
+        write(capture(window), name)
+    }
+
+    private func capture(_ window: NSWindow) -> (data: Data, method: String)? {
         // optionIncludingWindow = 1 << 3; boundsIgnoreFraming | bestResolution = 1 | 1 << 3
         if let fn = Self.windowImage, let image = fn(.null, 1 << 3, UInt32(window.windowNumber), 1 | 1 << 3)?.takeRetainedValue(),
-           image.width > 1 {
-            data = NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:])
+           image.width > 1, let data = NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]) {
+            return (data, "window server")
         }
-        if data == nil, let view = window.contentView?.superview ?? window.contentView,
+        if let view = window.contentView?.superview ?? window.contentView,
            let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) {
-            method = "cacheDisplay"
             view.cacheDisplay(in: view.bounds, to: rep)
-            data = rep.representation(using: .png, properties: [:])
+            if let data = rep.representation(using: .png, properties: [:]) { return (data, "cacheDisplay") }
         }
+        return nil
+    }
+
+    private func write(_ shot: (data: Data, method: String)?, _ name: String) {
+        guard let shot else { index.append("\(name): capture failed"); return }
         let url = out.appendingPathComponent("\(name).png")
         do {
-            try data?.write(to: url)
-            index.append("\(out.lastPathComponent)/\(name).png (\(method))")
+            try shot.data.write(to: url)
+            index.append("\(out.lastPathComponent)/\(name).png (\(shot.method))")
         } catch {
             index.append("\(name): \(error.localizedDescription)")
         }

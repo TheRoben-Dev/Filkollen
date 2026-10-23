@@ -7,6 +7,8 @@ enum Pref {
     static let keepRunningInMenuBar = "keepRunningInMenuBar"
     static let alwaysStartHidden = "alwaysStartHidden"
     static let notificationsEnabled = "notificationsEnabled"
+    /// Tint controls with Filkollen's Fjord teal instead of the system accent.
+    static let useBrandAccent = "useBrandAccent"
 
     // Background work
     static let autoScanHours = "autoScanHours"            // 0 = off
@@ -36,6 +38,7 @@ enum Pref {
             keepRunningInMenuBar: true,
             alwaysStartHidden: false,
             notificationsEnabled: true,
+            useBrandAccent: false,
             autoScanHours: 24,
             autoUpdateThreatDB: true,
             watchDownloads: false,
