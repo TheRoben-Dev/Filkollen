@@ -34,6 +34,14 @@ Everything else (`/`, `/System`, `/Library`, `/Applications`, other users, other
 | `~/.Trash`, `~/.ssh`, `~/.gnupg` | Trash can't be trashed; the others are credentials. |
 | Anything *inside* an `.app` bundle | Picking apart a bundle breaks its code signature. A whole app may be removed (App Uninstaller), never parts of it. This is also why there's no "remove language files" cleaner. |
 
+## Narrow exceptions
+
+Each exception allows *whole items exactly one level below* a protected folder, never anything inside those items, and has its own tests.
+
+| Allowed | Module | Why it's safe enough |
+|---|---|---|
+| `~/Library/Application Support/MobileSync/Backup/<device>` | iOS Backups & Firmware | Finder's per-device backup folders. Listed with device name and date, never pre-selected, moved to the Trash whole. |
+
 Finder aliases are ordinary files and are judged as the file they are. Trashing an alias never touches what it points to.
 
 ## Behavioural rules
