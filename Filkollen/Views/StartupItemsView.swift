@@ -66,8 +66,11 @@ struct StartupItemsView: View {
 
     private var subtitle: String {
         let broken = items.filter(\.isBroken).count
-        let base = "\(items.count) launch agents and daemons"
-        return broken > 0 ? base + ", \(broken) pointing to missing apps" : base
+        let review = items.filter(\.needsReview).count
+        var parts = ["\(items.count) launch agents and daemons"]
+        if broken > 0 { parts.append("\(broken) pointing to missing apps") }
+        if review > 0 { parts.append("\(review) worth a closer look") }
+        return parts.joined(separator: ", ")
     }
 
     private var loginItemsCard: some View {
@@ -139,11 +142,21 @@ private struct StartupRow: View {
                 HStack(spacing: 6) {
                     Text(item.displayName).font(.body.weight(.medium)).lineLimit(1)
                     if item.isBroken { Badge("App missing", .orange) }
+                    if let trust = item.trust {
+                        Badge(trust.level.label, trust.level.isConcerning ? .red : .green)
+                            .help(trust.teamID.map { "Team ID \($0)" + (trust.signer.map { " · \($0)" } ?? "") } ?? "No signing identity")
+                    }
+                    if item.isScript { Badge("Script", .purple) }
+                    if item.oddLocation { Badge("Unusual location", .red) }
                     if item.disabled { Badge("Disabled", .gray) }
                     if item.runAtLoad && !item.disabled { Badge("Runs at login", .blue) }
                 }
                 Text(item.label).font(.caption.monospaced()).foregroundStyle(.white.opacity(0.5))
                     .lineLimit(1).truncationMode(.middle)
+                if let target = item.target {
+                    Text(target).font(.caption2.monospaced()).foregroundStyle(.white.opacity(0.4))
+                        .lineLimit(1).truncationMode(.middle).textSelection(.enabled)
+                }
             }
             Spacer()
             Button { NSWorkspace.shared.activateFileViewerSelecting([item.plist]) } label: {

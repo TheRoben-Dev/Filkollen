@@ -7,7 +7,7 @@ struct ProtectionView: View {
     @State private var pendingDelete: [Threat] = []
     @State private var pendingQuarantineDelete: [Quarantine.Entry] = []
 
-    enum Tab: String, CaseIterable { case scan = "Scan", quarantine = "Quarantine" }
+    enum Tab: String, CaseIterable { case scan = "Scan", quarantine = "Quarantine", trust = "App Trust" }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -19,7 +19,7 @@ struct ProtectionView: View {
                          ? "\(t.rawValue) (\(protection.quarantined.count))" : t.rawValue).tag(t)
                 }
             }
-            .pickerStyle(.segmented).labelsHidden().frame(width: 260)
+            .pickerStyle(.segmented).labelsHidden().frame(width: 380)
             .padding(.bottom, 16)
 
             if let error = protection.errorMessage {
@@ -31,6 +31,7 @@ struct ProtectionView: View {
             switch tab {
             case .scan: scanTab
             case .quarantine: quarantineTab
+            case .trust: AppTrustView()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
