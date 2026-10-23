@@ -64,6 +64,35 @@ final class Fixture {
         return url
     }
 
+    /// A scan context rooted in this fixture: fixed clock, no LaunchServices, only fixture apps.
+    func context(
+        running: [ScanContext.RunningApp] = [],
+        now: Date = Date(),
+        largeFileMinBytes: Int64 = 1_048_576
+    ) -> ScanContext {
+        ScanContext(
+            home: home,
+            temp: temp,
+            now: { now },
+            runningApps: { running },
+            appRoots: [home.appendingPathComponent("Applications")],
+            isRegisteredApp: { _ in false },
+            tempMinAge: 3 * 24 * 3600,
+            largeFileMinBytes: largeFileMinBytes
+        )
+    }
+
+    /// A minimal app bundle that `Bundle(url:)` can read.
+    @discardableResult
+    func app(_ name: String, bundleID: String, in base: URL? = nil) throws -> URL {
+        let app = (base ?? home.appendingPathComponent("Applications")).appendingPathComponent("\(name).app")
+        let info: [String: Any] = ["CFBundleIdentifier": bundleID, "CFBundleName": name, "CFBundleExecutable": name]
+        let data = try PropertyListSerialization.data(fromPropertyList: info, format: .xml, options: 0)
+        try file("Contents/Info.plist", in: app, contents: data)
+        try file("Contents/MacOS/\(name)", in: app, bytes: 64)
+        return app
+    }
+
     /// Builds a URL from a raw path string, without any normalization by URL APIs.
     func raw(_ path: String) -> URL { URL(fileURLWithPath: path) }
 }

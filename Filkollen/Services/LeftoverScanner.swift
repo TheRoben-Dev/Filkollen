@@ -5,8 +5,8 @@ import AppKit
 /// Only entries that look like reverse-DNS bundle IDs are considered, which keeps
 /// false positives low: plain-named folders like "Spotify" are left alone in v1.
 struct LeftoverScanner {
-    private let fm = FileManager.default
-    private let home = FileManager.default.homeDirectoryForCurrentUser
+    var context: ScanContext = .live
+    private var fm: FileManager { context.fileManager }
 
     private let locations: [(path: String, label: String)] = [
         ("Library/Application Support", "Application Support"),
@@ -33,12 +33,14 @@ struct LeftoverScanner {
         var items: [JunkItem] = []
 
         for location in locations {
-            let dir = home.appendingPathComponent(location.path)
+            if Task.isCancelled { return [] }
+            let dir = context.home.appendingPathComponent(location.path)
             guard let entries = try? fm.contentsOfDirectory(
                 at: dir, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]
             ) else { continue }
 
             for url in entries {
+                if Task.isCancelled { return [] }
                 throttle.report(url.abbreviatedPath)
                 guard let bundleID = Self.bundleID(from: url.lastPathComponent),
                       !isInstalled(bundleID, installed: installed),
@@ -96,18 +98,12 @@ struct LeftoverScanner {
         if installed.contains(where: { id.hasPrefix($0 + ".") || $0.hasPrefix(id + ".") }) { return true }
         // Same vendor + product root, e.g. com.microsoft.teams2 vs com.microsoft.teams
         // is intentionally *not* matched; LaunchServices is the final word:
-        return NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) != nil
+        return context.isRegisteredApp(bundleID)
     }
 
     private func installedBundleIDs() -> Set<String> {
         var ids = Set<String>()
-        let roots = [
-            URL(fileURLWithPath: "/Applications"),
-            URL(fileURLWithPath: "/System/Applications"),
-            URL(fileURLWithPath: "/Library/Application Support"), // helper apps live here sometimes
-            home.appendingPathComponent("Applications"),
-        ]
-        for root in roots {
+        for root in context.appRoots {
             guard let enumerator = fm.enumerator(
                 at: root, includingPropertiesForKeys: nil,
                 options: [.skipsHiddenFiles, .skipsPackageDescendants]
@@ -118,8 +114,8 @@ struct LeftoverScanner {
                 if let id = Bundle(url: url)?.bundleIdentifier { ids.insert(id.lowercased()) }
             }
         }
-        for app in NSWorkspace.shared.runningApplications {
-            if let id = app.bundleIdentifier { ids.insert(id.lowercased()) }
+        for app in context.runningApps() {
+            ids.insert(app.bundleID.lowercased())
         }
         return ids
     }

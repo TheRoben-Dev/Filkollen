@@ -7,8 +7,9 @@ import Foundation
 /// The Photos library package is skipped on purpose: deleting files inside it
 /// corrupts the library. Photos has its own duplicate detection for that.
 struct DuplicatePhotoScanner {
-    private let fm = FileManager.default
-    private let home = FileManager.default.homeDirectoryForCurrentUser
+    var context: ScanContext = .live
+    private var fm: FileManager { context.fileManager }
+    private var home: URL { context.home }
 
     static let imageExtensions: Set<String> = [
         "jpg", "jpeg", "png", "heic", "heif", "gif", "tif", "tiff", "bmp", "webp",
@@ -32,6 +33,9 @@ struct DuplicatePhotoScanner {
                 errorHandler: { _, _ in true }
             ) else { continue }
             for case let url as URL in enumerator {
+                if Task.isCancelled { return [] }
+                // Not always registered as a package (no Photos app, external drive), so skip by name too.
+                if url.pathExtension.lowercased() == "photoslibrary" { enumerator.skipDescendants(); continue }
                 guard Self.imageExtensions.contains(url.pathExtension.lowercased()),
                       let v = try? url.resourceValues(forKeys: Set(keys)),
                       v.isRegularFile == true, let size = v.fileSize, size > 0 else { continue }
@@ -43,6 +47,7 @@ struct DuplicatePhotoScanner {
         // 2. Narrow down with a cheap hash of the first 64 KB, then confirm with a full hash.
         var items: [JunkItem] = []
         for (size, urls) in bySize where urls.count > 1 {
+            if Task.isCancelled { return [] }
             let byHead = Dictionary(grouping: urls) { Self.hash($0, limit: 65_536) ?? UUID().uuidString }
             for (_, headGroup) in byHead where headGroup.count > 1 {
                 let byFull = Dictionary(grouping: headGroup) { url -> String in

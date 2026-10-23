@@ -51,6 +51,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.theroben.FilkollenTests
+        # XCTest itself is built for macOS 14; tests still exercise the macOS 13 app.
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
         GENERATE_INFOPLIST_FILE: YES
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Filkollen.app/Contents/MacOS/Filkollen"
         BUNDLE_LOADER: "$(TEST_HOST)"

@@ -3,13 +3,13 @@ import Foundation
 /// Big files in your home folder that might not be worth keeping. Never
 /// pre-selected: these are your files, not junk.
 struct LargeFileScanner {
-    private let fm = FileManager.default
-    private let home = FileManager.default.homeDirectoryForCurrentUser
+    var context: ScanContext = .live
+    private var fm: FileManager { context.fileManager }
+    private var home: URL { context.home }
 
     func scan(progress: @escaping @Sendable (String) -> Void) -> [JunkItem] {
         let throttle = ProgressThrottle(progress)
-        let minMB = max(50, Pref.defaults.integer(forKey: Pref.largeFileMB))
-        let minSize = Int64(minMB) * 1_048_576
+        let minSize = context.largeFileMinBytes
         let keys: [URLResourceKey] = [.isRegularFileKey, .totalFileAllocatedSizeKey, .contentAccessDateKey, .contentModificationDateKey]
         let keySet = Set(keys)
         let skipTopLevel: Set<String> = ["Library", ".Trash"]
@@ -22,6 +22,7 @@ struct LargeFileScanner {
         ) else { return [] }
 
         for case let url as URL in enumerator {
+            if Task.isCancelled { return [] }
             if enumerator.level == 1, skipTopLevel.contains(url.lastPathComponent) {
                 enumerator.skipDescendants(); continue
             }
