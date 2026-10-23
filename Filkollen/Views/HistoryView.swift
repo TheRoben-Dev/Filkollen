@@ -1,3 +1,4 @@
+import Charts
 import SwiftUI
 
 /// Every cleanup Filkollen did, with Put Back for anything still in the Trash.
@@ -24,6 +25,7 @@ struct HistoryView: View {
             } else {
                 ScrollView {
                     LazyVStack(spacing: 10) {
+                        if months.count > 1 { chart }
                         ForEach(records) { record in card(record) }
                     }
                     .padding(.horizontal, 28).padding(.bottom, 16)
@@ -66,6 +68,37 @@ struct HistoryView: View {
                     .help("Frees the space now. Only deletes what Filkollen put in the Trash.")
             }
         }
+    }
+
+    /// Bytes moved to the Trash per month, last 12 months.
+    private var months: [(month: Date, bytes: Int64)] {
+        let calendar = Calendar.current
+        let cutoff = calendar.date(byAdding: .month, value: -11, to: calendar.startOfMonth(Date())) ?? .distantPast
+        let grouped = Dictionary(grouping: records.filter { $0.date >= cutoff }) { calendar.startOfMonth($0.date) }
+        return grouped.map { ($0.key, $0.value.reduce(0) { $0 + $1.bytes }) }.sorted { $0.month < $1.month }
+    }
+
+    private var chart: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Moved to the Trash per month").font(.headline)
+            Chart(months, id: \.month) { entry in
+                BarMark(x: .value("Month", entry.month, unit: .month), y: .value("Bytes", Double(entry.bytes)))
+                    .foregroundStyle(Theme.gradient(.teal, .indigo))
+                    .accessibilityLabel(entry.month.formatted(.dateTime.month(.wide).year()))
+                    .accessibilityValue(entry.bytes.formattedBytes)
+            }
+            .chartYAxis {
+                AxisMarks { value in
+                    AxisGridLine().foregroundStyle(.white.opacity(0.1))
+                    AxisValueLabel { if let v = value.as(Double.self) { Text(Int64(v).formattedBytes) } }
+                }
+            }
+            .chartXAxis {
+                AxisMarks(values: .stride(by: .month)) { _ in AxisValueLabel(format: .dateTime.month(.abbreviated)) }
+            }
+            .frame(height: 140)
+        }
+        .glassCard(padding: 14)
     }
 
     private func card(_ record: CleanupHistory.Record) -> some View {
@@ -121,5 +154,11 @@ struct HistoryView: View {
     private func reload() {
         records = model.history.records()
         inTrash = model.history.itemsInTrash(home: FileManager.default.homeDirectoryForCurrentUser)
+    }
+}
+
+private extension Calendar {
+    func startOfMonth(_ date: Date) -> Date {
+        self.date(from: dateComponents([.year, .month], from: date)) ?? date
     }
 }
