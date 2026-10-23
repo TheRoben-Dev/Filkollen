@@ -114,9 +114,9 @@ final class AppModel: ObservableObject {
                 if Task.isCancelled { break }
                 scanningCategory = category
                 scanStatus = category.scanningMessage
-                let items = await Self.runScanner(for: category) { [weak self] path in
+                let items = await Self.runScanner(for: category) { path in
                     Task { @MainActor in
-                        guard let self, self.scanGeneration == generation else { return }
+                        guard self.scanGeneration == generation else { return }
                         self.scanStatus = path
                     }
                 }

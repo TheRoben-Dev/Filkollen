@@ -21,17 +21,21 @@ struct LargeFileScanner {
             errorHandler: { _, _ in true }
         ) else { return [] }
 
+        // The enumerator may hand back /private/var/... for /var/..., so the top-level
+        // folder comes from the walk itself rather than from comparing path components.
+        var currentTop = "Home"
         for case let url as URL in enumerator {
             if Task.isCancelled { return [] }
-            if enumerator.level == 1, skipTopLevel.contains(url.lastPathComponent) {
-                enumerator.skipDescendants(); continue
+            if enumerator.level == 1 {
+                if skipTopLevel.contains(url.lastPathComponent) { enumerator.skipDescendants(); continue }
+                currentTop = url.lastPathComponent
             }
             throttle.report(url.abbreviatedPath)
             guard let v = try? url.resourceValues(forKeys: keySet), v.isRegularFile == true,
                   let size = v.totalFileAllocatedSize.map(Int64.init), size >= minSize else { continue }
 
             let lastUsed = v.contentAccessDate ?? v.contentModificationDate
-            let top = url.pathComponents.dropFirst(home.pathComponents.count).first ?? "Home"
+            let top = enumerator.level == 1 ? "Home" : currentTop
             items.append(JunkItem(
                 url: url,
                 size: size,
