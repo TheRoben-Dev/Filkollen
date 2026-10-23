@@ -11,34 +11,32 @@ struct StartupItemsView: View {
     var body: some View {
         VStack(spacing: 0) {
             header
-                .padding(.horizontal, 28).padding(.top, 28).padding(.bottom, 18)
+                .padding(DS.Inset.page)
 
             if let errorMessage {
-                Text(errorMessage)
-                    .font(.callout)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .glassCard(padding: 12)
-                    .padding(.horizontal, 28).padding(.bottom, 12)
+                DSBanner(.error, title: errorMessage)
+                    .padding(.horizontal, DS.Space.xxl).padding(.bottom, DS.Space.md)
             }
 
             if loading {
-                Spacer()
-                ProgressView()
-                Spacer()
+                VStack(spacing: DS.Space.sm) {
+                    ForEach(0..<6, id: \.self) { _ in DSPlaceholderRow() }
+                }
+                .padding(.horizontal, DS.Space.xxl)
+                Spacer(minLength: 0)
             } else {
                 ScrollView {
-                    VStack(spacing: 14) {
+                    VStack(spacing: DS.Space.md) {
                         loginItemsCard
                         ForEach(scopes, id: \.self) { scope in
                             let list = items.filter { $0.scope == scope }
                             if !list.isEmpty { section(scope, list) }
                         }
                     }
-                    .padding(.horizontal, 28).padding(.bottom, 28)
+                    .padding(.horizontal, DS.Space.xxl).padding(.bottom, DS.Space.xxl)
                 }
             }
         }
-        .foregroundStyle(.white)
         .task { await reload() }
         .confirmationDialog(
             "Remove \(pendingRemoval?.displayName ?? "")?",
@@ -52,61 +50,42 @@ struct StartupItemsView: View {
     }
 
     private var header: some View {
-        HStack(spacing: 16) {
-            GradientIcon(symbol: AppModel.SystemPage.startupItems.symbol, gradient: Theme.gradient(.orange, .red), size: 56)
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Startup Items").font(.system(size: 26, weight: .bold, design: .rounded))
-                Text(subtitle).foregroundStyle(.white.opacity(0.65))
-            }
-            Spacer()
-            Button { Task { await reload() } } label: { Label("Refresh", systemImage: "arrow.clockwise") }
-                .buttonStyle(GhostButtonStyle())
+        DSPageHeader(title: String(localized: "Startup Items"), subtitle: subtitle,
+                     tile: DSTile(symbol: AppModel.SystemPage.startupItems.symbol, tint: DS.Color.brand, size: .large)) {
+            Button { Task { await reload() } } label: { Label("Refresh", systemImage: DS.Icon.refresh) }
+                .buttonStyle(.dsSecondary)
         }
     }
 
     private var subtitle: String {
         let broken = items.filter(\.isBroken).count
         let review = items.filter(\.needsReview).count
-        var parts = ["\(items.count) launch agents and daemons"]
-        if broken > 0 { parts.append("\(broken) pointing to missing apps") }
-        if review > 0 { parts.append("\(review) worth a closer look") }
+        var parts = [String(localized: "\(items.count) launch agents and daemons")]
+        if broken > 0 { parts.append(String(localized: "\(broken) pointing to missing apps")) }
+        if review > 0 { parts.append(String(localized: "\(review) worth a closer look")) }
         return parts.joined(separator: ", ")
     }
 
     private var loginItemsCard: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "person.crop.circle.badge.checkmark").font(.title2).foregroundStyle(.cyan)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Login Items").font(.headline)
-                Text("Apps that open when you log in are managed in System Settings.")
-                    .font(.caption).foregroundStyle(.white.opacity(0.65))
-            }
-            Spacer()
+        DSBanner(kind: .info, title: String(localized: "Login Items"),
+                 message: String(localized: "Apps that open when you log in are managed in System Settings.")) {
             Button("Open Login Items") { LoginItem.openSystemSettings() }
-                .buttonStyle(GhostButtonStyle())
+                .buttonStyle(.dsSecondary)
         }
-        .glassCard(padding: 14)
     }
 
     private func section(_ scope: StartupItem.Scope, _ list: [StartupItem]) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text(scope.rawValue).font(.headline)
-                Text("\(list.count)").font(.caption.bold())
-                    .padding(.horizontal, 6).padding(.vertical, 1)
-                    .background(.white.opacity(0.15), in: Capsule())
-                Spacer()
-                if !scope.removable {
-                    Text("Needs an administrator to change")
-                        .font(.caption).foregroundStyle(.white.opacity(0.5))
-                }
+        VStack(alignment: .leading, spacing: DS.Space.md) {
+            DSSectionHeader(title: String(localized: String.LocalizationValue(scope.rawValue)),
+                            subtitle: scope.removable ? nil : String(localized: "Needs an administrator to change")) {
+                Text(list.count.formatted()).font(DS.Font.numericCaption).foregroundStyle(DS.Color.textSecondary)
             }
             ForEach(list) { item in
                 StartupRow(item: item) { pendingRemoval = item }
-                if item.id != list.last?.id { Divider().overlay(.white.opacity(0.08)) }
+                if item.id != list.last?.id { Divider() }
             }
         }
-        .glassCard()
+        .dsCard()
     }
 
     private func reload() async {
@@ -122,7 +101,7 @@ struct StartupItemsView: View {
                 errorMessage = nil
                 items.removeAll { $0.id == item.id }
             } catch {
-                errorMessage = "Couldn't remove \(item.displayName): \(error.localizedDescription)"
+                errorMessage = String(localized: "Couldn't remove \(item.displayName): \(error.localizedDescription)")
             }
         }
     }
@@ -133,54 +112,47 @@ private struct StartupRow: View {
     let onRemove: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: item.isBroken ? "exclamationmark.triangle.fill" : "power.circle.fill")
-                .font(.title3)
-                .foregroundStyle(item.isBroken ? Color.orange : Color.white.opacity(0.7))
+        HStack(spacing: DS.Space.md) {
+            Image(systemName: item.isBroken ? DS.Icon.warning : "power.circle.fill")
+                .font(DS.Font.sectionTitle)
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(item.isBroken ? DS.Color.warning : DS.Color.textSecondary)
                 .frame(width: 26)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(item.displayName).font(.body.weight(.medium)).lineLimit(1)
-                    if item.isBroken { Badge("App missing", .orange) }
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: DS.Space.xxs) {
+                HStack(spacing: DS.Space.sm) {
+                    Text(item.displayName).font(DS.Font.bodyEmphasized).foregroundStyle(DS.Color.textPrimary).lineLimit(1)
+                    if item.isBroken { badge("App missing", "questionmark.app.fill", DS.Color.warning) }
                     if let trust = item.trust {
-                        Badge(trust.level.label, trust.level.isConcerning ? .red : .green)
+                        badge(trust.level.label, trust.level.isConcerning ? "exclamationmark.triangle.fill" : "checkmark.seal.fill",
+                              trust.level.isConcerning ? DS.Color.danger : DS.Color.success)
                             .help(trust.teamID.map { "Team ID \($0)" + (trust.signer.map { " · \($0)" } ?? "") } ?? "No signing identity")
                     }
-                    if item.isScript { Badge("Script", .purple) }
-                    if item.oddLocation { Badge("Unusual location", .red) }
-                    if item.disabled { Badge("Disabled", .gray) }
-                    if item.runAtLoad && !item.disabled { Badge("Runs at login", .blue) }
+                    if item.isScript { badge("Script", "terminal.fill", DS.Color.info) }
+                    if item.oddLocation { badge("Unusual location", "mappin.slash", DS.Color.danger) }
+                    if item.disabled { badge("Disabled", "pause.circle.fill", DS.Color.textSecondary) }
+                    if item.runAtLoad && !item.disabled { badge("Runs at login", "power", DS.Color.info) }
                 }
-                Text(item.label).font(.caption.monospaced()).foregroundStyle(.white.opacity(0.5))
-                    .lineLimit(1).truncationMode(.middle)
+                Text(item.label).dsPath()
+                    .textSelection(.enabled)
                 if let target = item.target {
-                    Text(target).font(.caption2.monospaced()).foregroundStyle(.white.opacity(0.4))
-                        .lineLimit(1).truncationMode(.middle).textSelection(.enabled)
+                    Text(target).dsPath()
+                        .foregroundStyle(DS.Color.textTertiary)
+                        .textSelection(.enabled)
                 }
             }
             Spacer()
-            Button { NSWorkspace.shared.activateFileViewerSelecting([item.plist]) } label: {
-                Image(systemName: "magnifyingglass")
+            DSIconButton(String(localized: "Show \(item.displayName) in Finder"), symbol: DS.Icon.revealInFinder) {
+                NSWorkspace.shared.activateFileViewerSelecting([item.plist])
             }
-            .buttonStyle(.plain)
-            .help("Show in Finder")
-            .accessibilityLabel("Show \(item.displayName) in Finder")
             if item.scope.removable {
-                Button("Remove", action: onRemove).buttonStyle(GhostButtonStyle())
+                Button("Remove…", action: onRemove).buttonStyle(.dsSecondary)
             }
         }
+        .accessibilityElement(children: .contain)
     }
-}
 
-private struct Badge: View {
-    let text: String
-    let color: Color
-    init(_ text: String, _ color: Color) { self.text = text; self.color = color }
-
-    var body: some View {
-        Text(text)
-            .font(.caption2.weight(.semibold))
-            .padding(.horizontal, 6).padding(.vertical, 2)
-            .background(color.opacity(0.3), in: Capsule())
+    private func badge(_ title: String, _ symbol: String, _ tint: Color) -> DSBadge {
+        DSBadge(.custom(String(localized: String.LocalizationValue(title)), symbol: symbol, tint: tint))
     }
 }
