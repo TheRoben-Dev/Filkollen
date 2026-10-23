@@ -4,3 +4,5 @@ build/
 DerivedData/
 xcuserdata/
 *.xcuserstate
+Filkollen/Resources/Info.plist
+Filkollen/Resources/Filkollen.entitlements
