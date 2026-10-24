@@ -9,13 +9,13 @@ struct SystemOverviewView: View {
     @State private var trashMessage: String?
 
     private let tick = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
-    private let columns = [GridItem(.adaptive(minimum: 190), spacing: 14)]
+    private let columns = [GridItem(.adaptive(minimum: 220), spacing: DS.Space.lg)]
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: DS.Space.lg) {
                 header
-                LazyVGrid(columns: columns, spacing: 14) {
+                LazyVGrid(columns: columns, spacing: DS.Space.lg) {
                     RingCard(title: "Disk", symbol: "internaldrive.fill", fraction: snapshot.diskUsedFraction,
                              primary: "\(snapshot.diskFree.formattedBytes) free",
                              secondary: "of \(snapshot.diskTotal.formattedBytes)")
@@ -26,15 +26,16 @@ struct SystemOverviewView: View {
                              primary: String(format: "%.2f", snapshot.load),
                              secondary: "1-min average, \(snapshot.cpuCount) cores")
                 }
-                HStack(alignment: .top, spacing: 14) {
+                HStack(alignment: .top, spacing: DS.Space.lg) {
                     infoCard
                     trashCard
                 }
                 toolsCard
             }
-            .padding(28)
+            .padding(DS.Inset.page)
+            .frame(maxWidth: DS.Layout.contentMaxWidth)
+            .frame(maxWidth: .infinity)
         }
-        .foregroundStyle(.white)
         .onAppear { refresh(includeTrash: true) }
         .onReceive(tick) { _ in refresh(includeTrash: false) }
         .confirmationDialog("Empty the Trash permanently?", isPresented: $confirmEmpty) {
@@ -45,70 +46,68 @@ struct SystemOverviewView: View {
     }
 
     private var header: some View {
-        HStack(spacing: 16) {
-            GradientIcon(symbol: AppModel.SystemPage.overview.symbol, gradient: Theme.gradient(.teal, .indigo), size: 56)
-            VStack(alignment: .leading, spacing: 4) {
-                Text("System Overview").font(.system(size: 26, weight: .bold, design: .rounded))
-                Text("How your Mac is doing right now").foregroundStyle(.white.opacity(0.65))
-            }
-            Spacer()
-        }
+        DSPageHeader(title: String(localized: "System Overview"),
+                     subtitle: String(localized: "How your Mac is doing right now"),
+                     tile: DSTile(symbol: AppModel.SystemPage.overview.symbol, tint: DS.Color.brand, size: .large))
     }
 
     private var infoCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label("This Mac", systemImage: "laptopcomputer").font(.headline)
-            InfoRow("System", snapshot.osVersion)
-            InfoRow("Model", Self.modelIdentifier)
-            InfoRow("Uptime", snapshot.uptime.uptimeString)
-            InfoRow("Processor cores", "\(snapshot.cpuCount)")
-            InfoRow("Full Disk Access", model.hasFullDiskAccess ? "Granted" : "Not granted")
+        VStack(alignment: .leading, spacing: DS.Space.sm) {
+            Label("This Mac", systemImage: "laptopcomputer").font(DS.Font.headline).foregroundStyle(DS.Color.textPrimary)
+            InfoRow(String(localized: "System"), snapshot.osVersion)
+            InfoRow(String(localized: "Model"), Self.modelIdentifier)
+            InfoRow(String(localized: "Uptime"), snapshot.uptime.uptimeString)
+            InfoRow(String(localized: "Processor cores"), "\(snapshot.cpuCount)")
+            InfoRow(String(localized: "Full Disk Access"), model.hasFullDiskAccess ? String(localized: "Granted") : String(localized: "Not granted"))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .glassCard()
+        .dsCard()
     }
 
     private var trashCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label("Trash", systemImage: "trash.fill").font(.headline)
-            Text(trashSize.map(\.formattedBytes) ?? "Measuring…")
-                .font(.system(size: 30, weight: .bold, design: .rounded).monospacedDigit())
+        VStack(alignment: .leading, spacing: DS.Space.sm) {
+            Label("Trash", systemImage: "trash").font(DS.Font.headline).foregroundStyle(DS.Color.textPrimary)
+            if let trashSize {
+                DSByteCount(trashSize, font: DS.Font.numericLarge).foregroundStyle(DS.Color.textPrimary)
+            } else {
+                Text("Measuring…").font(DS.Font.numericLarge).foregroundStyle(DS.Color.textTertiary)
+            }
             if let trashMessage {
-                Text(trashMessage).font(.caption).foregroundStyle(.white.opacity(0.7))
+                Text(trashMessage).font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
             }
             Spacer(minLength: 0)
-            HStack {
+            HStack(spacing: DS.Space.sm) {
                 Button("Empty Trash…") { confirmEmpty = true }
-                    .buttonStyle(PillButtonStyle(fill: Theme.danger))
+                    .buttonStyle(.dsDestructive)
                     .disabled((trashSize ?? 0) == 0)
                 Button("Show") { NSWorkspace.shared.open(SystemInfo.trashURL) }
-                    .buttonStyle(GhostButtonStyle())
+                    .buttonStyle(.dsSecondary)
             }
         }
         .frame(maxWidth: .infinity, minHeight: 170, alignment: .leading)
-        .glassCard()
+        .dsCard()
     }
 
     private var toolsCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("Shortcuts", systemImage: "wrench.and.screwdriver.fill").font(.headline)
-            HStack(spacing: 10) {
-                tool("Activity Monitor", "waveform.path.ecg",
+        VStack(alignment: .leading, spacing: DS.Space.md) {
+            Label("Shortcuts", systemImage: "wrench.and.screwdriver").font(DS.Font.headline).foregroundStyle(DS.Color.textPrimary)
+            HStack(spacing: DS.Space.sm) {
+                tool(String(localized: "Activity Monitor"), "waveform.path.ecg",
                      URL(fileURLWithPath: "/System/Applications/Utilities/Activity Monitor.app"))
-                tool("Disk Utility", "externaldrive.fill",
+                tool(String(localized: "Disk Utility"), "externaldrive",
                      URL(fileURLWithPath: "/System/Applications/Utilities/Disk Utility.app"))
-                tool("Storage Settings", "chart.pie.fill",
+                tool(String(localized: "Storage Settings"), "chart.pie",
                      URL(string: "x-apple.systempreferences:com.apple.settings.Storage")!)
-                tool("Software Update", "arrow.down.circle.fill", MacOSUpdateChecker.settingsURL)
+                tool(String(localized: "Software Update"), "arrow.down.circle", MacOSUpdateChecker.settingsURL)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .glassCard()
+        .dsCard()
     }
 
     private func tool(_ title: String, _ symbol: String, _ url: URL) -> some View {
         Button { NSWorkspace.shared.open(url) } label: { Label(title, systemImage: symbol) }
-            .buttonStyle(GhostButtonStyle())
+            .buttonStyle(.dsSecondary)
     }
 
     private func refresh(includeTrash: Bool) {
@@ -123,8 +122,8 @@ struct SystemOverviewView: View {
         Task {
             let result = await Task.detached(priority: .userInitiated) { SystemInfo.emptyTrash() }.value
             trashMessage = result.failed == 0
-                ? "Freed \(result.freed.formattedBytes)."
-                : "Freed \(result.freed.formattedBytes). \(result.failed) item(s) couldn't be removed."
+                ? String(localized: "Freed \(result.freed.formattedBytes).")
+                : String(localized: "Freed \(result.freed.formattedBytes). \(result.failed) item(s) couldn't be removed.")
             refresh(includeTrash: true)
         }
     }
@@ -147,14 +146,16 @@ private struct InfoRow: View {
 
     var body: some View {
         HStack {
-            Text(title).foregroundStyle(.white.opacity(0.6))
+            Text(title).foregroundStyle(DS.Color.textSecondary)
             Spacer()
-            Text(value).monospacedDigit()
+            Text(value).foregroundStyle(DS.Color.textPrimary).monospacedDigit().textSelection(.enabled)
         }
-        .font(.callout)
+        .font(DS.Font.callout)
+        .accessibilityElement(children: .combine)
     }
 }
 
+/// A gauge card: brand while healthy, warning above 75 %, danger above 90 %.
 private struct RingCard: View {
     let title: String
     let symbol: String
@@ -163,29 +164,33 @@ private struct RingCard: View {
     let secondary: String
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: DS.Space.lg) {
             ZStack {
-                Circle().stroke(.white.opacity(0.12), lineWidth: 10)
+                Circle().stroke(DS.Color.surfaceSunken, lineWidth: 8)
                 Circle()
                     .trim(from: 0, to: min(1, max(0.01, fraction)))
-                    .stroke(gradient, style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                    .stroke(tint, style: StrokeStyle(lineWidth: 8, lineCap: .round))
                     .rotationEffect(.degrees(-90))
-                    .animation(.easeInOut(duration: 0.5), value: fraction)
+                    .dsAnimation(.smooth, value: fraction)
                 Text("\(Int((fraction * 100).rounded()))%")
-                    .font(.system(size: 15, weight: .bold, design: .rounded).monospacedDigit())
+                    .font(DS.Font.numericCallout.weight(.semibold))
+                    .foregroundStyle(DS.Color.textPrimary)
             }
-            .frame(width: 70, height: 70)
-            VStack(alignment: .leading, spacing: 3) {
-                Label(title, systemImage: symbol).font(.caption.weight(.semibold)).foregroundStyle(.white.opacity(0.7))
-                Text(primary).font(.headline.monospacedDigit())
-                Text(secondary).font(.caption).foregroundStyle(.white.opacity(0.55))
+            .frame(width: 64, height: 64)
+            .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: DS.Space.xxs) {
+                Label(title, systemImage: symbol).font(DS.Font.captionEmphasized).foregroundStyle(DS.Color.textSecondary)
+                Text(primary).font(DS.Font.headline.monospacedDigit()).foregroundStyle(DS.Color.textPrimary)
+                Text(secondary).font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
             }
             Spacer(minLength: 0)
         }
-        .glassCard()
+        .dsCard()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("\(title), \(Int((fraction * 100).rounded())) percent, \(primary), \(secondary)"))
     }
 
-    private var gradient: LinearGradient {
-        fraction > 0.9 ? Theme.danger : fraction > 0.75 ? Theme.gradient(.orange, .pink) : Theme.safe
+    private var tint: Color {
+        fraction > 0.9 ? DS.Color.danger : fraction > 0.75 ? DS.Color.warning : DS.Color.brand
     }
 }

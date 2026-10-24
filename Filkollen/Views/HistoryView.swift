@@ -11,28 +11,27 @@ struct HistoryView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            header.padding(.horizontal, 28).padding(.top, 28).padding(.bottom, 14)
+            header.padding(DS.Inset.page)
             if let message = model.putBackMessage {
-                Label(message, systemImage: "arrow.uturn.backward.circle")
-                    .font(.callout).frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 28).padding(.bottom, 10)
+                DSBanner(.success, title: message)
+                    .padding(.horizontal, DS.Space.xxl).padding(.bottom, DS.Space.md)
+                    .dsTransition(.dsRise)
             }
             if records.isEmpty {
-                Spacer()
-                Text("Nothing cleaned yet. Cleanups show up here so you can put things back.")
-                    .foregroundStyle(.white.opacity(0.65))
-                Spacer()
+                DSEmptyState(symbol: "clock.arrow.circlepath", tint: DS.Color.textTertiary,
+                             title: String(localized: "Nothing cleaned yet"),
+                             message: String(localized: "Cleanups show up here so you can put things back."))
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 10) {
-                        if months.count > 1 { chart }
+                    LazyVStack(spacing: DS.Space.sm) {
+                        if months.count > 1 { chart.padding(.bottom, DS.Space.sm) }
                         ForEach(records) { record in card(record) }
                     }
-                    .padding(.horizontal, 28).padding(.bottom, 16)
+                    .padding(.horizontal, DS.Space.xxl).padding(.bottom, DS.Space.lg)
                 }
             }
         }
-        .foregroundStyle(.white)
+        .dsAnimation(.smooth, value: model.putBackMessage)
         .confirmationDialog("Delete \(inTrash.count) items permanently?", isPresented: $confirmEmpty, titleVisibility: .visible) {
             Button("Delete from Trash", role: .destructive) {
                 let history = model.history
@@ -40,8 +39,8 @@ struct HistoryView: View {
                 Task {
                     let result = await Task.detached(priority: .userInitiated) { history.emptyFromTrash(home: home) }.value
                     model.putBackMessage = result.failed == 0
-                        ? "Deleted \(result.freed.formattedBytes) of Filkollen's items from the Trash."
-                        : "Deleted \(result.freed.formattedBytes); \(result.failed) items couldn't be deleted."
+                        ? String(localized: "Deleted \(result.freed.formattedBytes) of Filkollen's items from the Trash.")
+                        : String(localized: "Deleted \(result.freed.formattedBytes); \(result.failed) items couldn't be deleted.")
                 }
             }
         } message: {
@@ -53,18 +52,13 @@ struct HistoryView: View {
 
     private var header: some View {
         let totals = (records.count, records.reduce(0) { $0 + $1.bytes })
-        return HStack(spacing: 16) {
-            GradientIcon(symbol: "arrow.uturn.backward.circle.fill", gradient: Theme.gradient(.teal, .indigo), size: 56)
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Cleanup History").font(.system(size: 26, weight: .bold, design: .rounded))
-                Text(totals.0 == 0 ? "What Filkollen moved to the Trash"
-                     : "\(totals.0) cleanups, \(totals.1.formattedBytes) moved to the Trash in total")
-                    .foregroundStyle(.white.opacity(0.65))
-            }
-            Spacer()
+        return DSPageHeader(title: String(localized: "Cleanup History"),
+                            subtitle: totals.0 == 0 ? String(localized: "What Filkollen moved to the Trash")
+                                : String(localized: "\(totals.0) cleanups, \(totals.1.formattedBytes) moved to the Trash in total"),
+                            tile: DSTile(symbol: "clock.arrow.circlepath", tint: DS.Color.brand, size: .large)) {
             if !inTrash.isEmpty {
                 Button("Empty Filkollen's Items from Trash…") { confirmEmpty = true }
-                    .buttonStyle(GhostButtonStyle())
+                    .buttonStyle(.dsDestructive)
                     .help("Frees the space now. Only deletes what Filkollen put in the Trash.")
             }
         }
@@ -79,18 +73,19 @@ struct HistoryView: View {
     }
 
     private var chart: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Moved to the Trash per month").font(.headline)
+        VStack(alignment: .leading, spacing: DS.Space.md) {
+            DSSectionHeader(String(localized: "Moved to the Trash per month"))
             Chart(months, id: \.month) { entry in
                 BarMark(x: .value("Month", entry.month, unit: .month), y: .value("Bytes", Double(entry.bytes)))
-                    .foregroundStyle(Theme.gradient(.teal, .indigo))
+                    .foregroundStyle(DS.Color.brand)
+                    .cornerRadius(DS.Radius.badge)
                     .accessibilityLabel(entry.month.formatted(.dateTime.month(.wide).year()))
                     .accessibilityValue(entry.bytes.formattedBytes)
             }
             .chartYAxis {
                 AxisMarks { value in
-                    AxisGridLine().foregroundStyle(.white.opacity(0.1))
-                    AxisValueLabel { if let v = value.as(Double.self) { Text(Int64(v).formattedBytes) } }
+                    AxisGridLine().foregroundStyle(DS.Color.separator)
+                    AxisValueLabel { if let v = value.as(Double.self) { Text(Int64(v).formattedBytes).font(DS.Font.numericCaption) } }
                 }
             }
             .chartXAxis {
@@ -98,57 +93,63 @@ struct HistoryView: View {
             }
             .frame(height: 140)
         }
-        .glassCard(padding: 14)
+        .dsCard()
     }
 
     private func card(_ record: CleanupHistory.Record) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(record.source).font(.headline)
+        let isOpen = expanded.contains(record.id)
+        return VStack(alignment: .leading, spacing: DS.Space.md) {
+            HStack(spacing: DS.Space.md) {
+                VStack(alignment: .leading, spacing: DS.Space.xxs) {
+                    Text(record.source).font(DS.Font.headline).foregroundStyle(DS.Color.textPrimary)
                     Text("\(record.date.formatted(date: .abbreviated, time: .shortened)) · \(record.items.count) items · \(record.bytes.formattedBytes)")
-                        .font(.caption).foregroundStyle(.white.opacity(0.6))
+                        .font(DS.Font.numericCaption).foregroundStyle(DS.Color.textSecondary)
                 }
                 Spacer()
                 if record.restorable.isEmpty {
                     Text(record.items.allSatisfy(\.restored) ? "Put back" : "Done")
-                        .font(.caption).foregroundStyle(.white.opacity(0.5))
+                        .font(DS.Font.caption).foregroundStyle(DS.Color.textTertiary)
                 } else {
-                    Button("Put Back All") { model.putBack(record.id) }.buttonStyle(GhostButtonStyle())
+                    Button("Put Back All") { model.putBack(record.id) }.buttonStyle(.dsSecondary)
                 }
                 Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        if expanded.contains(record.id) { expanded.remove(record.id) } else { expanded.insert(record.id) }
+                    withMotion(.smooth) {
+                        if isOpen { expanded.remove(record.id) } else { expanded.insert(record.id) }
                     }
                 } label: {
-                    Image(systemName: "chevron.right").rotationEffect(.degrees(expanded.contains(record.id) ? 90 : 0))
+                    Image(systemName: "chevron.right")
+                        .font(DS.Font.captionEmphasized)
+                        .foregroundStyle(DS.Color.textSecondary)
+                        .rotationEffect(.degrees(isOpen ? 90 : 0))
+                        .frame(width: DS.Layout.minHitTarget, height: DS.Layout.minHitTarget)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(expanded.contains(record.id) ? "Hide items" : "Show items")
+                .accessibilityLabel(isOpen ? "Hide items" : "Show items")
             }
-            if expanded.contains(record.id) {
-                Divider().overlay(.white.opacity(0.1))
+            if isOpen {
+                Divider()
                 ForEach(record.items, id: \.original) { item in
-                    HStack {
-                        Text((item.original as NSString).abbreviatingWithTildeInPath)
-                            .font(.caption.monospaced()).lineLimit(1).truncationMode(.middle)
+                    HStack(spacing: DS.Space.md) {
+                        Text((item.original as NSString).abbreviatingWithTildeInPath).dsPath()
                         Spacer()
-                        Text(item.size.formattedBytes).font(.caption).foregroundStyle(.white.opacity(0.6))
+                        Text(item.size.formattedBytes).font(DS.Font.numericCaption).foregroundStyle(DS.Color.textSecondary)
                         if item.restored {
-                            Image(systemName: "checkmark.circle").foregroundStyle(.green).help("Put back")
+                            Image(systemName: "checkmark.circle.fill").foregroundStyle(DS.Color.success).help("Put back")
                                 .accessibilityLabel("Put back")
                         } else if item.emptied == true {
-                            Image(systemName: "trash.slash").foregroundStyle(.white.opacity(0.5)).help("Deleted from the Trash")
+                            Image(systemName: "trash.slash").foregroundStyle(DS.Color.textTertiary).help("Deleted from the Trash")
                                 .accessibilityLabel("Deleted from the Trash")
                         } else {
                             Button("Put Back") { model.putBack(record.id, only: [item.original]) }
-                                .buttonStyle(.plain).font(.caption).foregroundStyle(.cyan)
+                                .buttonStyle(.dsPlain).font(DS.Font.caption)
                         }
                     }
                 }
+                .dsTransition(.dsRise)
             }
         }
-        .glassCard(padding: 14)
+        .dsCard()
     }
 
     private func reload() {

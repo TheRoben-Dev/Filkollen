@@ -70,6 +70,9 @@ final class AppModel: ObservableObject {
     @Published private(set) var fullDiskAccessRevoked = false
 
     func refreshFullDiskAccess() {
+        #if DEBUG
+        if SnapshotRunner.isActive { return }
+        #endif
         let granted = FullDiskAccess.isGranted
         let hadAccess = UserDefaults.standard.bool(forKey: "hadFullDiskAccess")
         if granted != hasFullDiskAccess || (hadAccess && !granted) != fullDiskAccessRevoked {
@@ -336,6 +339,24 @@ struct CleanupSummary: Equatable {
         failures = outcome.failures
     }
 }
+
+#if DEBUG
+extension AppModel {
+    /// Fixture state for SnapshotRunner. A nil value in `results` removes that category.
+    func debugApply(
+        results: [JunkCategory: CategoryResult?]? = nil, scanning: Set<JunkCategory>? = nil,
+        status: String? = nil, fullDiskAccess: Bool? = nil
+    ) {
+        for (category, result) in results ?? [:] { self.results[category] = result }
+        if let scanning { scanningCategories = scanning }
+        if let status { scanStatus = status }
+        if let fullDiskAccess {
+            hasFullDiskAccess = fullDiskAccess
+            fullDiskAccessRevoked = false
+        }
+    }
+}
+#endif
 
 struct CategoryResult {
     let category: JunkCategory

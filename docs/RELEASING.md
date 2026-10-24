@@ -2,6 +2,13 @@
 
 Filkollen ships outside the App Store: Developer ID signed, Hardened Runtime, notarized, as a DMG. Updates go through Sparkle 2, which stays switched off until you configure it.
 
+## Quick path: GitHub Actions (no Developer ID yet)
+
+1. `scripts/bump-version.sh 0.3.0`, write `docs/release-notes/0.3.0.md`, commit, and merge to main.
+2. On GitHub: **Actions › Release › Run workflow** on `main`.
+
+The workflow tests, builds a universal ad-hoc signed app, packs `Filkollen-<version>.dmg` plus a `.sha256`, tags `v<version>` and publishes the release with the notes file as its body. It refuses a version that's already tagged. These builds aren't notarized, so users approve the first launch in Privacy & Security (the notes say how). Once you have a Developer ID, use `scripts/release.sh` below and upload its DMG instead.
+
 ## One-time setup
 
 1. **Certificate.** In Xcode › Settings › Accounts, create a *Developer ID Application* certificate for your team.

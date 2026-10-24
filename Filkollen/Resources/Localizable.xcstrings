@@ -1930,6 +1930,2336 @@
           }
         }
       }
+    },
+    "Threat found": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hot hittat"
+          }
+        }
+      }
+    },
+    "Rebuilt automatically": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Byggs upp igen automatiskt"
+          }
+        }
+      }
+    },
+    "Left behind": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kvarlämnat"
+          }
+        }
+      }
+    },
+    "Your own files": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dina egna filer"
+          }
+        }
+      }
+    },
+    "Apps recreate these when they need them, so removing them is safe. They may come back over time.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appar skapar dessa på nytt när de behöver dem, så de är säkra att ta bort. De kan komma tillbaka med tiden."
+          }
+        }
+      }
+    },
+    "Left over from apps, installs or devices that are gone or finished. They don't come back.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rester från appar, installationer eller enheter som är borta eller klara. De kommer inte tillbaka."
+          }
+        }
+      }
+    },
+    "These are your own files. Check them before you remove anything; Filkollen never picks a kept copy.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det här är dina egna filer. Kontrollera dem innan du tar bort något. Filkollen väljer aldrig en kopia som behålls."
+          }
+        }
+      }
+    },
+    "Checking signatures…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrollerar signaturer…"
+          }
+        }
+      }
+    },
+    "All apps look trustworthy": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alla appar ser pålitliga ut"
+          }
+        }
+      }
+    },
+    "Checked offline. \"Developer ID\" means signed by a registered developer with no notarization ticket attached; that's common and not a problem on its own. Unsigned or broken signatures deserve a closer look.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrollerat offline. ”Developer ID” betyder signerad av en registrerad utvecklare utan bifogad notariseringsbiljett. Det är vanligt och inget problem i sig. Osignerade eller trasiga signaturer förtjänar en närmare titt."
+          }
+        }
+      }
+    },
+    "%lld apps checked": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld appar kontrollerade"
+          }
+        }
+      }
+    },
+    "%lld apps checked, %lld unsigned or broken": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld appar kontrollerade, %lld osignerade eller trasiga"
+          }
+        }
+      }
+    },
+    "Every file in the app was verified": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varje fil i appen verifierades"
+          }
+        }
+      }
+    },
+    "Every file verified": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alla filer verifierade"
+          }
+        }
+      }
+    },
+    "Team %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team %@"
+          }
+        }
+      }
+    },
+    "Checks every file in the app against its signature. Slower for big apps.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrollerar varje fil i appen mot dess signatur. Långsammare för stora appar."
+          }
+        }
+      }
+    },
+    "Show %@ in Finder": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa %@ i Finder"
+          }
+        }
+      }
+    },
+    "%lld items": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld objekt"
+          }
+        }
+      }
+    },
+    "%lld selected": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld markerade"
+          }
+        }
+      }
+    },
+    "Review %@…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Granska %@…"
+          }
+        }
+      }
+    },
+    "Filkollen didn't find anything in %@ worth removing.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filkollen hittade inget i %@ som är värt att ta bort."
+          }
+        }
+      }
+    },
+    "Scan %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök igenom %@"
+          }
+        }
+      }
+    },
+    "Select all in %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markera allt i %@"
+          }
+        }
+      }
+    },
+    "Hide items in %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dölj objekt i %@"
+          }
+        }
+      }
+    },
+    "Show items in %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa objekt i %@"
+          }
+        }
+      }
+    },
+    "%lld identical copies": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld identiska kopior"
+          }
+        }
+      }
+    },
+    "%lld items · %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld objekt · %@"
+          }
+        }
+      }
+    },
+    "Keep": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Behåll"
+          }
+        }
+      }
+    },
+    "Low confidence": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Osäker"
+          }
+        }
+      }
+    },
+    "In use": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Används"
+          }
+        }
+      }
+    },
+    "Quarantined": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I karantän"
+          }
+        }
+      }
+    },
+    "Unsigned": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Osignerad"
+          }
+        }
+      }
+    },
+    "Missing": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saknas"
+          }
+        }
+      }
+    },
+    "Notarized": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notariserad"
+          }
+        }
+      }
+    },
+    "This copy is kept. Filkollen never selects it.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den här kopian behålls. Filkollen markerar den aldrig."
+          }
+        }
+      }
+    },
+    "No removed app was confirmed for this folder. Check it before cleaning.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingen borttagen app kunde bekräftas för den här mappen. Kontrollera den innan du rensar."
+          }
+        }
+      }
+    },
+    "Probably in use by %@. Quit it before cleaning.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Används troligen av %@. Avsluta den innan du rensar."
+          }
+        }
+      }
+    },
+    "Probably in use by a running app.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Används troligen av en app som körs."
+          }
+        }
+      }
+    },
+    "Locked in Filkollen's quarantine so it can't run.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Låst i Filkollens karantän så att den inte kan köras."
+          }
+        }
+      }
+    },
+    "Not signed by an identified developer.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inte signerad av en identifierad utvecklare."
+          }
+        }
+      }
+    },
+    "The stored copy is no longer in the quarantine folder.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den sparade kopian finns inte längre i karantänmappen."
+          }
+        }
+      }
+    },
+    "Checked by Apple for known malware.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrollerad av Apple mot känd skadlig kod."
+          }
+        }
+      }
+    },
+    "In use by %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Används av %@"
+          }
+        }
+      }
+    },
+    "%@: %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: %@"
+          }
+        }
+      }
+    },
+    "Note": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obs"
+          }
+        }
+      }
+    },
+    "Warning": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varning"
+          }
+        }
+      }
+    },
+    "Error": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fel"
+          }
+        }
+      }
+    },
+    "Dismiss": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stäng"
+          }
+        }
+      }
+    },
+    "Scanning, %lld of %lld done": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Söker igenom, %lld av %lld klara"
+          }
+        }
+      }
+    },
+    "Scan complete": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genomsökningen är klar"
+          }
+        }
+      }
+    },
+    "Progress": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Förlopp"
+          }
+        }
+      }
+    },
+    "In progress": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pågår"
+          }
+        }
+      }
+    },
+    "Clean %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rensa %@"
+          }
+        }
+      }
+    },
+    "Quick Look %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snabbtitt på %@"
+          }
+        }
+      }
+    },
+    "%@, %@, %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, %@, %@"
+          }
+        }
+      }
+    },
+    "Shows what was found": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visar vad som hittades"
+          }
+        }
+      }
+    },
+    "Ready": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klar"
+          }
+        }
+      }
+    },
+    "%lld need a look": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld behöver granskas"
+          }
+        }
+      }
+    },
+    "Nothing to clean": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inget att rensa"
+          }
+        }
+      }
+    },
+    "Measuring %@…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mäter %@…"
+          }
+        }
+      }
+    },
+    "Nothing to show": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inget att visa"
+          }
+        }
+      }
+    },
+    " · click to open": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " · klicka för att öppna"
+          }
+        }
+      }
+    },
+    "%@ · %@ in %lld items": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@ i %lld objekt"
+          }
+        }
+      }
+    },
+    "Path": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sökväg"
+          }
+        }
+      }
+    },
+    "Nothing cleaned yet": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inget rensat än"
+          }
+        }
+      }
+    },
+    "Cleanups show up here so you can put things back.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rensningar visas här så att du kan lägga tillbaka saker."
+          }
+        }
+      }
+    },
+    "Delete %lld items permanently?": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radera %lld objekt permanent?"
+          }
+        }
+      }
+    },
+    "Deleted %@ of Filkollen's items from the Trash.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raderade %@ av Filkollens objekt från papperskorgen."
+          }
+        }
+      }
+    },
+    "Deleted %@; %lld items couldn't be deleted.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raderade %@. %lld objekt kunde inte raderas."
+          }
+        }
+      }
+    },
+    "Only items Filkollen moved to the Trash (%@) are deleted. Everything else in your Trash stays. This can't be undone.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bara objekt som Filkollen flyttade till papperskorgen (%@) raderas. Allt annat i papperskorgen ligger kvar. Det går inte att ångra."
+          }
+        }
+      }
+    },
+    "What Filkollen moved to the Trash": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det Filkollen har flyttat till papperskorgen"
+          }
+        }
+      }
+    },
+    "%lld cleanups, %@ moved to the Trash in total": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld rensningar, totalt %@ flyttat till papperskorgen"
+          }
+        }
+      }
+    },
+    "Frees the space now. Only deletes what Filkollen put in the Trash.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frigör utrymmet nu. Raderar bara det Filkollen lade i papperskorgen."
+          }
+        }
+      }
+    },
+    "%@ · %lld items · %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %lld objekt · %@"
+          }
+        }
+      }
+    },
+    "1 threat needs attention": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 hot behöver åtgärdas"
+          }
+        }
+      }
+    },
+    "%lld threats need attention": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld hot behöver åtgärdas"
+          }
+        }
+      }
+    },
+    "Scanning for junk…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letar efter skräp…"
+          }
+        }
+      }
+    },
+    "Checking files for malware…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrollerar filer efter skadlig kod…"
+          }
+        }
+      }
+    },
+    "%@ of junk ready to clean": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ skräp redo att rensas"
+          }
+        }
+      }
+    },
+    "Your Mac looks good": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din Mac ser bra ut"
+          }
+        }
+      }
+    },
+    "Junk": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skräp"
+          }
+        }
+      }
+    },
+    "Not scanned": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inte genomsökt"
+          }
+        }
+      }
+    },
+    "Updating": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uppdaterar"
+          }
+        }
+      }
+    },
+    "%lld found": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld hittade"
+          }
+        }
+      }
+    },
+    "No database": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingen databas"
+          }
+        }
+      }
+    },
+    "DB outdated": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Databasen är gammal"
+          }
+        }
+      }
+    },
+    "Protected": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skyddad"
+          }
+        }
+      }
+    },
+    "Checking": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrollerar"
+          }
+        }
+      }
+    },
+    "Not checked": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inte kontrollerat"
+          }
+        }
+      }
+    },
+    "Up to date": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uppdaterad"
+          }
+        }
+      }
+    },
+    "%lld available": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld tillgängliga"
+          }
+        }
+      }
+    },
+    " (empty)": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " (tom)"
+          }
+        }
+      }
+    },
+    "Click again to delete permanently%@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klicka igen för att radera permanent%@"
+          }
+        }
+      }
+    },
+    "Empty Trash%@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Töm papperskorgen%@"
+          }
+        }
+      }
+    },
+    "Freed %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frigjorde %@"
+          }
+        }
+      }
+    },
+    "Freed %@, %lld item(s) couldn't be removed": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frigjorde %@, %lld objekt kunde inte tas bort"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inställningar"
+          }
+        }
+      }
+    },
+    "Quit Filkollen": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avsluta Filkollen"
+          }
+        }
+      }
+    },
+    "Full Disk Access granted": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full skivåtkomst beviljad"
+          }
+        }
+      }
+    },
+    "Step %lld": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steg %lld"
+          }
+        }
+      }
+    },
+    "Section": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avsnitt"
+          }
+        }
+      }
+    },
+    "Updating threat database": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uppdaterar hotdatabasen"
+          }
+        }
+      }
+    },
+    "Scanning for malware": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Söker efter skadlig kod"
+          }
+        }
+      }
+    },
+    "%lld files checked": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld filer kontrollerade"
+          }
+        }
+      }
+    },
+    "%@ known threats · updated %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kända hot · uppdaterad %@"
+          }
+        }
+      }
+    },
+    "never": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "aldrig"
+          }
+        }
+      }
+    },
+    "Not downloaded yet. Needs a free abuse.ch Auth-Key.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inte hämtad än. Kräver en gratis Auth-Key från abuse.ch."
+          }
+        }
+      }
+    },
+    "Update": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uppdatera"
+          }
+        }
+      }
+    },
+    "Paste your abuse.ch Auth-Key": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klistra in din Auth-Key från abuse.ch"
+          }
+        }
+      }
+    },
+    "Get one": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skaffa en"
+          }
+        }
+      }
+    },
+    "ClamAV (optional)": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ClamAV (valfritt)"
+          }
+        }
+      }
+    },
+    "The threat database is more than a week old.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hotdatabasen är mer än en vecka gammal."
+          }
+        }
+      }
+    },
+    "Update it before scanning to catch recent malware.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uppdatera den innan du söker igenom för att hitta ny skadlig kod."
+          }
+        }
+      }
+    },
+    "Scan for Malware": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök efter skadlig kod"
+          }
+        }
+      }
+    },
+    "Install with: brew install clamav": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installera med: brew install clamav"
+          }
+        }
+      }
+    },
+    "Installed, but no signatures yet. Run freshclam in Terminal first.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installerat, men inga signaturer än. Kör freshclam i Terminal först."
+          }
+        }
+      }
+    },
+    "signatures from %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "signaturer från %@"
+          }
+        }
+      }
+    },
+    "Installed, %@. Run freshclam in Terminal to update them.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installerat, %@. Kör freshclam i Terminal för att uppdatera dem."
+          }
+        }
+      }
+    },
+    "Installed, %@. Deeper signature scan, slower": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installerat, %@. Djupare signaturgenomsökning, långsammare"
+          }
+        }
+      }
+    },
+    "Needs attention": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Behöver åtgärdas"
+          }
+        }
+      }
+    },
+    "1 threat found": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 hot hittat"
+          }
+        }
+      }
+    },
+    "%lld threats found": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld hot hittade"
+          }
+        }
+      }
+    },
+    "Saves what was quarantined, from where and its SHA-256, as JSON. The files themselves stay here.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sparar vad som sattes i karantän, varifrån och dess SHA-256, som JSON. Själva filerna ligger kvar här."
+          }
+        }
+      }
+    },
+    "Delete %lld Older Than 30 Days…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radera %lld äldre än 30 dagar…"
+          }
+        }
+      }
+    },
+    "%@ · %@ · from %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@ · från %@"
+          }
+        }
+      }
+    },
+    "Delete…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radera…"
+          }
+        }
+      }
+    },
+    "Deletes the quarantined copy permanently, after asking": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raderar kopian i karantän permanent, efter att ha frågat"
+          }
+        }
+      }
+    },
+    "View report": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa rapport"
+          }
+        }
+      }
+    },
+    "%lld items, %@, will be moved to the Trash. You can put anything back from there or from History.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld objekt, %@, flyttas till papperskorgen. Du kan lägga tillbaka allt därifrån eller från Historik."
+          }
+        }
+      }
+    },
+    "Move %lld Items to Trash": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flytta %lld objekt till papperskorgen"
+          }
+        }
+      }
+    },
+    "%lld threats": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld hot"
+          }
+        }
+      }
+    },
+    "%lld updates": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld uppdateringar"
+          }
+        }
+      }
+    },
+    "Opens Privacy & Security in System Settings": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öppnar Integritet och säkerhet i Systeminställningar"
+          }
+        }
+      }
+    },
+    "Appearance": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utseende"
+          }
+        }
+      }
+    },
+    "Use Filkollen's teal for buttons and controls": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Använd Filkollens blågröna färg för knappar och reglage"
+          }
+        }
+      }
+    },
+    "Off: Filkollen follows the accent colour you chose in System Settings › Appearance.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Av: Filkollen följer den accentfärg du valt i Systeminställningar › Utseende."
+          }
+        }
+      }
+    },
+    "abuse.ch Auth-Key": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auth-Key för abuse.ch"
+          }
+        }
+      }
+    },
+    "Get a free Auth-Key at auth.abuse.ch": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skaffa en gratis Auth-Key på auth.abuse.ch"
+          }
+        }
+      }
+    },
+    "Needs mas: brew install mas": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kräver mas: brew install mas"
+          }
+        }
+      }
+    },
+    "Smart Scan checks for system junk, app leftovers, duplicate photos and browser caches in one go. Nothing is removed until you review it.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smart genomsökning letar efter systemskräp, apprester, dubblettbilder och webbläsarcache på en gång. Inget tas bort innan du har granskat det."
+          }
+        }
+      }
+    },
+    "Scanning…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Söker igenom…"
+          }
+        }
+      }
+    },
+    "Now checking %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrollerar nu %@"
+          }
+        }
+      }
+    },
+    "found": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hittat"
+          }
+        }
+      }
+    },
+    "%@ selected to clean": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ markerat för rensning"
+          }
+        }
+      }
+    },
+    "Nothing selected yet": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inget markerat än"
+          }
+        }
+      }
+    },
+    "Moving files to the Trash": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flyttar filer till papperskorgen"
+          }
+        }
+      }
+    },
+    "Moving files to the Trash…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flyttar filer till papperskorgen…"
+          }
+        }
+      }
+    },
+    "Nice and clean!": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rent och snyggt!"
+          }
+        }
+      }
+    },
+    "Mostly clean": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nästan rent"
+          }
+        }
+      }
+    },
+    "Nothing was moved": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inget flyttades"
+          }
+        }
+      }
+    },
+    "%@ moved to the Trash. About %@ comes back once you empty it; the rest was shared with other files.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ flyttat till papperskorgen. Ungefär %@ frigörs när du tömmer den. Resten delades med andra filer."
+          }
+        }
+      }
+    },
+    "%@ moved to the Trash. The space comes back once you empty it.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ flyttat till papperskorgen. Utrymmet frigörs när du tömmer den."
+          }
+        }
+      }
+    },
+    "Puts everything from this cleanup back where it was": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lägger tillbaka allt från den här rensningen där det var"
+          }
+        }
+      }
+    },
+    "About %@ of that comes back once you empty the Trash; the rest is shared with other files (APFS clones or hard links).": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ungefär %@ av det frigörs när du tömmer papperskorgen. Resten delas med andra filer (APFS-kloner eller hårda länkar)."
+          }
+        }
+      }
+    },
+    "The space comes back once you empty the Trash.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utrymmet frigörs när du tömmer papperskorgen."
+          }
+        }
+      }
+    },
+    "1 item couldn't be moved": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 objekt kunde inte flyttas"
+          }
+        }
+      }
+    },
+    "%lld items couldn't be moved": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld objekt kunde inte flyttas"
+          }
+        }
+      }
+    },
+    "%lld launch agents and daemons": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld startagenter och daemoner"
+          }
+        }
+      }
+    },
+    "%lld pointing to missing apps": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld pekar på appar som saknas"
+          }
+        }
+      }
+    },
+    "%lld worth a closer look": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld värda en närmare titt"
+          }
+        }
+      }
+    },
+    "Couldn't remove %@: %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunde inte ta bort %@: %@"
+          }
+        }
+      }
+    },
+    "Remove…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta bort…"
+          }
+        }
+      }
+    },
+    "Empty the Trash permanently?": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Töm papperskorgen permanent?"
+          }
+        }
+      }
+    },
+    "%@ will be deleted. This can't be undone.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ raderas. Det går inte att ångra."
+          }
+        }
+      }
+    },
+    "System": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System"
+          }
+        }
+      }
+    },
+    "Model": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modell"
+          }
+        }
+      }
+    },
+    "Uptime": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drifttid"
+          }
+        }
+      }
+    },
+    "Processor cores": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Processorkärnor"
+          }
+        }
+      }
+    },
+    "Granted": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beviljad"
+          }
+        }
+      }
+    },
+    "Not granted": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inte beviljad"
+          }
+        }
+      }
+    },
+    "Measuring…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mäter…"
+          }
+        }
+      }
+    },
+    "Activity Monitor": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktivitetskontroll"
+          }
+        }
+      }
+    },
+    "Disk Utility": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skivverktyg"
+          }
+        }
+      }
+    },
+    "Storage Settings": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lagringsinställningar"
+          }
+        }
+      }
+    },
+    "Software Update": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Programuppdatering"
+          }
+        }
+      }
+    },
+    "Freed %@.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frigjorde %@."
+          }
+        }
+      }
+    },
+    "Freed %@. %lld item(s) couldn't be removed.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frigjorde %@. %lld objekt kunde inte tas bort."
+          }
+        }
+      }
+    },
+    "%@, %lld percent, %@, %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, %lld procent, %@, %@"
+          }
+        }
+      }
+    },
+    "When Time Machine is on, macOS keeps hourly snapshots on this Mac so you can restore files even when your backup disk isn't connected. They can look like used space, but macOS deletes them automatically, oldest first, whenever space is needed, so you don't need to remove them to free space.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "När Time Machine är på sparar macOS ögonblicksbilder varje timme på den här datorn, så att du kan återskapa filer även när säkerhetskopieringsskivan inte är ansluten. De kan se ut som använt utrymme, men macOS raderar dem automatiskt, äldst först, när utrymme behövs. Du behöver alltså inte ta bort dem för att frigöra plats."
+          }
+        }
+      }
+    },
+    "Filkollen doesn't delete snapshots. To turn local snapshots off, turn off Time Machine or change its options in System Settings.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filkollen raderar inte ögonblicksbilder. Stäng av Time Machine eller ändra dess alternativ i Systeminställningar för att slå av lokala ögonblicksbilder."
+          }
+        }
+      }
+    },
+    "1 snapshot": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 ögonblicksbild"
+          }
+        }
+      }
+    },
+    "%lld snapshots": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ögonblicksbilder"
+          }
+        }
+      }
+    },
+    "Version %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@"
+          }
+        }
+      }
+    },
+    "Nothing found besides the app.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inget hittades utöver appen."
+          }
+        }
+      }
+    },
+    "No support files found in your home folder.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inga supportfiler hittades i din hemmapp."
+          }
+        }
+      }
+    },
+    "That app can't be uninstalled here": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den appen kan inte avinstalleras här"
+          }
+        }
+      }
+    },
+    "Choose an app on the left, or drop one here, to see everything it keeps on your Mac.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Välj en app till vänster, eller släpp en här, för att se allt den sparar på din Mac."
+          }
+        }
+      }
+    },
+    "Filkollen only removes files in your home folder. After the support files are gone, drag the app to the Trash in Finder; macOS asks for your password if it needs to.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filkollen tar bara bort filer i din hemmapp. När supportfilerna är borta drar du appen till papperskorgen i Finder. macOS frågar efter ditt lösenord om det behövs."
+          }
+        }
+      }
+    },
+    "Quit %@ first": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avsluta %@ först"
+          }
+        }
+      }
+    },
+    "the app": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "appen"
+          }
+        }
+      }
+    },
+    "Review & Uninstall %@…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Granska och avinstallera %@…"
+          }
+        }
+      }
+    },
+    "Moved %lld items to the Trash": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flyttade %lld objekt till papperskorgen"
+          }
+        }
+      }
+    },
+    "Last step: drag %@ to the Trash.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sista steget: dra %@ till papperskorgen."
+          }
+        }
+      }
+    },
+    "Uninstall %@?": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avinstallera %@?"
+          }
+        }
+      }
+    },
+    "%lld items, %@, will be moved to the Trash. You can put anything back from there.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld objekt, %@, flyttas till papperskorgen. Du kan lägga tillbaka allt därifrån."
+          }
+        }
+      }
+    },
+    "Apps, Homebrew, App Store and macOS in one place": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appar, Homebrew, App Store och macOS på ett ställe"
+          }
+        }
+      }
+    },
+    "Last checked %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Senast kontrollerat %@"
+          }
+        }
+      }
+    },
+    "Filkollen checks apps that update themselves (Sparkle), Homebrew formulae and casks, the Mac App Store and macOS itself.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filkollen kontrollerar appar som uppdaterar sig själva (Sparkle), Homebrew-formler och -casks, Mac App Store och själva macOS."
+          }
+        }
+      }
+    },
+    "to": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "till"
+          }
+        }
+      }
+    },
+    "· cask": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· cask"
+          }
+        }
+      }
+    },
+    "Release notes": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versionsinformation"
+          }
+        }
+      }
+    },
+    "Release notes for %@": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versionsinformation för %@"
+          }
+        }
+      }
+    },
+    "App Store": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App Store"
+          }
+        }
+      }
+    },
+    "Install…": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installera…"
+          }
+        }
+      }
+    },
+    "Uninstall": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avinstallera"
+          }
+        }
+      }
+    },
+    "Access granted, you're all set": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Åtkomst beviljad, allt är klart"
+          }
+        }
+      }
+    },
+    "Filkollen can now see the Library folders where junk hides.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filkollen kan nu se biblioteksmapparna där skräpet gömmer sig."
+          }
+        }
+      }
+    },
+    "Scans can't see most of your Library. Click to turn it on.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genomsökningar ser inte det mesta av ditt bibliotek. Klicka för att slå på det."
+          }
+        }
+      }
+    },
+    "App missing": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App saknas"
+          }
+        }
+      }
+    },
+    "Script": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skript"
+          }
+        }
+      }
+    },
+    "Unusual location": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ovanlig plats"
+          }
+        }
+      }
+    },
+    "Disabled": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avstängd"
+          }
+        }
+      }
+    },
+    "Runs at login": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Körs vid inloggning"
+          }
+        }
+      }
+    },
+    "Signature broken": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trasig signatur"
+          }
+        }
+      }
+    },
+    "Ad-hoc signed": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ad hoc-signerad"
+          }
+        }
+      }
+    },
+    "Developer ID": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Developer ID"
+          }
+        }
+      }
+    },
+    "Apple": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple"
+          }
+        }
+      }
+    },
+    "Hide items": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dölj objekt"
+          }
+        }
+      }
+    },
+    "Show items": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa objekt"
+          }
+        }
+      }
+    },
+    "Get Homebrew": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skaffa Homebrew"
+          }
+        }
+      }
+    },
+    "About mas": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Om mas"
+          }
+        }
+      }
+    },
+    "Your Launch Agents": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dina startagenter"
+          }
+        }
+      }
+    },
+    "System Launch Agents": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systemets startagenter"
+          }
+        }
+      }
+    },
+    "System Launch Daemons": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systemets startdaemoner"
+          }
+        }
+      }
+    },
+    "Scan": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök igenom"
+          }
+        }
+      }
+    },
+    "App Trust": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apptillit"
+          }
+        }
+      }
+    },
+    "Size": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Storlek"
+          }
+        }
+      }
+    },
+    "Name": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Namn"
+          }
+        }
+      }
+    },
+    "Location": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plats"
+          }
+        }
+      }
+    },
+    "Go": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gå"
+          }
+        }
+      }
+    },
+    "1 launch agent or daemon": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 startagent eller daemon"
+          }
+        }
+      }
+    },
+    "1 needs a look": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 behöver granskas"
+          }
+        }
+      }
+    },
+    "1 item": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 objekt"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

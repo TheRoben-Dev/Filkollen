@@ -9,7 +9,7 @@ struct SettingsView: View {
             ProtectionSettings().tabItem { Label("Protection", systemImage: "shield.lefthalf.filled") }
             UpdatesSettings().tabItem { Label("Updates", systemImage: "arrow.down.app") }
         }
-        .frame(width: 520)
+        .frame(width: DS.Layout.settingsWidth)
     }
 }
 
@@ -23,6 +23,7 @@ private struct GeneralSettings: View {
     @AppStorage(Pref.alwaysStartHidden) private var startHidden = false
     @AppStorage(Pref.notificationsEnabled) private var notifications = true
     @AppStorage(Pref.autoScanHours) private var autoScanHours = 24
+    @AppStorage(Pref.useBrandAccent) private var useBrandAccent = false
 
     @State private var launchAtLogin = LoginItem.isEnabled
     @State private var needsApproval = LoginItem.needsApproval
@@ -53,16 +54,23 @@ private struct GeneralSettings: View {
                 if needsApproval {
                     HStack {
                         Text("macOS needs you to allow Filkollen in Login Items.")
-                            .font(.caption).foregroundStyle(.orange)
+                            .font(DS.Font.caption).foregroundStyle(DS.Color.warning)
                         Spacer()
                         Button("Open Login Items") { LoginItem.openSystemSettings() }
                     }
                 }
                 if let loginError {
-                    Text(loginError).font(.caption).foregroundStyle(.red)
+                    Text(loginError).font(DS.Font.caption).foregroundStyle(DS.Color.danger)
                 }
                 Text("When opened at login, Filkollen starts quietly in the menu bar with no window.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
+            }
+
+            Section("Appearance") {
+                Toggle(isOn: $useBrandAccent) {
+                    Text("Use Filkollen's teal for buttons and controls")
+                    Text("Off: Filkollen follows the accent colour you chose in System Settings › Appearance.")
+                }
             }
 
             Section("Menu bar") {
@@ -84,14 +92,14 @@ private struct GeneralSettings: View {
                 Toggle("Notify me about junk, threats and updates", isOn: $notifications)
                     .onChange(of: notifications) { if $0 { Notifier.requestPermission() } }
                 Text("Background scans only look; nothing is cleaned without your review.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
             }
 
             Section("Permissions") {
                 LabeledContent("Full Disk Access") {
                     HStack {
                         Text(model.hasFullDiskAccess ? "Granted" : "Not granted")
-                            .foregroundStyle(model.hasFullDiskAccess ? .green : .orange)
+                            .foregroundStyle(model.hasFullDiskAccess ? DS.Color.success : DS.Color.warning)
                         Button("Open Settings") { FullDiskAccess.openSettings() }
                     }
                 }
@@ -128,7 +136,7 @@ private struct CleanupSettings: View {
             Section("App Leftovers") {
                 Toggle("Also look for folders named after removed apps", isOn: $leftoverPlainNames)
                 Text("Finds folders like Application Support › Spotify. Matches that can't be confirmed are marked Low confidence and never pre-selected.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
             }
             Section("Large & Old Files") {
                 Picker("Show files larger than", selection: $largeFileMB) {
@@ -144,15 +152,15 @@ private struct CleanupSettings: View {
                     Text("1 year").tag(12)
                     Text("2 years").tag(24)
                 }
-                Text("Old files are only listed from 50 MB up.").font(.caption).foregroundStyle(.secondary)
+                Text("Old files are only listed from 50 MB up.").font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
             }
             Section {
                 TextEditor(text: $excludedPaths)
-                    .font(.body.monospaced())
+                    .font(DS.Font.pathBody)
                     .frame(height: 140)
                 HStack {
                     Text("One folder per line. Scans skip these and everything inside them.")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
                     Spacer()
                     Button("Add Folder…", action: addFolder)
                 }
@@ -206,11 +214,11 @@ private struct ProtectionSettings: View {
                         .disabled(protection.isBusy || abuseChAuthKey.isEmpty)
                     if protection.phase == .updating {
                         ProgressView().controlSize(.small)
-                        Text(protection.status).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                        Text(protection.status).font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary).lineLimit(1)
                     }
                 }
                 if let error = protection.errorMessage {
-                    Text(error).font(.caption).foregroundStyle(.red)
+                    Text(error).font(DS.Font.caption).foregroundStyle(DS.Color.danger)
                 }
             }
             Section("Scanning") {
@@ -218,7 +226,7 @@ private struct ProtectionSettings: View {
                     .disabled(!protection.clamAVInstalled)
                 if !protection.clamAVInstalled {
                     Text("Install ClamAV with Homebrew (brew install clamav) for a second opinion.")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
                 }
                 Toggle(isOn: Binding(get: { watchDownloads }, set: { watchDownloads = $0; protection.setWatchingDownloads($0) })) {
                     Text("Check new downloads as they arrive")
@@ -249,13 +257,13 @@ private struct UpdatesSettings: View {
                 Toggle("Apps that update themselves (Sparkle)", isOn: $checkSparkle)
                 Toggle(isOn: $checkHomebrew) {
                     Text("Homebrew formulae and casks")
-                    if !updates.brewInstalled { Text("Homebrew isn't installed").foregroundStyle(.orange) }
+                    if !updates.brewInstalled { Text("Homebrew isn't installed").foregroundStyle(DS.Color.warning) }
                 }
                 Toggle("Refresh Homebrew's package list first (brew update)", isOn: $brewUpdateFirst)
                     .disabled(!checkHomebrew)
                 Toggle(isOn: $checkAppStore) {
                     Text("Mac App Store")
-                    if !updates.masInstalled { Text("Needs mas: brew install mas").foregroundStyle(.orange) }
+                    if !updates.masInstalled { Text("Needs mas: brew install mas").foregroundStyle(DS.Color.warning) }
                 }
                 Toggle("macOS software updates", isOn: $checkMacOS)
             }

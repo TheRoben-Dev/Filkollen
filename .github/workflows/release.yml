@@ -1,0 +1,95 @@
+name: Release
+# Builds Filkollen-<version>.dmg on a macOS runner and publishes it as a GitHub
+# Release. Run it from the Actions tab (Run workflow) on main.
+#
+# Until Developer ID secrets exist the app is ad-hoc signed and not notarized,
+# so the release is marked as a pre-release and users approve it once in
+# System Settings › Privacy & Security. See docs/RELEASING.md.
+on:
+  workflow_dispatch:
+    inputs:
+      prerelease:
+        description: Mark as pre-release
+        type: boolean
+        default: true
+  # Dry run on PRs that touch release files: builds the DMG, publishes nothing.
+  pull_request:
+    paths:
+      - .github/workflows/release.yml
+      - project.yml
+      - docs/release-notes/**
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo xcode-select -s /Applications/Xcode_16.4.app || true
+      - run: brew install xcodegen
+      - run: xcodegen generate
+
+      - name: Read version
+        id: version
+        run: |
+          v=$(sed -n 's/^ *MARKETING_VERSION: "\{0,1\}\([0-9.]*\)"\{0,1\}$/\1/p' project.yml)
+          test -n "$v"
+          test -f "docs/release-notes/$v.md" || { echo "::error::docs/release-notes/$v.md is missing"; exit 1; }
+          if git ls-remote --exit-code --tags origin "refs/tags/v$v" >/dev/null; then
+            echo "::error::v$v is already released; run scripts/bump-version.sh first"; exit 1
+          fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Test
+        run: |
+          set -o pipefail
+          xcodebuild -project Filkollen.xcodeproj -scheme Filkollen -destination 'platform=macOS' \
+            -derivedDataPath build/test CODE_SIGNING_ALLOWED=NO test | tee test.log | grep -E "error:|Executed|failed" || true
+          grep -q "TEST SUCCEEDED" test.log
+
+      - name: Build universal Release app (ad-hoc signed)
+        run: |
+          set -o pipefail
+          # Hardened runtime is for notarization only; with an ad-hoc signature
+          # it can make library validation refuse the embedded Sparkle.framework.
+          xcodebuild -project Filkollen.xcodeproj -scheme Filkollen -configuration Release \
+            -destination 'generic/platform=macOS' -derivedDataPath build/release \
+            ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM= ENABLE_HARDENED_RUNTIME=NO \
+            build | tail -5
+          app=build/release/Build/Products/Release/Filkollen.app
+          codesign --force --deep --sign - "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          lipo -archs "$app/Contents/MacOS/Filkollen"
+
+      - name: Make DMG
+        run: |
+          v=${{ steps.version.outputs.version }}
+          mkdir -p out/dmg
+          cp -R build/release/Build/Products/Release/Filkollen.app out/dmg/
+          ln -s /Applications out/dmg/Applications
+          hdiutil create -volname "Filkollen $v" -srcfolder out/dmg -ov -format UDZO "out/Filkollen-$v.dmg"
+          (cd out && shasum -a 256 "Filkollen-$v.dmg" > "Filkollen-$v.dmg.sha256")
+          cat out/*.sha256
+
+      - name: Upload DMG (dry run)
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Filkollen-${{ steps.version.outputs.version }}-dmg
+          path: out/Filkollen-*.dmg*
+
+      - name: Publish release
+        if: github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          name: Filkollen ${{ steps.version.outputs.version }}
+          body_path: docs/release-notes/${{ steps.version.outputs.version }}.md
+          prerelease: ${{ inputs.prerelease }}
+          files: |
+            out/Filkollen-${{ steps.version.outputs.version }}.dmg
+            out/Filkollen-${{ steps.version.outputs.version }}.dmg.sha256

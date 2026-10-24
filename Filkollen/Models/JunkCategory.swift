@@ -45,20 +45,6 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         }
     }
 
-    var symbol: String {
-        switch self {
-        case .systemJunk: return "trash.circle.fill"
-        case .appLeftovers: return "shippingbox.circle.fill"
-        case .duplicatePhotos: return "photo.on.rectangle.angled"
-        case .duplicateFiles: return "doc.on.doc.fill"
-        case .largeFiles: return "archivebox.fill"
-        case .developerJunk: return "hammer.circle.fill"
-        case .oldInstallers: return "shippingbox.and.arrow.backward.fill"
-        case .iosBackups: return "iphone.circle.fill"
-        case .browserCaches: return "globe"
-        }
-    }
-
     var scanningMessage: String {
         switch self {
         case .systemJunk: return "Looking for caches and logs…"
@@ -70,34 +56,6 @@ enum JunkCategory: String, CaseIterable, Identifiable, Hashable {
         case .oldInstallers: return "Checking Downloads for installers…"
         case .iosBackups: return "Looking for device backups…"
         case .browserCaches: return "Looking at browser caches…"
-        }
-    }
-
-    var gradient: LinearGradient {
-        switch self {
-        case .systemJunk: return Theme.gradient(.pink, .orange)
-        case .appLeftovers: return Theme.gradient(.teal, .blue)
-        case .duplicatePhotos: return Theme.gradient(.purple, .indigo)
-        case .duplicateFiles: return Theme.gradient(.indigo, .purple)
-        case .largeFiles: return Theme.gradient(.yellow, .orange)
-        case .developerJunk: return Theme.gradient(.blue, .cyan)
-        case .oldInstallers: return Theme.gradient(.mint, .teal)
-        case .iosBackups: return Theme.gradient(.gray, .blue)
-        case .browserCaches: return Theme.gradient(.indigo, .blue)
-        }
-    }
-
-    var tint: Color {
-        switch self {
-        case .systemJunk: return .pink
-        case .appLeftovers: return .teal
-        case .duplicatePhotos: return .purple
-        case .duplicateFiles: return .purple
-        case .largeFiles: return .orange
-        case .developerJunk: return .cyan
-        case .oldInstallers: return .mint
-        case .iosBackups: return .blue
-        case .browserCaches: return .indigo
         }
     }
 }

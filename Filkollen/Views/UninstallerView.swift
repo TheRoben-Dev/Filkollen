@@ -28,13 +28,12 @@ struct UninstallerView: View {
     var body: some View {
         HStack(spacing: 0) {
             appList
-                .frame(width: 280)
-                .background(.black.opacity(0.18))
-            Divider().overlay(.white.opacity(0.08))
+                .frame(width: DS.Layout.inspectorWidth)
+                .background(DS.Color.backgroundUnderPage)
+            Divider()
             detail
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .foregroundStyle(.white)
         .dropDestination(for: URL.self) { urls, _ in
             guard let url = urls.first else { return false }
             choose(url: url)
@@ -42,11 +41,15 @@ struct UninstallerView: View {
         } isTargeted: { dropTargeted = $0 }
         .overlay {
             if dropTargeted {
-                RoundedRectangle(cornerRadius: 16).strokeBorder(.white.opacity(0.6), style: StrokeStyle(lineWidth: 2, dash: [8]))
-                    .padding(12)
+                DS.shape(DS.Radius.hero)
+                    .strokeBorder(Color.accentColor, style: StrokeStyle(lineWidth: 2, dash: [8]))
+                    .background(Color.accentColor.opacity(0.06), in: DS.shape(DS.Radius.hero))
+                    .padding(DS.Space.md)
                     .allowsHitTesting(false)
+                    .dsTransition(.opacity)
             }
         }
+        .dsAnimation(.snappy, value: dropTargeted)
         .sheet(isPresented: $showReview) {
             if let chosen {
                 UninstallReviewSheet(app: chosen, items: selected) { start() }
@@ -63,28 +66,33 @@ struct UninstallerView: View {
         VStack(spacing: 0) {
             TextField("Search apps", text: $search)
                 .textFieldStyle(.roundedBorder)
-                .padding(12)
+                .padding(DS.Space.md)
             if loading {
-                Spacer(); ProgressView(); Spacer()
+                VStack(spacing: DS.Space.xs) {
+                    ForEach(0..<8, id: \.self) { _ in DSPlaceholderRow() }
+                }
+                .padding(.horizontal, DS.Space.sm)
+                Spacer(minLength: 0)
             } else {
                 List(filtered, selection: Binding(
                     get: { chosen?.url },
                     set: { url in if let app = apps.first(where: { $0.url == url }) { choose(app) } }
                 )) { app in
-                    HStack(spacing: 10) {
-                        Image(nsImage: NSWorkspace.shared.icon(forFile: app.url.path))
-                            .resizable().frame(width: 26, height: 26)
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(app.name).lineLimit(1)
-                            Text(app.version.map { "Version \($0)" } ?? app.bundleID)
-                                .font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+                    HStack(spacing: DS.Space.sm) {
+                        DSFileIcon(url: app.url, size: 26)
+                        VStack(alignment: .leading, spacing: DS.Space.xxs) {
+                            Text(app.name).font(DS.Font.body).lineLimit(1)
+                            Text(app.version.map { String(localized: "Version \($0)") } ?? app.bundleID)
+                                .font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary).lineLimit(1)
                         }
                     }
                     .tag(app.url)
                 }
                 .scrollContentBackground(.hidden)
             }
-            Text("Or drop an app here").font(.caption).foregroundStyle(.white.opacity(0.5)).padding(10)
+            Label("Or drop an app here", systemImage: "arrow.down.app")
+                .font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
+                .padding(DS.Space.sm)
         }
     }
 
@@ -95,128 +103,118 @@ struct UninstallerView: View {
             done(summary, app: chosen)
         } else if let chosen {
             VStack(spacing: 0) {
-                header(chosen).padding(.horizontal, 28).padding(.top, 28).padding(.bottom, 14)
+                header(chosen).padding(DS.Inset.page)
                 if remnants.isEmpty {
-                    Spacer()
-                    Text(chosen.canTrashBundle ? "Nothing found besides the app." : "No support files found in your home folder.")
-                        .foregroundStyle(.white.opacity(0.7))
-                    if !chosen.canTrashBundle { finderStep(chosen).padding(.top, 12) }
-                    Spacer()
+                    DSEmptyState(symbol: "sparkles", tint: DS.Color.success,
+                                 title: chosen.canTrashBundle ? String(localized: "Nothing found besides the app.")
+                                                              : String(localized: "No support files found in your home folder.")) {
+                        if !chosen.canTrashBundle { finderStep(chosen) }
+                    }
                 } else {
                     ScrollView {
-                        LazyVStack(spacing: 6) {
+                        LazyVStack(spacing: 0) {
                             ForEach(remnants) { item in row(item) }
                         }
-                        .glassCard(padding: 14)
-                        .padding(.horizontal, 28).padding(.bottom, 16)
+                        .padding(DS.Space.xs)
+                        .dsElevation()
+                        .padding(.horizontal, DS.Space.xxl).padding(.bottom, DS.Space.lg)
                         if !chosen.canTrashBundle {
-                            finderNote.padding(.horizontal, 28).padding(.bottom, 16)
+                            finderNote.padding(.horizontal, DS.Space.xxl).padding(.bottom, DS.Space.lg)
                         }
                     }
                     footer
                 }
             }
+        } else if let refusal {
+            DSEmptyState(symbol: "xmark.app", badge: "exclamationmark.circle.fill", tint: DS.Color.warning,
+                         title: String(localized: "That app can't be uninstalled here"), message: refusal)
         } else {
-            VStack(spacing: 16) {
-                Spacer()
-                GradientIcon(symbol: "xmark.app.fill", gradient: Theme.gradient(.orange, .pink), size: 90)
-                Text("App Uninstaller").font(.title2.weight(.semibold))
-                Text(refusal ?? "Choose an app on the left, or drop one here, to see everything it keeps on your Mac.")
-                    .foregroundStyle(refusal == nil ? .white.opacity(0.65) : .orange)
-                    .multilineTextAlignment(.center).frame(maxWidth: 420)
-                Spacer()
-            }
+            DSEmptyState(symbol: "xmark.app", tint: DS.Color.textTertiary,
+                         title: String(localized: "App Uninstaller"),
+                         message: String(localized: "Choose an app on the left, or drop one here, to see everything it keeps on your Mac."))
         }
     }
 
     private func header(_ app: AppUninstaller.App) -> some View {
-        HStack(spacing: 16) {
-            Image(nsImage: NSWorkspace.shared.icon(forFile: app.url.path)).resizable().frame(width: 56, height: 56)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(app.name).font(.system(size: 26, weight: .bold, design: .rounded))
+        HStack(spacing: DS.Space.lg) {
+            DSFileIcon(url: app.url, size: DS.Icon.TileSize.large.side)
+            VStack(alignment: .leading, spacing: DS.Space.xxs) {
+                Text(app.name).font(DS.Font.title).foregroundStyle(DS.Color.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
                 Text([app.bundleID, app.version].compactMap { $0 }.joined(separator: " · "))
-                    .foregroundStyle(.white.opacity(0.65))
+                    .font(DS.Font.callout).foregroundStyle(DS.Color.textSecondary)
+                    .textSelection(.enabled)
             }
             Spacer()
-            VStack(alignment: .trailing) {
-                Text(remnants.reduce(0) { $0 + $1.size }.formattedBytes).font(.title.weight(.bold).monospacedDigit())
-                Text("\(remnants.count) items").font(.caption).foregroundStyle(.white.opacity(0.6))
+            VStack(alignment: .trailing, spacing: DS.Space.xxs) {
+                DSByteCount(remnants.reduce(0) { $0 + $1.size }, font: DS.Font.numericLarge)
+                    .foregroundStyle(DS.Color.textPrimary)
+                Text(DS.itemCount(remnants.count)).font(DS.Font.numericCaption).foregroundStyle(DS.Color.textSecondary)
             }
         }
     }
 
     private func row(_ item: JunkItem) -> some View {
-        HStack(spacing: 10) {
-            Toggle("", isOn: Binding(
-                get: { !deselected.contains(item.url) },
-                set: { if $0 { deselected.remove(item.url) } else { deselected.insert(item.url) } }
-            ))
-            .toggleStyle(.checkbox).labelsHidden()
-            .accessibilityLabel("Remove \(item.name)")
-            VStack(alignment: .leading, spacing: 1) {
-                Text(item.name).lineLimit(1).truncationMode(.middle)
-                Text(item.detail).font(.caption).foregroundStyle(.white.opacity(0.5))
-            }
-            Spacer()
-            Text(item.size.formattedBytes).font(.caption.monospacedDigit()).foregroundStyle(.white.opacity(0.7))
-            Button { previewURL = item.url } label: { Image(systemName: "eye") }
-                .buttonStyle(.plain).help("Quick Look").accessibilityLabel("Quick Look \(item.name)")
-            Button { NSWorkspace.shared.activateFileViewerSelecting([item.url]) } label: { Image(systemName: "magnifyingglass") }
-                .buttonStyle(.plain).help("Show in Finder").accessibilityLabel("Show \(item.name) in Finder")
-        }
-        .contextMenu { ItemContextMenu(item: item) }
+        DSFileRow(item: item,
+                  isSelected: Binding(
+                      get: { !deselected.contains(item.url) },
+                      set: { if $0 { deselected.remove(item.url) } else { deselected.insert(item.url) } }
+                  ),
+                  showsPath: false,
+                  quickLook: { previewURL = $0 })
+            .contextMenu { ItemContextMenu(item: item) }
     }
 
     private var finderNote: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label("The app itself is in a system folder", systemImage: "info.circle").font(.headline)
-            Text("Filkollen only removes files in your home folder. After the support files are gone, drag the app to the Trash in Finder; macOS asks for your password if it needs to.")
-                .font(.callout).foregroundStyle(.white.opacity(0.7))
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .glassCard(padding: 14)
+        DSBanner(.info, title: String(localized: "The app itself is in a system folder"),
+                 message: String(localized: "Filkollen only removes files in your home folder. After the support files are gone, drag the app to the Trash in Finder; macOS asks for your password if it needs to."))
     }
 
     private func finderStep(_ app: AppUninstaller.App) -> some View {
-        Button("Show \(app.name) in Finder") { NSWorkspace.shared.activateFileViewerSelecting([app.url]) }
-            .buttonStyle(GhostButtonStyle())
+        Button(String(localized: "Show \(app.name) in Finder")) { NSWorkspace.shared.activateFileViewerSelecting([app.url]) }
+            .buttonStyle(.dsSecondary)
     }
 
     private var footer: some View {
-        HStack {
+        HStack(spacing: DS.Space.md) {
             if RunningApps.isRunning(chosen?.bundleID ?? "") {
-                Label("Quit \(chosen?.name ?? "the app") first", systemImage: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.orange)
+                Label(String(localized: "Quit \(chosen?.name ?? String(localized: "the app")) first"), systemImage: DS.Icon.warning)
+                    .font(DS.Font.callout)
+                    .foregroundStyle(DS.Color.warning)
             }
             Spacer()
-            Text("\(selected.count) selected").foregroundStyle(.white.opacity(0.6))
-            Button("Review & Uninstall \(selected.reduce(0) { $0 + $1.size }.formattedBytes)") { showReview = true }
-                .buttonStyle(PillButtonStyle())
+            Text(String(localized: "\(selected.count) selected"))
+                .font(DS.Font.numericCallout).foregroundStyle(DS.Color.textSecondary)
+            Button(String(localized: "Review & Uninstall \(selected.reduce(0) { $0 + $1.size }.formattedBytes)…")) { showReview = true }
+                .buttonStyle(.dsPrimary)
                 .disabled(selected.isEmpty || working)
         }
-        .padding(.horizontal, 28).padding(.vertical, 14)
-        .background(.ultraThinMaterial)
+        .padding(DS.Inset.bar)
+        .background(DS.Color.backgroundWindow)
+        .overlay(alignment: .top) { Divider() }
     }
 
     private func done(_ summary: CleanupSummary, app: AppUninstaller.App) -> some View {
-        VStack(spacing: 14) {
-            Spacer()
-            GradientIcon(symbol: "checkmark", gradient: Theme.safe, size: 80)
-            Text("Moved \(summary.trashedCount) items to the Trash").font(.title2.weight(.semibold))
-            Text(reclaimNote(selected: summary.trashedBytes, reclaimable: summary.reclaimableBytes))
-                .font(.callout).foregroundStyle(.white.opacity(0.65))
+        VStack(spacing: DS.Space.lg) {
+            Spacer(minLength: 0)
+            DSEmptyState(symbol: "checkmark.circle.fill", tint: DS.Color.success,
+                         title: String(localized: "Moved \(summary.trashedCount) items to the Trash"),
+                         message: reclaimNote(selected: summary.trashedBytes, reclaimable: summary.reclaimableBytes))
+                .fixedSize(horizontal: false, vertical: true)
             if !summary.failures.isEmpty {
-                FailureList(failures: summary.failures).frame(maxWidth: 520)
+                FailureList(failures: summary.failures).frame(maxWidth: DS.Layout.readableWidth)
             }
             if !app.canTrashBundle, FileManager.default.fileExists(atPath: app.url.path) {
-                Text("Last step: drag \(app.name) to the Trash.").foregroundStyle(.white.opacity(0.8))
+                Text(String(localized: "Last step: drag \(app.name) to the Trash."))
+                    .font(DS.Font.body).foregroundStyle(DS.Color.textPrimary)
                 finderStep(app)
             }
-            Button("Done") { reset(); Task { await loadApps() } }.buttonStyle(PillButtonStyle())
-            Spacer()
+            Button("Done") { reset(); Task { await loadApps() } }
+                .buttonStyle(.dsPrimary)
+                .keyboardShortcut(.defaultAction)
+            Spacer(minLength: 0)
         }
-        .padding(28)
+        .padding(DS.Inset.page)
     }
 
     // MARK: Actions
@@ -265,42 +263,57 @@ struct UninstallerView: View {
     }
 }
 
-/// Last look before an app's files go to the Trash.
+/// Last look before an app's files go to the Trash. Same badges as the list it came from.
 private struct UninstallReviewSheet: View {
     @Environment(\.dismiss) private var dismiss
     let app: AppUninstaller.App
     let items: [JunkItem]
     let confirm: () -> Void
 
+    private var total: Int64 { items.reduce(0) { $0 + $1.size } }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(spacing: 14) {
-                GradientIcon(symbol: "trash.fill", gradient: Theme.accent, size: 48)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Uninstall \(app.name)?").font(.title2.bold())
-                    Text("\(items.count) items, \(items.reduce(0) { $0 + $1.size }.formattedBytes), will be moved to the Trash. You can put anything back from there.")
-                        .foregroundStyle(.secondary)
-                    Text(reclaimNote(selected: items.reduce(0) { $0 + $1.size }, reclaimable: items.reduce(0) { $0 + $1.reclaimableSize }))
-                        .font(.caption).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top, spacing: DS.Space.lg) {
+                DSFileIcon(url: app.url, size: DS.Icon.TileSize.large.side)
+                VStack(alignment: .leading, spacing: DS.Space.xs) {
+                    Text(String(localized: "Uninstall \(app.name)?")).font(DS.Font.sectionTitle).foregroundStyle(DS.Color.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
+                    Text(String(localized: "\(items.count) items, \(total.formattedBytes), will be moved to the Trash. You can put anything back from there."))
+                        .font(DS.Font.body).foregroundStyle(DS.Color.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(reclaimNote(selected: total, reclaimable: items.reduce(0) { $0 + $1.reclaimableSize }))
+                        .font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
+            .padding(DS.Inset.sheet)
+            Divider()
             List(items) { item in
-                HStack {
-                    Text(item.url.abbreviatedPath).lineLimit(1).truncationMode(.middle).font(.callout.monospaced())
+                HStack(spacing: DS.Space.md) {
+                    DSFileIcon(url: item.url)
+                    Text(item.url.abbreviatedPath).dsPath(DS.Font.pathBody)
+                    if item.inUseBy != nil { DSBadge(.inUse(item.inUseBy)) }
+                    if item.confidence == .low { DSBadge(.lowConfidence) }
                     Spacer()
-                    Text(item.size.formattedBytes).foregroundStyle(.secondary).font(.caption)
+                    Text(item.size.formattedBytes).font(DS.Font.numericCaption).foregroundStyle(DS.Color.textSecondary)
                 }
+                .accessibilityElement(children: .combine)
             }
+            .listStyle(.inset)
             .frame(minHeight: 220)
-            HStack {
+            HStack(spacing: DS.Space.md) {
                 Spacer()
-                Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
+                Button("Cancel") { dismiss() }
+                    .buttonStyle(.dsSecondary)
+                    .keyboardShortcut(.cancelAction)
                 Button("Move to Trash") { confirm(); dismiss() }
+                    .buttonStyle(.dsPrimary)
                     .keyboardShortcut(.defaultAction)
-                    .buttonStyle(PillButtonStyle())
             }
+            .padding(DS.Inset.bar)
+            .overlay(alignment: .top) { Divider() }
         }
-        .padding(24)
-        .frame(width: 620, height: 480)
+        .frame(width: 640, height: 500)
     }
 }

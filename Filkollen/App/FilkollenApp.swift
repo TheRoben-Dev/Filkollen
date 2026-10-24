@@ -5,6 +5,12 @@ struct FilkollenApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @AppStorage(Pref.showMenuBarIcon) private var showMenuBarIcon = true
 
+    /// Jumps to a page in the main window, opening it if it was closed.
+    @MainActor private func go(_ section: AppModel.Section) {
+        delegate.model.section = section
+        delegate.showMainWindow()
+    }
+
     var body: some Scene {
         // A single Window (not WindowGroup) so reopening from the menu bar never
         // stacks up duplicate main windows.
@@ -14,8 +20,10 @@ struct FilkollenApp: App {
                 .environmentObject(delegate.protection)
                 .environmentObject(delegate.updates)
                 .environmentObject(delegate)
-                .frame(minWidth: 940, minHeight: 620)
+                .frame(minWidth: DS.Layout.windowMinWidth, minHeight: DS.Layout.windowMinHeight)
+                .dsAccent()
         }
+        .defaultSize(width: DS.Layout.windowDefaultWidth, height: DS.Layout.windowDefaultHeight)
         // A real (transparent) title bar keeps the sidebar list below the
         // traffic lights; .hiddenTitleBar let rows scroll underneath them.
         .windowToolbarStyle(.unified(showsTitle: false))
@@ -41,6 +49,17 @@ struct FilkollenApp: App {
                 Button("Check for Updates") { delegate.updates.check() }
                     .keyboardShortcut("u", modifiers: [.command, .shift])
             }
+            CommandMenu("Go") {
+                Button("Smart Scan") { go(.smartScan) }.keyboardShortcut("1", modifiers: .command)
+                Button("Malware Scan") { go(.protection) }.keyboardShortcut("2", modifiers: .command)
+                Button("App Uninstaller") { go(.uninstaller) }.keyboardShortcut("3", modifiers: .command)
+                Button("History") { go(.history) }.keyboardShortcut("4", modifiers: .command)
+                Button("App Updates") { go(.updates) }.keyboardShortcut("5", modifiers: .command)
+                Button("Disk Usage") { go(.system(.diskUsage)) }.keyboardShortcut("6", modifiers: .command)
+            }
+            #if DEBUG
+            DebugCommands()
+            #endif
         }
 
         MenuBarExtra(isInserted: $showMenuBarIcon) {
@@ -49,6 +68,7 @@ struct FilkollenApp: App {
                 .environmentObject(delegate.protection)
                 .environmentObject(delegate.updates)
                 .environmentObject(delegate)
+                .dsAccent()
         } label: {
             MenuBarLabel(model: delegate.model, protection: delegate.protection)
         }
@@ -60,9 +80,31 @@ struct FilkollenApp: App {
                 .environmentObject(delegate.model)
                 .environmentObject(delegate.protection)
                 .environmentObject(delegate.updates)
+                .dsAccent()
+        }
+
+        #if DEBUG
+        Window("Design Gallery", id: DebugCommands.galleryID) {
+            DesignGalleryView()
+        }
+        #endif
+    }
+}
+
+#if DEBUG
+/// Debug › Design Gallery. Only in Debug builds.
+struct DebugCommands: Commands {
+    static let galleryID = "design-gallery"
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some Commands {
+        CommandMenu("Debug") {
+            Button("Design Gallery") { openWindow(id: Self.galleryID) }
+                .keyboardShortcut("g", modifiers: [.command, .option])
         }
     }
 }
+#endif
 
 /// The status item icon: a warning badge when threats were found, a busy icon while scanning.
 private struct MenuBarLabel: View {

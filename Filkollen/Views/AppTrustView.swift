@@ -19,73 +19,99 @@ struct AppTrustView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Text(summary).font(.callout).foregroundStyle(.white.opacity(0.7))
+            HStack(spacing: DS.Space.md) {
+                Text(summary).font(DS.Font.callout).foregroundStyle(DS.Color.textSecondary)
                 Spacer()
                 Toggle("Show all apps", isOn: $showAll).toggleStyle(.switch).controlSize(.small)
-                Button { Task { await load() } } label: { Label("Refresh", systemImage: "arrow.clockwise") }
-                    .buttonStyle(GhostButtonStyle())
+                Button { Task { await load() } } label: { Label("Refresh", systemImage: DS.Icon.refresh) }
+                    .buttonStyle(.dsSecondary)
+                    .disabled(loading)
             }
-            .padding(.horizontal, 28).padding(.bottom, 12)
+            .padding(.horizontal, DS.Space.xxl).padding(.bottom, DS.Space.md)
 
             if loading {
-                Spacer(); ProgressView("Checking signatures…"); Spacer()
+                VStack(spacing: DS.Space.sm) {
+                    ForEach(0..<6, id: \.self) { _ in DSPlaceholderRow() }
+                }
+                .padding(.horizontal, DS.Space.xxl)
+                .accessibilityElement()
+                .accessibilityLabel(String(localized: "Checking signatures…"))
+                Spacer(minLength: 0)
             } else if visible.isEmpty {
-                Spacer()
-                Label("Every app is signed by Apple, notarized, or from the App Store.", systemImage: "checkmark.seal.fill")
-                    .foregroundStyle(.green)
-                Spacer()
+                DSEmptyState(symbol: "checkmark.seal.fill", tint: DS.Color.success,
+                             title: String(localized: "All apps look trustworthy"),
+                             message: String(localized: "Every app is signed by Apple, notarized, or from the App Store."))
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 8) {
+                    LazyVStack(spacing: DS.Space.sm) {
                         ForEach(visible) { row in rowView(row) }
                     }
-                    .padding(.horizontal, 28).padding(.bottom, 16)
+                    .padding(.horizontal, DS.Space.xxl).padding(.bottom, DS.Space.lg)
                 }
             }
             Text("Checked offline. \"Developer ID\" means signed by a registered developer with no notarization ticket attached; that's common and not a problem on its own. Unsigned or broken signatures deserve a closer look.")
-                .font(.caption).foregroundStyle(.white.opacity(0.5))
+                .font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 28).padding(.vertical, 10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(DS.Inset.bar)
+                .overlay(alignment: .top) { Divider() }
         }
         .task { if rows.isEmpty { await load() } }
     }
 
     private var summary: String {
         let concerning = rows.filter { $0.report.level.isConcerning }.count
-        return concerning == 0 ? "\(rows.count) apps checked" : "\(rows.count) apps checked, \(concerning) unsigned or broken"
+        return concerning == 0 ? String(localized: "\(rows.count) apps checked")
+                               : String(localized: "\(rows.count) apps checked, \(concerning) unsigned or broken")
+    }
+
+    private func levelBadge(_ level: CodeTrust.Level) -> DSBadge {
+        switch level {
+        case .invalid, .unsigned, .adHoc:
+            return DSBadge(.custom(String(localized: String.LocalizationValue(level.label)), symbol: "exclamationmark.triangle.fill", tint: DS.Color.danger))
+        case .developerID:
+            return DSBadge(.custom(String(localized: String.LocalizationValue(level.label)), symbol: "person.badge.shield.checkmark.fill", tint: DS.Color.warning))
+        case .notarized:
+            return DSBadge(.notarized)
+        case .appStore, .apple:
+            return DSBadge(.custom(String(localized: String.LocalizationValue(level.label)), symbol: "checkmark.seal.fill", tint: DS.Color.success))
+        }
     }
 
     private func rowView(_ row: Row) -> some View {
-        HStack(spacing: 12) {
-            Image(nsImage: NSWorkspace.shared.icon(forFile: row.url.path)).resizable().frame(width: 30, height: 30)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(row.name).font(.headline).lineLimit(1)
-                    Text(row.report.level.label)
-                        .font(.caption2.bold()).padding(.horizontal, 6).padding(.vertical, 1)
-                        .background((row.report.level.isConcerning ? Color.red : row.report.level == .developerID ? .orange : .green).opacity(0.5), in: Capsule())
+        HStack(spacing: DS.Space.md) {
+            DSFileIcon(url: row.url, size: DS.Icon.TileSize.medium.side)
+            VStack(alignment: .leading, spacing: DS.Space.xxs) {
+                HStack(spacing: DS.Space.sm) {
+                    Text(row.name).font(DS.Font.headline).foregroundStyle(DS.Color.textPrimary).lineLimit(1)
+                    levelBadge(row.report.level)
                     if row.report.quarantined {
-                        Text("Never opened").font(.caption2).foregroundStyle(.white.opacity(0.6))
+                        Text("Never opened").font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
                     }
-                    if row.deepChecked { Image(systemName: "checkmark.seal").font(.caption).help("Every file in the app was verified") }
+                    if row.deepChecked {
+                        Image(systemName: "checkmark.seal").font(DS.Font.caption).foregroundStyle(DS.Color.success)
+                            .help("Every file in the app was verified")
+                            .accessibilityLabel(String(localized: "Every file verified"))
+                    }
                 }
-                Text([row.report.signer, row.report.teamID.map { "Team \($0)" }].compactMap { $0 }.joined(separator: " · "))
-                    .font(.caption).foregroundStyle(.white.opacity(0.55)).lineLimit(1)
+                Text([row.report.signer, row.report.teamID.map { String(localized: "Team \($0)") }].compactMap { $0 }.joined(separator: " · "))
+                    .font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary).lineLimit(1)
+                    .textSelection(.enabled)
             }
             Spacer()
             if checking.contains(row.url) {
                 ProgressView().controlSize(.small)
             } else if !row.deepChecked {
                 Button("Verify All Files") { Task { await deepCheck(row) } }
-                    .buttonStyle(GhostButtonStyle())
+                    .buttonStyle(.dsSecondary)
                     .help("Checks every file in the app against its signature. Slower for big apps.")
             }
-            Button { NSWorkspace.shared.activateFileViewerSelecting([row.url]) } label: { Image(systemName: "magnifyingglass") }
-                .buttonStyle(.plain).help("Show in Finder")
-                .accessibilityLabel("Show \(row.name) in Finder")
+            DSIconButton(String(localized: "Show \(row.name) in Finder"), symbol: DS.Icon.revealInFinder) {
+                NSWorkspace.shared.activateFileViewerSelecting([row.url])
+            }
         }
-        .glassCard(padding: 12)
+        .dsCard(insets: DS.Inset.row)
+        .accessibilityElement(children: .contain)
     }
 
     private func load() async {

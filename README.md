@@ -6,6 +6,10 @@ A friendly macOS cleaner, written in SwiftUI. It finds junk, shows you exactly w
 - Direct distribution (Developer ID + notarization). Not sandboxed, so it can't go on the Mac App Store.
 - Needs **Full Disk Access** to see most of `~/Library`
 
+## Install
+
+Download the latest DMG from [Releases](https://github.com/TheRoben-Dev/Filkollen/releases/latest), open it and drag Filkollen to Applications. Current builds aren't notarized yet, so on first launch macOS blocks it: on macOS 15 and later, open **System Settings › Privacy & Security** and click **Open Anyway**; on macOS 13–14, right-click the app and choose **Open**. Then follow the onboarding to grant Full Disk Access.
+
 ## Features
 
 | Module | What it finds | What happens |

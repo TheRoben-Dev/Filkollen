@@ -13,14 +13,10 @@ struct CategoryDetailView: View {
     var body: some View {
         VStack(spacing: 0) {
             header
-                .padding(.horizontal, 28).padding(.top, 28).padding(.bottom, 18)
+                .padding(DS.Inset.page)
 
-            if model.isScanning && result == nil {
-                Spacer()
-                ScanningRing(size: 120)
-                Text(model.scanStatus).font(.caption.monospaced()).foregroundStyle(.white.opacity(0.55))
-                    .lineLimit(1).truncationMode(.middle).padding(.top, 16).frame(maxWidth: 480)
-                Spacer()
+            if model.scanningCategories.contains(category) || (model.isScanning && result == nil) {
+                scanning
             } else if let result, !result.items.isEmpty {
                 list(result)
                 footer(result)
@@ -30,27 +26,30 @@ struct CategoryDetailView: View {
                 notScanned
             }
         }
-        .foregroundStyle(.white)
         .sheet(isPresented: $showReview) { ReviewSheet(only: category).environmentObject(model) }
         .quickLookPreview($previewURL)
         .environment(\.showQuickLook, { previewURL = $0 })
     }
 
     private var header: some View {
-        HStack(spacing: 16) {
-            GradientIcon(category, size: 56)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(category.title).font(.system(size: 26, weight: .bold, design: .rounded))
-                Text(category.subtitle).foregroundStyle(.white.opacity(0.65))
-            }
-            Spacer()
-            if let result {
-                VStack(alignment: .trailing) {
-                    Text(result.totalSize.formattedBytes)
-                        .font(.title.weight(.bold).monospacedDigit())
-                    Text("\(result.items.count) items").font(.caption).foregroundStyle(.white.opacity(0.6))
+        VStack(alignment: .leading, spacing: DS.Space.md) {
+            DSPageHeader(title: category.title, subtitle: category.subtitle, tile: DSTile(category, size: .large)) {
+                if let result {
+                    VStack(alignment: .trailing, spacing: DS.Space.xxs) {
+                        DSByteCount(result.totalSize, font: DS.Font.numericLarge)
+                            .foregroundStyle(DS.Color.textPrimary)
+                        Text(DS.itemCount(result.items.count))
+                            .font(DS.Font.numericCaption).foregroundStyle(DS.Color.textSecondary)
+                    }
                 }
             }
+            HStack(spacing: DS.Space.xs) {
+                Circle().fill(category.dsTint).frame(width: 8, height: 8).accessibilityHidden(true)
+                Text(category.family.title).font(DS.Font.captionEmphasized).foregroundStyle(DS.Color.textPrimary)
+                Text(category.family.explanation).font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
+                    .lineLimit(2)
+            }
+            .accessibilityElement(children: .combine)
         }
     }
 
@@ -69,7 +68,7 @@ struct CategoryDetailView: View {
 
     private func list(_ result: CategoryResult) -> some View {
         ScrollView {
-            LazyVStack(spacing: 10) {
+            LazyVStack(spacing: DS.Space.sm) {
                 ForEach(groups(result), id: \.key) { group in
                     GroupCard(
                         category: category,
@@ -82,7 +81,7 @@ struct CategoryDetailView: View {
                     )
                 }
             }
-            .padding(.horizontal, 28).padding(.bottom, 16)
+            .padding(.horizontal, DS.Space.xxl).padding(.bottom, DS.Space.lg)
         }
     }
 
@@ -93,42 +92,59 @@ struct CategoryDetailView: View {
         }
     }
 
+    /// Solid bar with a top separator; no blur behind the scrolling list.
     private func footer(_ result: CategoryResult) -> some View {
-        HStack {
+        HStack(spacing: DS.Space.md) {
             Button("Select All") { model.setAllSelected(true, in: category) }
-                .buttonStyle(GhostButtonStyle())
+                .buttonStyle(.dsSecondary)
             Button("Select None") { model.setAllSelected(false, in: category) }
-                .buttonStyle(GhostButtonStyle())
+                .buttonStyle(.dsSecondary)
             Spacer()
-            Text("\(result.selectedItems.count) selected")
-                .foregroundStyle(.white.opacity(0.6))
-            Button("Review & Clean \(result.selectedSize.formattedBytes)") { showReview = true }
-                .buttonStyle(PillButtonStyle())
+            Text(String(localized: "\(result.selectedItems.count) selected"))
+                .font(DS.Font.numericCallout)
+                .foregroundStyle(DS.Color.textSecondary)
+            Button(String(localized: "Review \(result.selectedSize.formattedBytes)…")) { showReview = true }
+                .buttonStyle(.dsPrimary)
                 .disabled(result.selectedSize == 0 || model.phase == .cleaning)
         }
-        .padding(.horizontal, 28).padding(.vertical, 14)
-        .background(.ultraThinMaterial)
+        .padding(DS.Inset.bar)
+        .background(DS.Color.backgroundWindow)
+        .overlay(alignment: .top) { Divider() }
+    }
+
+    private var scanning: some View {
+        VStack(spacing: DS.Space.xl) {
+            Spacer(minLength: 0)
+            DSScanRing(segments: DSScanSegment.segments(for: [category], scanning: model.scanningCategories,
+                                                        finished: Set(model.results.keys)),
+                       isWorking: true, settled: false, diameter: 120, lineWidth: 8) {
+                ProgressView().controlSize(.small)
+            }
+            Text(category.scanningMessage).font(DS.Font.headline).foregroundStyle(DS.Color.textPrimary)
+            Text(model.scanStatus).dsPath(DS.Font.pathBody).frame(maxWidth: DS.Layout.readableWidth)
+            Spacer(minLength: 0)
+        }
+        .padding(DS.Inset.page)
+        .frame(maxWidth: .infinity)
     }
 
     private var empty: some View {
-        VStack(spacing: 14) {
-            Spacer()
-            GradientIcon(symbol: "checkmark", gradient: Theme.safe, size: 80)
-            Text("Nothing to clean here").font(.title2.weight(.semibold))
-            Button("Scan Again") { model.scan([category]) }.buttonStyle(GhostButtonStyle())
-            Spacer()
+        DSEmptyState(symbol: "sparkles", badge: "checkmark.circle.fill", tint: DS.Color.success,
+                     title: String(localized: "Nothing to clean here"),
+                     message: String(localized: "Filkollen didn't find anything in \(category.title) worth removing.")) {
+            Button("Scan Again") { model.scan([category]) }
+                .buttonStyle(.dsSecondary)
+                .disabled(model.isScanning)
         }
     }
 
     private var notScanned: some View {
-        VStack(spacing: 18) {
-            Spacer()
-            GradientIcon(category, size: 90)
-            Text("Not scanned yet").font(.title2.weight(.semibold))
-            Button("Scan \(category.title)") { model.scan([category]) }
-                .buttonStyle(PillButtonStyle(large: true))
+        DSEmptyState(symbol: category.dsSymbol, tint: category.dsTint,
+                     title: String(localized: "Not scanned yet"),
+                     message: category.family.explanation) {
+            Button(String(localized: "Scan \(category.title)")) { model.scan([category]) }
+                .buttonStyle(.ds(.primary, size: .large))
                 .disabled(model.isScanning)
-            Spacer()
         }
     }
 }
@@ -140,14 +156,17 @@ private struct GroupCard: View {
     let items: [JunkItem]
     @Binding var isExpanded: Bool
 
+    @Environment(\.showQuickLook) private var showQuickLook
+    @State private var hovering = false
+
     /// Items a group checkbox selects: never the kept duplicate or something in use.
     private var selectable: [JunkItem] { items.filter { !$0.isKeeper && $0.inUseBy == nil && $0.confidence != .low } }
     private var allSelected: Bool { !selectable.isEmpty && selectable.allSatisfy(\.isSelected) }
     private var total: Int64 { items.reduce(0) { $0 + $1.size } }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: DS.Space.md) {
                 Toggle("", isOn: Binding(
                     get: { allSelected },
                     set: { v in
@@ -157,114 +176,73 @@ private struct GroupCard: View {
                     }
                 ))
                 .toggleStyle(.checkbox).labelsHidden()
-                .accessibilityLabel("Select all in \(title)")
+                .accessibilityLabel(String(localized: "Select all in \(title)"))
 
                 if category == .duplicatePhotos, let first = items.first {
-                    Thumbnail(url: first.url, size: 40)
+                    DSFileIcon(url: first.url, size: 40, thumbnail: true)
                 }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title).font(.headline).lineLimit(1)
-                    Text(subtitle).font(.caption).foregroundStyle(.white.opacity(0.6))
+                VStack(alignment: .leading, spacing: DS.Space.xxs) {
+                    Text(title).font(DS.Font.headline).foregroundStyle(DS.Color.textPrimary).lineLimit(1)
+                    Text(subtitle).font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary).lineLimit(1)
                 }
                 Spacer()
-                Text(total.formattedBytes).font(.callout.weight(.semibold).monospacedDigit())
+                if items.contains(where: { $0.inUseBy != nil }) { DSBadge(.inUse(nil)) }
+                if items.contains(where: { $0.confidence == .low }) { DSBadge(.lowConfidence) }
+                Text(total.formattedBytes)
+                    .font(DS.Font.numericCallout.weight(.semibold))
+                    .foregroundStyle(DS.Color.textPrimary)
                 if !category.isDuplicates {
                     Button {
-                        withAnimation(.easeInOut(duration: 0.2)) { isExpanded.toggle() }
+                        withMotion(.smooth) { isExpanded.toggle() }
                     } label: {
                         Image(systemName: "chevron.right")
+                            .font(DS.Font.captionEmphasized)
+                            .foregroundStyle(DS.Color.textSecondary)
                             .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                            .frame(width: DS.Layout.minHitTarget, height: DS.Layout.minHitTarget)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(isExpanded ? "Hide items in \(title)" : "Show items in \(title)")
+                    .accessibilityLabel(isExpanded ? String(localized: "Hide items in \(title)")
+                                                   : String(localized: "Show items in \(title)"))
                 }
             }
+            .padding(DS.Inset.row)
 
             if isExpanded {
-                Divider().overlay(.white.opacity(0.1))
-                ForEach(items) { item in ItemRow(item: item) }
+                Divider().padding(.horizontal, DS.Space.md)
+                VStack(spacing: 0) {
+                    ForEach(items) { item in
+                        DSFileRow(item: item,
+                                  isSelected: Binding(get: { item.isSelected },
+                                                      set: { model.setSelected($0, item: item.id, in: item.category) }),
+                                  showsThumbnail: item.category == .duplicatePhotos,
+                                  showsPath: false,
+                                  quickLook: { showQuickLook($0) })
+                            .padding(.leading, DS.Space.xxl)
+                            .opacity(item.confidence == .low ? 0.8 : 1)
+                            .contextMenu { ItemContextMenu(item: item) }
+                    }
+                }
+                .padding(.vertical, DS.Space.xs)
+                .dsTransition(.dsRise)
             }
         }
-        .glassCard(padding: 14)
+        .dsElevation(hovering ? .raised : .surface)
+        .onHover { hovering = $0 }
+        .dsAnimation(.snappy, value: hovering)
     }
 
     private var subtitle: String {
         switch category {
-        case .duplicatePhotos, .duplicateFiles: return "\(items.count) identical copies"
+        case .duplicatePhotos, .duplicateFiles: return String(localized: "\(items.count) identical copies")
         case .appLeftovers:
             return Set(items.map(\.detail)).sorted().joined(separator: ", ")
         case .developerJunk:
-            return items.count == 1 ? items[0].detail : "\(items.count) items · \(items[0].detail)"
-        case .systemJunk, .largeFiles, .oldInstallers, .iosBackups, .browserCaches: return "\(items.count) items"
+            return items.count == 1 ? items[0].detail : String(localized: "\(items.count) items · \(items[0].detail)")
+        case .systemJunk, .largeFiles, .oldInstallers, .iosBackups, .browserCaches: return DS.itemCount(items.count)
         }
     }
-}
-
-private struct ItemRow: View {
-    @EnvironmentObject private var model: AppModel
-    let item: JunkItem
-
-    var body: some View {
-        HStack(spacing: 10) {
-            Toggle("", isOn: Binding(
-                get: { item.isSelected },
-                set: { model.setSelected($0, item: item.id, in: item.category) }
-            ))
-            .toggleStyle(.checkbox).labelsHidden()
-            .accessibilityLabel("Clean \(item.name)")
-
-            if item.category == .duplicatePhotos {
-                Thumbnail(url: item.url, size: 32)
-            }
-            VStack(alignment: .leading, spacing: 1) {
-                HStack(spacing: 6) {
-                    Text(item.name).lineLimit(1).truncationMode(.middle)
-                    if item.isKeeper {
-                        Text("KEEP")
-                            .font(.caption2.bold())
-                            .padding(.horizontal, 6).padding(.vertical, 1)
-                            .background(Theme.safe, in: Capsule())
-                    }
-                    if item.confidence == .low {
-                        Text("LOW CONFIDENCE")
-                            .font(.caption2.bold())
-                            .padding(.horizontal, 6).padding(.vertical, 1)
-                            .background(.gray.opacity(0.6), in: Capsule())
-                            .help("No removed app was confirmed for this folder. Check it before cleaning.")
-                    }
-                    if item.inUseBy != nil {
-                        Text("IN USE")
-                            .font(.caption2.bold())
-                            .padding(.horizontal, 6).padding(.vertical, 1)
-                            .background(.orange, in: Capsule())
-                            .accessibilityLabel("In use by \(item.inUseBy ?? "a running app")")
-                    }
-                }
-                Text(item.detail).font(.caption).foregroundStyle(.white.opacity(0.5))
-                    .lineLimit(1).truncationMode(.middle)
-            }
-            Spacer()
-            Text(item.size.formattedBytes).font(.caption.monospacedDigit()).foregroundStyle(.white.opacity(0.7))
-            Button { showQuickLook(item.url) } label: { Image(systemName: "eye") }
-                .buttonStyle(.plain)
-                .help("Quick Look")
-                .accessibilityLabel("Quick Look \(item.name)")
-            Button {
-                NSWorkspace.shared.activateFileViewerSelecting([item.url])
-            } label: {
-                Image(systemName: "magnifyingglass")
-            }
-            .buttonStyle(.plain)
-            .help("Show in Finder")
-            .accessibilityLabel("Show \(item.name) in Finder")
-        }
-        .padding(.leading, 26)
-        .opacity(item.confidence == .low ? 0.75 : 1)
-        .contentShape(Rectangle())
-        .contextMenu { ItemContextMenu(item: item) }
-    }
-
-    @Environment(\.showQuickLook) private var showQuickLook
 }
 
 /// Right-click actions shared by item rows.

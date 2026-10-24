@@ -17,19 +17,17 @@ struct MenuBarView: View {
     private let tick = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: DS.Space.md) {
             header
             stats
             statusCards
             actions
-            Divider().overlay(.white.opacity(0.15))
+            Divider()
             footer
         }
-        .padding(16)
-        .frame(width: 340)
-        .foregroundStyle(.white)
-        .background(BackdropView(tint: headerTint).clipped())
-        .preferredColorScheme(.dark)
+        .padding(DS.Inset.menuBar)
+        .frame(width: DS.Layout.menuBarWidth)
+        .registersSettingsOpener(app)
         .onAppear {
             app.openMainWindowAction = { openWindow(id: "main") }
             refresh(includeTrash: true)
@@ -39,33 +37,34 @@ struct MenuBarView: View {
 
     // MARK: Header
 
-    private var headerTint: Color { protection.threats.isEmpty ? .pink : .red }
-
     private var header: some View {
-        HStack(spacing: 12) {
-            GradientIcon(symbol: "sparkles", gradient: Theme.accent, size: 36)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Filkollen").font(.headline)
-                Text(headline).font(.caption).foregroundStyle(.white.opacity(0.7)).lineLimit(1)
+        HStack(spacing: DS.Space.md) {
+            DSTile(symbol: protection.threats.isEmpty ? DS.Icon.scan : DS.ProtectionState.threat.symbol,
+                   tint: protection.threats.isEmpty ? DS.Color.brand : DS.ProtectionState.threat.color, size: .medium)
+            VStack(alignment: .leading, spacing: DS.Space.xxs) {
+                Text("Filkollen").font(DS.Font.headline).foregroundStyle(DS.Color.textPrimary)
+                Text(headline).font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary).lineLimit(1)
             }
             Spacer()
         }
+        .accessibilityElement(children: .combine)
     }
 
     private var headline: String {
         if !protection.threats.isEmpty {
-            return "\(protection.threats.count) threat\(protection.threats.count == 1 ? "" : "s") need attention"
+            return protection.threats.count == 1 ? String(localized: "1 threat needs attention")
+                                                 : String(localized: "\(protection.threats.count) threats need attention")
         }
-        if model.isScanning { return "Scanning for junk…" }
-        if protection.phase == .scanning { return "Checking files for malware…" }
-        if model.smartScanTotal > 0 { return "\(model.smartScanTotal.formattedBytes) of junk ready to clean" }
-        return "Your Mac looks good"
+        if model.isScanning { return String(localized: "Scanning for junk…") }
+        if protection.phase == .scanning { return String(localized: "Checking files for malware…") }
+        if model.smartScanTotal > 0 { return String(localized: "\(model.smartScanTotal.formattedBytes) of junk ready to clean") }
+        return String(localized: "Your Mac looks good")
     }
 
     // MARK: Stats
 
     private var stats: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: DS.Space.sm) {
             StatBar(symbol: "internaldrive.fill", title: "Disk",
                     detail: "\(snapshot.diskFree.formattedBytes) free of \(snapshot.diskTotal.formattedBytes)",
                     fraction: snapshot.diskUsedFraction)
@@ -76,39 +75,44 @@ struct MenuBarView: View {
                     detail: String(format: "%.2f on %d cores", snapshot.load, snapshot.cpuCount),
                     fraction: snapshot.cpuFraction)
         }
-        .glassCard(padding: 12)
+        .dsCard(insets: DS.Inset.menuBar)
     }
 
     private var statusCards: some View {
-        HStack(spacing: 8) {
-            MiniCard(symbol: "trash.fill", title: "Junk",
-                     value: model.isScanning ? "Scanning" : (model.lastSmartScan == nil ? "Not scanned" : model.smartScanTotal.formattedBytes),
-                     tint: .pink)
-            MiniCard(symbol: protection.threats.isEmpty ? "checkmark.shield.fill" : "exclamationmark.shield.fill",
-                     title: "Protection", value: protectionValue,
-                     tint: protection.threats.isEmpty ? .green : .red)
-            MiniCard(symbol: "arrow.down.app.fill", title: "Updates", value: updatesValue, tint: .blue)
+        HStack(spacing: DS.Space.sm) {
+            MiniCard(symbol: "trash.fill", title: String(localized: "Junk"),
+                     value: model.isScanning ? String(localized: "Scanning") : (model.lastSmartScan == nil ? String(localized: "Not scanned") : model.smartScanTotal.formattedBytes),
+                     tint: DS.Color.brand)
+            MiniCard(symbol: protectionState.symbol, title: String(localized: "Protection"), value: protectionValue,
+                     tint: protectionState.color)
+            MiniCard(symbol: "arrow.down.app.fill", title: String(localized: "Updates"), value: updatesValue, tint: DS.Color.info)
         }
     }
 
+    private var protectionState: DS.ProtectionState {
+        if !protection.threats.isEmpty { return .threat }
+        if protection.databaseCount == 0 || protection.databaseIsStale { return .attention }
+        return .protected
+    }
+
     private var protectionValue: String {
-        if protection.phase == .scanning { return "Scanning" }
-        if protection.phase == .updating { return "Updating" }
-        if !protection.threats.isEmpty { return "\(protection.threats.count) found" }
-        if protection.databaseCount == 0 { return "No database" }
-        return protection.databaseIsStale ? "DB outdated" : "Protected"
+        if protection.phase == .scanning { return String(localized: "Scanning") }
+        if protection.phase == .updating { return String(localized: "Updating") }
+        if !protection.threats.isEmpty { return String(localized: "\(protection.threats.count) found") }
+        if protection.databaseCount == 0 { return String(localized: "No database") }
+        return protection.databaseIsStale ? String(localized: "DB outdated") : String(localized: "Protected")
     }
 
     private var updatesValue: String {
-        if updates.isChecking { return "Checking" }
-        if updates.lastChecked == nil { return "Not checked" }
-        return updates.updates.isEmpty ? "Up to date" : "\(updates.updates.count) available"
+        if updates.isChecking { return String(localized: "Checking") }
+        if updates.lastChecked == nil { return String(localized: "Not checked") }
+        return updates.updates.isEmpty ? String(localized: "Up to date") : String(localized: "\(updates.updates.count) available")
     }
 
     // MARK: Actions
 
     private var actions: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: DS.Space.xs) {
             if model.phase == .results, model.smartScanSelected > 0 {
                 MenuAction(symbol: "sparkles", title: "Review & Clean \(model.smartScanSelected.formattedBytes)") {
                     model.section = .smartScan
@@ -154,8 +158,8 @@ struct MenuBarView: View {
     }
 
     private var trashTitle: String {
-        let size = trashSize.map { $0 > 0 ? " (\($0.formattedBytes))" : " (empty)" } ?? ""
-        return confirmTrash ? "Click again to delete permanently\(size)" : "Empty Trash\(size)"
+        let size = trashSize.map { $0 > 0 ? " (\($0.formattedBytes))" : String(localized: " (empty)") } ?? ""
+        return confirmTrash ? String(localized: "Click again to delete permanently\(size)") : String(localized: "Empty Trash\(size)")
     }
 
     private func armTrash() {
@@ -169,8 +173,8 @@ struct MenuBarView: View {
         Task {
             let result = await Task.detached(priority: .userInitiated) { SystemInfo.emptyTrash() }.value
             trashMessage = result.failed == 0
-                ? "Freed \(result.freed.formattedBytes)"
-                : "Freed \(result.freed.formattedBytes), \(result.failed) item(s) couldn't be removed"
+                ? String(localized: "Freed \(result.freed.formattedBytes)")
+                : String(localized: "Freed \(result.freed.formattedBytes), \(result.failed) item(s) couldn't be removed")
             refresh(includeTrash: true)
         }
     }
@@ -178,16 +182,12 @@ struct MenuBarView: View {
     // MARK: Footer
 
     private var footer: some View {
-        HStack {
+        HStack(spacing: DS.Space.xs) {
             Button { open() } label: { Label("Open Filkollen", systemImage: "macwindow") }
-                .buttonStyle(GhostButtonStyle())
+                .buttonStyle(.dsSecondary)
             Spacer()
-            Button { app.showSettings() } label: { Image(systemName: "gearshape.fill") }
-                .buttonStyle(GhostButtonStyle())
-                .help("Settings")
-            Button { NSApp.terminate(nil) } label: { Image(systemName: "power") }
-                .buttonStyle(GhostButtonStyle())
-                .help("Quit Filkollen")
+            DSIconButton(String(localized: "Settings"), symbol: "gearshape") { app.showSettings() }
+            DSIconButton(String(localized: "Quit Filkollen"), symbol: "power") { NSApp.terminate(nil) }
         }
     }
 
@@ -215,25 +215,19 @@ private struct StatBar: View {
     let fraction: Double
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 5) {
+        VStack(alignment: .leading, spacing: DS.Space.xs) {
             HStack {
-                Label(title, systemImage: symbol).font(.caption.weight(.semibold))
+                Label(title, systemImage: symbol).font(DS.Font.captionEmphasized).foregroundStyle(DS.Color.textPrimary)
                 Spacer()
-                Text(detail).font(.caption.monospacedDigit()).foregroundStyle(.white.opacity(0.65))
+                Text(detail).font(DS.Font.numericCaption).foregroundStyle(DS.Color.textSecondary)
             }
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(.white.opacity(0.12))
-                    Capsule().fill(color).frame(width: max(4, geo.size.width * min(1, max(0, fraction))))
-                }
-            }
-            .frame(height: 6)
-            .animation(.easeInOut(duration: 0.4), value: fraction)
+            DSLinearProgress(value: fraction, tint: tint)
+                .accessibilityLabel(title)
         }
     }
 
-    private var color: LinearGradient {
-        fraction > 0.9 ? Theme.danger : fraction > 0.75 ? Theme.gradient(.orange, .pink) : Theme.safe
+    private var tint: Color {
+        fraction > 0.9 ? DS.Color.danger : fraction > 0.75 ? DS.Color.warning : DS.Color.brand
     }
 }
 
@@ -244,13 +238,16 @@ private struct MiniCard: View {
     let tint: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Image(systemName: symbol).foregroundStyle(tint)
-            Text(title).font(.caption2).foregroundStyle(.white.opacity(0.6))
-            Text(value).font(.caption.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.8)
+        VStack(alignment: .leading, spacing: DS.Space.xs) {
+            Image(systemName: symbol).symbolRenderingMode(.hierarchical).foregroundStyle(tint)
+                .accessibilityHidden(true)
+            Text(title).font(DS.Font.badge).foregroundStyle(DS.Color.textSecondary)
+            Text(value).font(DS.Font.captionEmphasized.monospacedDigit()).foregroundStyle(DS.Color.textPrimary)
+                .lineLimit(1).minimumScaleFactor(0.8)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .glassCard(padding: 10)
+        .dsCard(insets: EdgeInsets(top: DS.Space.sm, leading: DS.Space.sm, bottom: DS.Space.sm, trailing: DS.Space.sm))
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -267,37 +264,37 @@ private struct MenuAction: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 10) {
+            HStack(spacing: DS.Space.sm) {
                 ZStack {
                     if busy {
                         ProgressView().controlSize(.small)
                     } else {
-                        Image(systemName: symbol)
+                        Image(systemName: symbol).symbolRenderingMode(.hierarchical)
                     }
                 }
-                .frame(width: 20)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(title).font(.callout.weight(.medium)).lineLimit(1)
+                .frame(width: DS.Icon.TileSize.small.side)
+                VStack(alignment: .leading, spacing: DS.Space.xxs) {
+                    Text(title).font(DS.Font.callout.weight(.medium)).lineLimit(1)
                     if let detail, !detail.isEmpty {
-                        Text(detail).font(.caption2.monospaced()).foregroundStyle(.white.opacity(0.55))
-                            .lineLimit(1).truncationMode(.middle)
+                        Text(detail).dsPath(DS.Font.path)
                     }
                 }
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, 10).padding(.vertical, 7)
+            .padding(DS.Inset.row)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(background, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-            .contentShape(Rectangle())
+            .background(background, in: DS.shape(DS.Radius.row))
+            .contentShape(DS.shape(DS.Radius.row))
         }
         .buttonStyle(.plain)
-        .foregroundStyle(destructive ? Color.red : Color.white)
+        .foregroundStyle(destructive ? DS.Color.danger : DS.Color.textPrimary)
         .opacity(isEnabled || busy ? 1 : 0.45)
         .onHover { hovering = $0 }
+        .dsAnimation(.snappy, value: hovering)
     }
 
     private var background: Color {
-        if destructive { return .red.opacity(0.2) }
-        return .white.opacity(hovering && isEnabled ? 0.14 : 0.06)
+        if destructive { return DS.Color.danger.opacity(0.14) }
+        return hovering && isEnabled ? DS.Color.surfaceSunken : .clear
     }
 }
