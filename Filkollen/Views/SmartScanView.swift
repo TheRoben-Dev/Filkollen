@@ -167,11 +167,13 @@ struct SmartScanView: View {
                         .font(DS.Font.callout).foregroundStyle(DS.Color.textSecondary)
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: DS.Layout.readableWidth)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
 
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: DS.Space.lg), count: JunkCategory.smartScan.count),
-                      spacing: DS.Space.lg) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: DS.Space.lg, alignment: .top),
+                                     count: JunkCategory.smartScan.count),
+                      alignment: .center, spacing: DS.Space.lg) {
                 ForEach(Array(JunkCategory.smartScan.enumerated()), id: \.element) { index, category in
                     let result = model.result(for: category)
                     DSCategoryCard(category: category, size: result?.totalSize ?? 0, count: result?.items.count ?? 0,
@@ -256,11 +258,16 @@ private struct RiseIn: ViewModifier {
         content
             .opacity(visible ? 1 : 0)
             .offset(y: visible || reduceMotion ? 0 : DS.Space.sm)
-            .onAppear {
-                guard animated else { return }
-                let delay = Double(min(index, DS.Motion.staggerLimit)) * DS.Motion.stagger + DS.Duration.base
-                withAnimation(DS.Motion.smooth.animation(reduceMotion: reduceMotion).delay(delay)) { shown = true }
-            }
+            .onAppear { if animated { rise() } }
+            // The tiles are inserted a moment before `animated` turns true, so
+            // start the rise from here as well; otherwise they stay hidden.
+            .onChange(of: animated) { if $0 { rise() } }
+    }
+
+    private func rise() {
+        guard !shown else { return }
+        let delay = Double(min(index, DS.Motion.staggerLimit)) * DS.Motion.stagger + DS.Duration.base
+        withAnimation(DS.Motion.smooth.animation(reduceMotion: reduceMotion).delay(delay)) { shown = true }
     }
 }
 

@@ -43,18 +43,20 @@ struct MainView: View {
             SidebarView()
                 .navigationSplitViewColumnWidth(min: DS.Layout.sidebarMin, ideal: DS.Layout.sidebarIdeal, max: DS.Layout.sidebarMax)
         } detail: {
-            // A fresh identity per page, so switching between categories doesn't
-            // carry over expanded groups, hover or sheet state from the last one.
+            // minHeight 0 + clipping: a page that's taller than the window must
+            // never push the whole split view (sidebar included) up under the
+            // title bar; it scrolls or clips inside its own column instead.
             detail
-                .id(model.section)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity, alignment: .top)
+                .clipped()
         }
     }
 
     @ViewBuilder private var detail: some View {
         switch model.section {
         case .smartScan: SmartScanView()
-        case .category(let category): CategoryDetailView(category: category)
+        // Fresh state per category, so expanded groups and hover don't carry over.
+        case .category(let category): CategoryDetailView(category: category).id(category)
         case .uninstaller: UninstallerView()
         case .history: HistoryView()
         case .protection: ProtectionView()

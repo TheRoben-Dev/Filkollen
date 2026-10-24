@@ -152,8 +152,9 @@ struct DSCategoryCard: View {
                         .opacity(hovering ? 1 : 0)
                 }
                 VStack(alignment: .leading, spacing: DS.Space.xxs) {
+                    // Always two lines tall, so cards in a row line up when one title wraps.
                     Text(category.title).font(DS.Font.headline).foregroundStyle(DS.Color.textPrimary)
-                        .lineLimit(2)
+                        .lineLimit(2, reservesSpace: true)
                     Text(category.family.title).font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
                 }
                 DSByteCount(size, font: DS.Font.numericMedium)
