@@ -4,6 +4,8 @@ All notable changes to Filkollen. Format based on [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-24
+
 ### Safety
 - `SafetyGuard` rewritten: paths are resolved with `realpath`, the Data-volume firmlink is stripped, and comparisons are NFC + case-insensitive. Both a symlink's location and its target are checked.
 - Now refused: anything `com.apple.*`, the inside of app bundles, Mail/Messages/Safari data, CloudStorage, Autosave Information, `~/.Trash`, `~/.ssh`, `~/.gnupg`, Filkollen's own data, and direct children of `~/Library`. Temp access is limited to the per-user `T/` folder.
@@ -37,6 +39,7 @@ All notable changes to Filkollen. Format based on [Keep a Changelog](https://kee
 - VoiceOver labels on icon buttons and checkboxes; the scan ring respects Reduce Motion.
 
 ### Changed
+- Full visual redesign ("Lagom"): a shared design system (colour, type, spacing, motion tokens and components), every screen rebuilt on it, light and dark mode, Reduce Motion and Increase Contrast support, ⌘1–⌘6 navigation. See `docs/design/CHANGES.md`.
 - Smart Scan categories run concurrently; cache folders are measured in parallel.
 - Duplicate photos are matched size → first 64 KB → last 64 KB → full SHA-256, with hashes cached between scans.
 - Builds cleanly with `SWIFT_STRICT_CONCURRENCY=complete`.
