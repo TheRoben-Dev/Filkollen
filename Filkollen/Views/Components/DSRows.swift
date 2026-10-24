@@ -163,7 +163,7 @@ struct DSCategoryCard: View {
                     statusView
                     Spacer(minLength: 0)
                     if count > 0 {
-                        Text(String(localized: "\(count) items"))
+                        Text(DS.itemCount(count))
                             .font(DS.Font.numericCaption)
                             .foregroundStyle(DS.Color.textSecondary)
                     }

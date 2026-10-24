@@ -149,7 +149,7 @@ struct UninstallerView: View {
             VStack(alignment: .trailing, spacing: DS.Space.xxs) {
                 DSByteCount(remnants.reduce(0) { $0 + $1.size }, font: DS.Font.numericLarge)
                     .foregroundStyle(DS.Color.textPrimary)
-                Text(String(localized: "\(remnants.count) items")).font(DS.Font.numericCaption).foregroundStyle(DS.Color.textSecondary)
+                Text(DS.itemCount(remnants.count)).font(DS.Font.numericCaption).foregroundStyle(DS.Color.textSecondary)
             }
         }
     }

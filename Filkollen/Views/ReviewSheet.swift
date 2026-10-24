@@ -78,7 +78,7 @@ struct ReviewSheet: View {
                             HStack(spacing: DS.Space.sm) {
                                 DSTile(category, size: .small)
                                 Text(category.title).font(DS.Font.headline).foregroundStyle(DS.Color.textPrimary)
-                                Text(String(localized: "\(shown.count) items")).font(DS.Font.numericCaption)
+                                Text(DS.itemCount(shown.count)).font(DS.Font.numericCaption)
                                     .foregroundStyle(DS.Color.textSecondary)
                                 Spacer()
                                 Button("Untick All") {

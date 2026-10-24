@@ -4250,6 +4250,16 @@
           }
         }
       }
+    },
+    "1 item": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 objekt"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

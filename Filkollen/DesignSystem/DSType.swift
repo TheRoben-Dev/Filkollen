@@ -49,3 +49,10 @@ extension Text {
             .foregroundStyle(DS.Color.textSecondary)
     }
 }
+
+extension DS {
+    /// "1 item" / "12 items", localized.
+    static func itemCount(_ n: Int) -> String {
+        n == 1 ? String(localized: "1 item") : String(localized: "\(n) items")
+    }
+}

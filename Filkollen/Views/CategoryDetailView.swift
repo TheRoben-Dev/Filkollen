@@ -38,7 +38,7 @@ struct CategoryDetailView: View {
                     VStack(alignment: .trailing, spacing: DS.Space.xxs) {
                         DSByteCount(result.totalSize, font: DS.Font.numericLarge)
                             .foregroundStyle(DS.Color.textPrimary)
-                        Text(String(localized: "\(result.items.count) items"))
+                        Text(DS.itemCount(result.items.count))
                             .font(DS.Font.numericCaption).foregroundStyle(DS.Color.textSecondary)
                     }
                 }
@@ -240,7 +240,7 @@ private struct GroupCard: View {
             return Set(items.map(\.detail)).sorted().joined(separator: ", ")
         case .developerJunk:
             return items.count == 1 ? items[0].detail : String(localized: "\(items.count) items · \(items[0].detail)")
-        case .systemJunk, .largeFiles, .oldInstallers, .iosBackups, .browserCaches: return String(localized: "\(items.count) items")
+        case .systemJunk, .largeFiles, .oldInstallers, .iosBackups, .browserCaches: return DS.itemCount(items.count)
         }
     }
 }
