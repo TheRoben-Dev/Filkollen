@@ -43,6 +43,7 @@ struct DSFileIcon: View {
         }
         .accessibilityHidden(true)
         .task(id: thumbnail ? url : nil) {
+            preview = nil
             guard thumbnail else { return }
             let request = QLThumbnailGenerator.Request(
                 fileAt: url, size: CGSize(width: size, height: size),

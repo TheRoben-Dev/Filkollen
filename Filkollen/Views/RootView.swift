@@ -43,9 +43,11 @@ struct MainView: View {
             SidebarView()
                 .navigationSplitViewColumnWidth(min: DS.Layout.sidebarMin, ideal: DS.Layout.sidebarIdeal, max: DS.Layout.sidebarMax)
         } detail: {
+            // A fresh identity per page, so switching between categories doesn't
+            // carry over expanded groups, hover or sheet state from the last one.
             detail
+                .id(model.section)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(DS.Color.backgroundWindow)
         }
     }
 
