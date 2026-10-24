@@ -17,8 +17,12 @@ struct SmartScanView: View {
         return true
     }
 
+    /// A smaller ring and tighter spacing when the window is short, so the
+    /// results and their buttons always fit (minimum window: 940×620).
+    @State private var compact = false
+
     var body: some View {
-        VStack(spacing: DS.Space.xxl) {
+        VStack(spacing: compact ? DS.Space.lg : DS.Space.xxl) {
             // One ring instance for idle → scanning → results → cleaning, so the
             // segments fill in place and the settle plays on the real transition.
             if model.phase != .results { Spacer(minLength: 0) }
@@ -32,8 +36,15 @@ struct SmartScanView: View {
             }
             if model.phase != .results { Spacer(minLength: 0) }
         }
-        .padding(DS.Inset.hero)
+        .padding(compact ? DS.Inset.page : DS.Inset.hero)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background {
+            GeometryReader { geo in
+                Color.clear
+                    .onAppear { compact = geo.size.height < 700 }
+                    .onChange(of: geo.size.height) { compact = $0 < 700 }
+            }
+        }
         .dsAnimation(.smooth, value: model.phase)
         .sheet(isPresented: $showReview) { ReviewSheet().environmentObject(model) }
         .onAppear { shownTotal = model.phase == .results ? model.smartScanTotal : 0 }
@@ -61,7 +72,7 @@ struct SmartScanView: View {
         DSScanRing(segments: segments,
                    isWorking: model.phase == .scanning || model.phase == .cleaning,
                    settled: model.phase == .results,
-                   diameter: 220, lineWidth: 12,
+                   diameter: compact ? 160 : 220, lineWidth: compact ? 10 : 12,
                    label: model.phase == .cleaning ? String(localized: "Moving files to the Trash") : nil) {
             ZStack {
                 switch model.phase {
@@ -82,7 +93,7 @@ struct SmartScanView: View {
                     }
                 case .results:
                     VStack(spacing: DS.Space.xxs) {
-                        DSByteCount(shownTotal)
+                        DSByteCount(shownTotal, font: compact ? DS.Font.numericLarge : DS.Font.display)
                             .foregroundStyle(DS.Color.textPrimary)
                         Text("found").font(DS.Font.callout).foregroundStyle(DS.Color.textSecondary)
                     }
@@ -155,7 +166,7 @@ struct SmartScanView: View {
     }
 
     private var results: some View {
-        VStack(spacing: DS.Space.xxl) {
+        VStack(spacing: compact ? DS.Space.lg : DS.Space.xxl) {
             VStack(spacing: DS.Space.xs) {
                 Text(model.smartScanSelected > 0
                      ? String(localized: "\(model.smartScanSelected.formattedBytes) selected to clean")

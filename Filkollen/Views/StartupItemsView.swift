@@ -60,7 +60,8 @@ struct StartupItemsView: View {
     private var subtitle: String {
         let broken = items.filter(\.isBroken).count
         let review = items.filter(\.needsReview).count
-        var parts = [String(localized: "\(items.count) launch agents and daemons")]
+        var parts = [items.count == 1 ? String(localized: "1 launch agent or daemon")
+                                      : String(localized: "\(items.count) launch agents and daemons")]
         if broken > 0 { parts.append(String(localized: "\(broken) pointing to missing apps")) }
         if review > 0 { parts.append(String(localized: "\(review) worth a closer look")) }
         return parts.joined(separator: ", ")

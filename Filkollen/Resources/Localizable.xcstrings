@@ -4230,6 +4230,16 @@
           }
         }
       }
+    },
+    "1 launch agent or daemon": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 startagent eller daemon"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
