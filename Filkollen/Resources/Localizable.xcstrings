@@ -4240,6 +4240,16 @@
           }
         }
       }
+    },
+    "1 needs a look": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 behöver granskas"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -184,6 +184,12 @@ struct DSCategoryCard: View {
     }
 
     @ViewBuilder private var statusView: some View {
+        statusContent
+            .lineLimit(1)
+            .minimumScaleFactor(0.85)
+    }
+
+    @ViewBuilder private var statusContent: some View {
         switch status {
         case .scanning:
             ProgressView().controlSize(.mini)
@@ -207,7 +213,7 @@ struct DSCategoryCard: View {
         case .notScanned: return String(localized: "Not scanned")
         case .scanning: return String(localized: "Scanning…")
         case .ready: return String(localized: "Ready")
-        case .needsLook(let n): return String(localized: "\(n) need a look")
+        case .needsLook(let n): return n == 1 ? String(localized: "1 needs a look") : String(localized: "\(n) need a look")
         case .clean: return String(localized: "Nothing to clean")
         }
     }

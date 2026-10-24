@@ -75,6 +75,19 @@ struct SidebarView: View {
     @EnvironmentObject private var updates: UpdatesModel
 
     var body: some View {
+        // The access notice sits below the list in a VStack, not in a
+        // safe-area inset: on a sidebar List the inset didn't push rows up, so
+        // the last rows were drawn through the notice.
+        VStack(spacing: 0) {
+            list
+            if !model.hasFullDiskAccess {
+                Divider()
+                accessNotice
+            }
+        }
+    }
+
+    private var list: some View {
         List(selection: Binding<AppModel.Section?>(
             get: { model.section },
             set: { if let s = $0 { model.section = s } }
@@ -136,37 +149,36 @@ struct SidebarView: View {
             }
         }
         .listStyle(.sidebar)
-        .safeAreaInset(edge: .bottom) {
-            if !model.hasFullDiskAccess {
-                Button {
-                    FullDiskAccess.openSettings()
-                } label: {
-                    HStack(alignment: .top, spacing: DS.Space.sm) {
-                        Image(systemName: "exclamationmark.lock.fill")
-                            .foregroundStyle(DS.Color.warning)
-                        VStack(alignment: .leading, spacing: DS.Space.xxs) {
-                            Text(model.fullDiskAccessRevoked ? "Full Disk Access was turned off" : "Full Disk Access is off")
-                                .font(DS.Font.captionEmphasized)
-                                .foregroundStyle(DS.Color.textPrimary)
-                            Text(model.fullDiskAccessRevoked
-                                 ? "Scans will miss most of your Library. Click to turn it back on."
-                                 : "Scans can't see most of your Library. Click to turn it on.")
-                                .font(DS.Font.caption)
-                                .foregroundStyle(DS.Color.textSecondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(DS.Inset.row)
-                    .background(DS.Color.warning.opacity(0.1), in: DS.shape(DS.Radius.row))
-                    .overlay(DS.shape(DS.Radius.row).strokeBorder(DS.Color.warning.opacity(0.3), lineWidth: 1))
-                    .contentShape(DS.shape(DS.Radius.row))
+    }
+
+    private var accessNotice: some View {
+        Button {
+            FullDiskAccess.openSettings()
+        } label: {
+            HStack(alignment: .top, spacing: DS.Space.sm) {
+                Image(systemName: "exclamationmark.lock.fill")
+                    .foregroundStyle(DS.Color.warning)
+                VStack(alignment: .leading, spacing: DS.Space.xxs) {
+                    Text(model.fullDiskAccessRevoked ? "Full Disk Access was turned off" : "Full Disk Access is off")
+                        .font(DS.Font.captionEmphasized)
+                        .foregroundStyle(DS.Color.textPrimary)
+                    Text(model.fullDiskAccessRevoked
+                         ? "Scans will miss most of your Library. Click to turn it back on."
+                         : "Scans can't see most of your Library. Click to turn it on.")
+                        .font(DS.Font.caption)
+                        .foregroundStyle(DS.Color.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                .buttonStyle(.plain)
-                .accessibilityHint("Opens Privacy & Security in System Settings")
-                .padding(DS.Space.md)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(DS.Inset.row)
+            .background(DS.Color.warning.opacity(0.1), in: DS.shape(DS.Radius.row))
+            .overlay(DS.shape(DS.Radius.row).strokeBorder(DS.Color.warning.opacity(0.3), lineWidth: 1))
+            .contentShape(DS.shape(DS.Radius.row))
         }
+        .buttonStyle(.plain)
+        .accessibilityHint("Opens Privacy & Security in System Settings")
+        .padding(DS.Space.md)
     }
 }
 
