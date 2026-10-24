@@ -4220,6 +4220,16 @@
           }
         }
       }
+    },
+    "Go": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gå"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
