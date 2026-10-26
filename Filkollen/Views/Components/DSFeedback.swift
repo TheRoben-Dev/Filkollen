@@ -119,7 +119,7 @@ struct DSSectionHeader<Trailing: View>: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: DS.Space.sm) {
             VStack(alignment: .leading, spacing: DS.Space.xxs) {
-                Text(title).font(DS.Font.headline).foregroundStyle(DS.Color.textPrimary)
+                Text(title).dsEyebrow()
                 if let subtitle {
                     Text(subtitle).font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
                 }
@@ -306,12 +306,12 @@ struct DSChip: View {
                 Text(title)
                 if let count {
                     Text(count.formatted()).font(DS.Font.numericCaption)
-                        .foregroundStyle(isOn ? DS.Color.textOnFill.opacity(0.85) : DS.Color.textSecondary)
+                        .foregroundStyle(isOn ? DS.Color.textOnAccent.opacity(0.8) : DS.Color.textSecondary)
                 }
             }
             .font(DS.Font.callout)
             .padding(DS.Inset.button)
-            .foregroundStyle(isOn ? DS.Color.textOnFill : DS.Color.textPrimary)
+            .foregroundStyle(isOn ? DS.Color.textOnAccent : DS.Color.textPrimary)
             .background {
                 if isOn {
                     DS.shape(DS.Radius.control).fill(.tint)

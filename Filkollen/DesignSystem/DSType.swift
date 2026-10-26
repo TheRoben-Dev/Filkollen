@@ -1,24 +1,28 @@
 import SwiftUI
 
 extension DS {
-    /// The type scale. SF Pro for words, SF Pro Rounded only for the big numbers
-    /// people care about, monospaced digits for every size and count so numbers
-    /// don't jitter while they change.
+    /// The type scale. New York (the system serif) for titles and the big
+    /// figures, which gives the app its quiet, editorial feel; SF Pro for
+    /// everything people read or click; monospaced digits for every size and
+    /// count so numbers don't jitter while they change.
     enum Font {
         /// The headline total on Smart Scan ("6,4 GB").
-        static let display = SwiftUI.Font.system(size: 44, weight: .bold, design: .rounded).monospacedDigit()
+        static let display = SwiftUI.Font.system(size: 46, weight: .regular, design: .serif).monospacedDigit()
         /// Category totals, ring percentage, page-level figures.
-        static let numericLarge = SwiftUI.Font.system(size: 28, weight: .semibold, design: .rounded).monospacedDigit()
+        static let numericLarge = SwiftUI.Font.system(size: 28, weight: .medium, design: .serif).monospacedDigit()
         /// Card and tile figures.
-        static let numericMedium = SwiftUI.Font.system(size: 20, weight: .semibold, design: .rounded).monospacedDigit()
+        static let numericMedium = SwiftUI.Font.system(size: 20, weight: .semibold, design: .serif).monospacedDigit()
 
-        /// Hero headings (onboarding, empty Smart Scan). 26 pt on macOS.
-        static let heroTitle = SwiftUI.Font.largeTitle.weight(.bold)
-        /// Page titles. 22 pt on macOS. Not rounded, like Finder and System Settings.
-        static let title = SwiftUI.Font.title.weight(.semibold)
-        /// Section and sheet titles. 17 pt.
-        static let sectionTitle = SwiftUI.Font.title2.weight(.semibold)
+        /// Hero headings (onboarding, empty Smart Scan). 28 pt serif.
+        static let heroTitle = SwiftUI.Font.system(size: 28, weight: .semibold, design: .serif)
+        /// Page titles. 22 pt serif.
+        static let title = SwiftUI.Font.system(.title, design: .serif).weight(.semibold)
+        /// Section and sheet titles. 17 pt serif.
+        static let sectionTitle = SwiftUI.Font.system(.title2, design: .serif).weight(.semibold)
         static let headline = SwiftUI.Font.headline
+        /// Section labels: small, letter-spaced capitals in champagne. Pair with
+        /// `.dsEyebrow()`, which adds the tracking and case.
+        static let eyebrow = SwiftUI.Font.caption.weight(.semibold)
         static let body = SwiftUI.Font.body
         static let bodyEmphasized = SwiftUI.Font.body.weight(.medium)
         /// Large primary buttons (Smart Scan, Review…). 15 pt semibold.
@@ -47,6 +51,16 @@ extension Text {
             .lineLimit(1)
             .truncationMode(.middle)
             .foregroundStyle(DS.Color.textSecondary)
+    }
+}
+
+extension Text {
+    /// A section label: letter-spaced capitals in the accent colour.
+    func dsEyebrow() -> some View {
+        self.font(DS.Font.eyebrow)
+            .tracking(1.2)
+            .textCase(.uppercase)
+            .foregroundStyle(DS.Color.brand)
     }
 }
 

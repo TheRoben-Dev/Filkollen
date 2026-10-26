@@ -87,12 +87,12 @@ All styling comes from `Filkollen/DesignSystem/`, namespaced under `DS`. The dir
 | `DSMotion.swift` | `DS.Motion` (snappy, smooth, gentle), `DS.Duration`, `withMotion`, `.dsAnimation()`, `.dsTransition()`, `.dsRise` / `.dsPop` |
 | `DSIcon.swift` | `DS.Icon.TileSize`, shared action symbols, `DSTile` |
 
-Colours that aren't system colours live in `Assets.xcassets/DesignSystem` (namespaced, so `Color("DesignSystem/Fjord")`), each with light, dark and both Increased Contrast variants. Regenerate them with `python3 scripts/design-colors.py Filkollen/Resources/Assets.xcassets/DesignSystem` rather than editing JSON by hand, then copy `Fjord` over `AccentColor`. `DesignTokenTests` fails if a colour drops below WCAG AA (4.5:1 text, 4:1 white on tiles) or Increased Contrast below 7:1.
+Colours that aren't system colours live in `Assets.xcassets/DesignSystem` (namespaced, so `Color("DesignSystem/Champagne")`), each with light, dark and both Increased Contrast variants. Regenerate them with `python3 scripts/design-colors.py Filkollen/Resources/Assets.xcassets/DesignSystem` rather than editing JSON by hand, then copy `Champagne` over `AccentColor`. `DesignTokenTests` fails if a colour drops below WCAG AA (4.5:1 text, 4:1 white on tiles) or Increased Contrast below 7:1.
 
 ### Rules for a new screen
 
 1. **No literals.** Colours, fonts, spacing, radii, shadows and animations all come from `DS`. If a token is missing, add it to `DesignSystem/` and the Design Gallery, don't inline a number.
-2. **Follow the system.** Use `DS.Color.text*` and `DS.Color.background*`, never `.white.opacity(x)`. Never force a colour scheme. Interactive colour is `.tint`, which follows the system accent or Fjord via `.dsAccent()` at each scene root.
+2. **Follow the system.** Use `DS.Color.text*` and `DS.Color.background*`, never `.white.opacity(x)`. The app is dark by default ("Noir": onyx canvas, champagne accent, New York serif for titles and big figures); `DS.Theme.apply()` sets `NSApp.appearance` at launch and Settings offers Match System, so every token still needs a light variant. Page backgrounds are `DSBackdrop`, never a raw colour. Interactive colour is `.tint`, champagne via `.dsAccent()` at each scene root; text on a champagne fill is `DS.Color.textOnAccent`, never white.
 3. **Red means danger.** `DS.Color.danger` is only for threats, Delete Permanently and Empty Trash. Routine junk uses its category tint; warnings use `DS.Color.warning`.
 4. **Numbers are monospaced.** Every size and count uses a `DS.Font.numeric*` or `display` token.
 5. **Depth from `DS.Elevation`.** Cards use `.dsCard()`. Blur only through `.dsMaterial(_:)`/`.dsGlass(in:)`, never behind scrolling content; both fall back to solid under Reduce Transparency.

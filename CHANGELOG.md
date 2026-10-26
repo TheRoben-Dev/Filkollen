@@ -4,6 +4,12 @@ All notable changes to Filkollen. Format based on [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+### Changed
+- New "Noir" look: dark by default with an onyx canvas, champagne-gold accent, gold-edged cards, New York serif titles and figures, and letter-spaced section labels. Settings › General › Appearance can switch to Match System (warm ivory in light mode).
+
+### Fixed
+- The menu bar panel is a rounded, solid panel again instead of a square see-through sheet with the desktop showing around it.
+
 ## [0.2.0] - 2026-10-24
 
 ### Safety

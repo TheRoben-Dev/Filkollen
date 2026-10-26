@@ -76,7 +76,7 @@ struct OnboardingView: View {
         }
         .padding(DS.Inset.hero)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(DS.Color.backgroundWindow)
+        .background(DSBackdrop().ignoresSafeArea())
         .dsAnimation(.smooth, value: model.hasFullDiskAccess)
         .onReceive(poll) { _ in model.refreshFullDiskAccess() }
         .onChange(of: model.hasFullDiskAccess) { granted in
@@ -91,7 +91,7 @@ struct OnboardingView: View {
         HStack(alignment: .firstTextBaseline, spacing: DS.Space.md) {
             Text("\(n)")
                 .font(DS.Font.captionEmphasized.monospacedDigit())
-                .foregroundStyle(DS.Color.textOnFill)
+                .foregroundStyle(DS.Color.textOnAccent)
                 .frame(width: 22, height: 22)
                 .background(DS.Color.brand, in: Circle())
                 .accessibilityLabel(String(localized: "Step \(n)"))

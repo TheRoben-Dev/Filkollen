@@ -79,7 +79,7 @@ private struct GalleryColors: View {
         ("border", DS.Color.border), ("separator", DS.Color.separator),
     ]
     private let status: [(String, Color)] = [
-        ("brand (Fjord)", DS.Color.brand), ("success", DS.Color.success), ("warning", DS.Color.warning),
+        ("brand (Champagne)", DS.Color.brand), ("success", DS.Color.success), ("warning", DS.Color.warning),
         ("danger", DS.Color.danger), ("info", DS.Color.info),
     ]
 

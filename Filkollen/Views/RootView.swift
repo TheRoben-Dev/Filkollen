@@ -49,6 +49,8 @@ struct MainView: View {
             detail
                 .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity, alignment: .top)
                 .clipped()
+                .background(DSBackdrop().ignoresSafeArea())
+                .toolbarBackground(DS.Color.canvas, for: .windowToolbar)
         }
     }
 
@@ -85,6 +87,7 @@ struct SidebarView: View {
                 accessNotice
             }
         }
+        .background(DS.Color.canvasSunken.ignoresSafeArea())
     }
 
     private var list: some View {
@@ -149,6 +152,7 @@ struct SidebarView: View {
             }
         }
         .listStyle(.sidebar)
+        .scrollContentBackground(.hidden)
     }
 
     private var accessNotice: some View {

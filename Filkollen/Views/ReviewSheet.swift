@@ -92,6 +92,7 @@ struct ReviewSheet: View {
                 }
             }
             .listStyle(.inset)
+            .scrollContentBackground(.hidden)
             .frame(minHeight: 260)
 
             // Solid action bar: no blur behind scrolling content.
@@ -117,6 +118,7 @@ struct ReviewSheet: View {
         }
         .frame(minWidth: DS.Layout.sheetWidth, idealWidth: DS.Layout.sheetWidth,
                minHeight: DS.Layout.sheetMinHeight, idealHeight: 620)
+        .background(DSBackdrop())
         .quickLookPreview($previewURL)
         .onAppear {
             reviewed = Dictionary(uniqueKeysWithValues: categories.map { ($0, model.result(for: $0)?.selectedItems ?? []) })

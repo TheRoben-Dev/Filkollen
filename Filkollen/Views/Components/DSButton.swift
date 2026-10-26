@@ -69,7 +69,8 @@ private struct DSButtonBody: View {
 
     private var foreground: Color {
         switch kind {
-        case .primary, .destructive: return DS.Color.textOnFill
+        case .primary: return DS.Color.textOnAccent
+        case .destructive: return DS.Color.textOnFill
         case .secondary: return DS.Color.textPrimary
         case .plain: return isEnabled ? .accentColor : DS.Color.textSecondary
         }
@@ -79,7 +80,14 @@ private struct DSButtonBody: View {
         let shape = DS.shape(DS.Radius.control)
         switch kind {
         case .primary:
-            shape.fill(.tint).overlay(shape.fill(stateOverlay))
+            // Champagne with a soft top light and a bright hairline, like polished metal.
+            shape.fill(.tint)
+                .overlay(shape.fill(LinearGradient(colors: [.white.opacity(0.22), .clear, .black.opacity(0.10)],
+                                                   startPoint: .top, endPoint: .bottom)))
+                .overlay(shape.strokeBorder(LinearGradient(colors: [.white.opacity(0.45), .white.opacity(0.05)],
+                                                           startPoint: .top, endPoint: .bottom), lineWidth: 0.75))
+                .overlay(shape.fill(stateOverlay))
+                .shadow(color: DS.Color.brand.opacity(scheme == .dark && isEnabled ? 0.28 : 0), radius: 10, y: 2)
         case .destructive:
             shape.fill(DS.Color.danger).overlay(shape.fill(stateOverlay))
         case .secondary:

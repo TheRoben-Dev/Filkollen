@@ -23,7 +23,7 @@ private struct GeneralSettings: View {
     @AppStorage(Pref.alwaysStartHidden) private var startHidden = false
     @AppStorage(Pref.notificationsEnabled) private var notifications = true
     @AppStorage(Pref.autoScanHours) private var autoScanHours = 24
-    @AppStorage(Pref.useBrandAccent) private var useBrandAccent = false
+    @AppStorage(Pref.theme) private var theme: DS.Theme = .dark
 
     @State private var launchAtLogin = LoginItem.isEnabled
     @State private var needsApproval = LoginItem.needsApproval
@@ -67,10 +67,13 @@ private struct GeneralSettings: View {
             }
 
             Section("Appearance") {
-                Toggle(isOn: $useBrandAccent) {
-                    Text("Use Filkollen's teal for buttons and controls")
-                    Text("Off: Filkollen follows the accent colour you chose in System Settings › Appearance.")
+                Picker(selection: $theme) {
+                    ForEach(DS.Theme.allCases) { Text($0.title).tag($0) }
+                } label: {
+                    Text("Theme")
+                    Text("Dark is Filkollen's own look. Match System follows light or dark from System Settings › Appearance.")
                 }
+                .onChange(of: theme) { DS.Theme.apply($0) }
             }
 
             Section("Menu bar") {
@@ -110,6 +113,8 @@ private struct GeneralSettings: View {
             }
         }
         .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(DSBackdrop())
         .frame(height: 560)
         .onAppear {
             launchAtLogin = LoginItem.isEnabled
@@ -169,6 +174,8 @@ private struct CleanupSettings: View {
             }
         }
         .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(DSBackdrop())
         .frame(height: 440)
     }
 
@@ -236,6 +243,8 @@ private struct ProtectionSettings: View {
             }
         }
         .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(DSBackdrop())
         .frame(height: 500)
     }
 }
@@ -275,6 +284,8 @@ private struct UpdatesSettings: View {
             }
         }
         .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(DSBackdrop())
         .frame(height: 400)
     }
 }

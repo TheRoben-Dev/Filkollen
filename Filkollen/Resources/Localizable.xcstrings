@@ -3271,26 +3271,6 @@
         }
       }
     },
-    "Use Filkollen's teal for buttons and controls": {
-      "localizations": {
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Använd Filkollens blågröna färg för knappar och reglage"
-          }
-        }
-      }
-    },
-    "Off: Filkollen follows the accent colour you chose in System Settings › Appearance.": {
-      "localizations": {
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Av: Filkollen följer den accentfärg du valt i Systeminställningar › Utseende."
-          }
-        }
-      }
-    },
     "abuse.ch Auth-Key": {
       "localizations": {
         "sv": {
@@ -4257,6 +4237,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "1 objekt"
+          }
+        }
+      }
+    },
+    "Dark": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mörkt"
+          }
+        }
+      }
+    },
+    "Match System": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Följ systemet"
+          }
+        }
+      }
+    },
+    "Theme": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tema"
+          }
+        }
+      }
+    },
+    "Dark is Filkollen's own look. Match System follows light or dark from System Settings › Appearance.": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mörkt är Filkollens eget utseende. Följ systemet använder ljust eller mörkt från Systeminställningar › Utseende."
           }
         }
       }

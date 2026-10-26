@@ -1,6 +1,6 @@
 # Generates Assets.xcassets/DesignSystem colour sets (light, dark, Increased Contrast).
 # Usage: python3 scripts/design-colors.py Filkollen/Resources/Assets.xcassets/DesignSystem
-# Then copy DesignSystem/Fjord.colorset/Contents.json over AccentColor.colorset.
+# Then copy DesignSystem/Champagne.colorset/Contents.json over AccentColor.colorset.
 import json, os, sys
 root = sys.argv[1]
 os.makedirs(root, exist_ok=True)
@@ -30,11 +30,18 @@ def colorset(name, light, dark, hc_light=None, hc_dark=None, alpha=(1, 1), hc_al
     json.dump(data, open(f"{d}/Contents.json", "w"), indent=2)
 
 # Brand and status. Light values are >= 4.5:1 on the light window background (#ECECEC), dark values on the dark one (#323232) (checked in DesignTokenTests).
-colorset("Fjord", "#0D757E", "#45B8C1", "#08565D", "#8FDCE2")
-colorset("Success", "#22784A", "#4CC38A", "#17573A", "#8FE3B8")
-colorset("Warning", "#8E5F00", "#E5A93B", "#6E4A00", "#F5CB7A")
-colorset("Danger", "#C2343A", "#FF6B6B", "#8F1F24", "#FFBDBD")
-colorset("Info", "#0B63CE", "#5AA9FF", "#084A9C", "#99CCFF")
+# "Noir" direction: champagne gold on onyx. Dark is the default theme.
+colorset("Champagne", "#7A5A12", "#D9BA78", "#5C4309", "#F0D9A4")
+# Text and glyphs on a champagne fill: white on the deep light-mode gold, ink on the bright dark-mode gold.
+colorset("OnAccent", "#FFFFFF", "#17120A", "#FFFFFF", "#000000")
+colorset("Success", "#22784A", "#5DC79B", "#17573A", "#A6EBC8")
+colorset("Warning", "#8E5F00", "#E6B35E", "#6E4A00", "#F7D79A")
+colorset("Danger", "#C2343A", "#F2777C", "#8F1F24", "#FFC2C4")
+colorset("Info", "#0B63CE", "#82AEEB", "#084A9C", "#B5D3FF")
+
+# Canvas: warm ivory in light mode, onyx in dark. The sidebar sits a step deeper.
+colorset("Canvas", "#F5F2EC", "#0C0D10", "#FFFFFF", "#000000")
+colorset("CanvasSunken", "#ECE8E0", "#08090B", "#E4E0D8", "#000000")
 
 # Protection: calm to alert.
 colorset("ProtectionSafe", "#3A7555", "#6FBF92", "#2C5C42", "#A3DDBC")
@@ -42,11 +49,12 @@ colorset("ProtectionAttention", "#8E5F00", "#E5A93B", "#6E4A00", "#F5CB7A")
 colorset("ProtectionThreat", "#B42D33", "#FF6B6B", "#861E23", "#FFBDBD")
 
 # Surfaces. Dark surfaces are white overlays so they sit on any window background.
-colorset("Surface", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", alpha=(1, 0.05), hc_alpha=(1, 0.10))
-colorset("SurfaceRaised", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", alpha=(1, 0.09), hc_alpha=(1, 0.16))
-colorset("SurfaceSunken", "#000000", "#000000", "#000000", "#000000", alpha=(0.035, 0.18), hc_alpha=(0.07, 0.30))
-colorset("Border", "#000000", "#FFFFFF", "#000000", "#FFFFFF", alpha=(0.09, 0.09), hc_alpha=(0.45, 0.50))
-colorset("Shadow", "#000000", "#000000", "#000000", "#000000", alpha=(0.10, 0.45), hc_alpha=(0.20, 0.60))
+colorset("Surface", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", alpha=(1, 0.045), hc_alpha=(1, 0.10))
+colorset("SurfaceRaised", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", alpha=(1, 0.075), hc_alpha=(1, 0.16))
+# On onyx a darker well would vanish, so dark "sunken" (tracks, wells, row hover) is a faint white instead.
+colorset("SurfaceSunken", "#000000", "#FFFFFF", "#000000", "#FFFFFF", alpha=(0.035, 0.06), hc_alpha=(0.07, 0.16))
+colorset("Border", "#3A2E14", "#FFFFFF", "#000000", "#FFFFFF", alpha=(0.10, 0.075), hc_alpha=(0.45, 0.50))
+colorset("Shadow", "#000000", "#000000", "#000000", "#000000", alpha=(0.10, 0.60), hc_alpha=(0.20, 0.70))
 
 # Category families: one lightness/chroma band each, white glyphs on top (>= 3:1).
 cats = {

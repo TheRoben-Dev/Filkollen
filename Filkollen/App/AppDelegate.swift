@@ -40,6 +40,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
+        DS.Theme.apply()
         if livesInMenuBar, Pref.defaults.bool(forKey: Pref.alwaysStartHidden) {
             pendingHide = true
             NSApp.setActivationPolicy(.accessory)

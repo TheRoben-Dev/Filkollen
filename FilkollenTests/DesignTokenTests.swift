@@ -9,12 +9,13 @@ final class DesignTokenTests: XCTestCase {
     ]
 
     /// Used as text and as fills behind white text.
-    private let textTokens = ["Fjord", "Success", "Warning", "Danger", "Info",
+    private let textTokens = ["Champagne", "Success", "Warning", "Danger", "Info",
                               "ProtectionSafe", "ProtectionAttention", "ProtectionThreat"]
     private let categoryTokens = ["CategorySystemJunk", "CategoryBrowserCaches", "CategoryDeveloperJunk",
                                   "CategoryAppLeftovers", "CategoryOldInstallers", "CategoryIOSBackups",
                                   "CategoryDuplicatePhotos", "CategoryDuplicateFiles", "CategoryLargeFiles"]
-    private let surfaceTokens = ["Surface", "SurfaceRaised", "SurfaceSunken", "Border", "Shadow"]
+    private let surfaceTokens = ["Surface", "SurfaceRaised", "SurfaceSunken", "Border", "Shadow",
+                                 "Canvas", "CanvasSunken", "OnAccent"]
 
     private func resolve(_ color: NSColor, in name: NSAppearance.Name) -> NSColor {
         var resolved = color
@@ -57,6 +58,19 @@ final class DesignTokenTests: XCTestCase {
                 let ratio = contrast(fg, window)
                 XCTAssertGreaterThanOrEqual(ratio, 4.5, "\(name) on window background in \(appearance.rawValue): \(ratio)")
             }
+        }
+    }
+
+    /// Labels on champagne fills (primary buttons, selected chips) and champagne
+    /// text on the onyx/ivory canvas both stay readable.
+    func testChampagneReadsOnCanvasAndCarriesText() throws {
+        let gold = try token("Champagne"), ink = try token("OnAccent"), canvas = try token("Canvas")
+        for appearance in [NSAppearance.Name.aqua, .darkAqua] {
+            let g = resolve(gold, in: appearance)
+            let onFill = contrast(resolve(ink, in: appearance), g)
+            let onCanvas = contrast(g, resolve(canvas, in: appearance))
+            XCTAssertGreaterThanOrEqual(onFill, 4.5, "OnAccent on Champagne in \(appearance.rawValue): \(onFill)")
+            XCTAssertGreaterThanOrEqual(onCanvas, 4.5, "Champagne on Canvas in \(appearance.rawValue): \(onCanvas)")
         }
     }
 
