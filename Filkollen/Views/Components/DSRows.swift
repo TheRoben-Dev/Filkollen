@@ -71,11 +71,21 @@ struct DSFileRow: View {
 
     var body: some View {
         HStack(spacing: DS.Space.md) {
-            Toggle(isOn: $isSelected) { EmptyView() }
-                .toggleStyle(.checkbox)
-                .labelsHidden()
-                .disabled(item.isKeeper)
-                .accessibilityLabel(String(localized: "Clean \(item.name)"))
+            if item.isKeeper {
+                // The kept copy can never be selected; a lock reads better than a
+                // disabled checkbox, which all but disappears on onyx.
+                Image(systemName: "lock.fill")
+                    .font(DS.Font.caption)
+                    .foregroundStyle(DS.Color.brand)
+                    .frame(width: 16, height: 16)
+                    .help(String(localized: "Filkollen keeps this copy"))
+                    .accessibilityHidden(true)
+            } else {
+                Toggle(isOn: $isSelected) { EmptyView() }
+                    .toggleStyle(.checkbox)
+                    .labelsHidden()
+                    .accessibilityLabel(String(localized: "Clean \(item.name)"))
+            }
 
             DSFileIcon(url: item.url, size: showsThumbnail ? DS.Icon.TileSize.medium.side : DS.Icon.TileSize.small.side,
                        thumbnail: showsThumbnail)

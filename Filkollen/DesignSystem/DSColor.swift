@@ -15,7 +15,12 @@ extension DS {
     /// with all four variants (light, dark, and both with Increased Contrast).
     enum Color {
         // Background layers, back to front.
-        static let backgroundWindow = SwiftUI.Color(nsColor: .windowBackgroundColor)
+        /// Onyx in the default dark theme, warm ivory in light. Page backgrounds use
+        /// `DSBackdrop`, which adds the faint champagne glow on top of this.
+        static let canvas = asset("Canvas")
+        /// The sidebar and other chrome that sits a step behind the canvas.
+        static let canvasSunken = asset("CanvasSunken")
+        static let backgroundWindow = asset("Canvas")
         static let backgroundUnderPage = SwiftUI.Color(nsColor: .underPageBackgroundColor)
         static let backgroundContent = SwiftUI.Color(nsColor: .controlBackgroundColor)
 
@@ -31,14 +36,17 @@ extension DS {
         static let textSecondary = SwiftUI.Color(nsColor: .secondaryLabelColor)
         static let textTertiary = SwiftUI.Color(nsColor: .tertiaryLabelColor)
         static let textQuaternary = SwiftUI.Color(nsColor: .quaternaryLabelColor)
-        /// Text on a filled accent, status or category colour.
+        /// Text on a filled status or category colour.
         static let textOnFill = SwiftUI.Color.white
+        /// Text and glyphs on a champagne fill (primary buttons, selected chips):
+        /// ink on the bright dark-mode gold, white on the deep light-mode gold.
+        static let textOnAccent = asset("OnAccent")
 
         static let separator = SwiftUI.Color(nsColor: .separatorColor)
 
-        /// Filkollen's own accent. Controls follow the system accent unless the
-        /// user turns on "Use Filkollen colour" in Settings (see `DS.AccentModifier`).
-        static let brand = asset("Fjord")
+        /// Filkollen's accent: champagne gold. Every control is tinted with it
+        /// (see `DS.AccentModifier`).
+        static let brand = asset("Champagne")
 
         // Status. Light values are at least 4.5:1 on the light window background and dark values on
         // the dark window background, so they work as text (DesignTokenTests).
@@ -159,20 +167,60 @@ extension JunkCategory {
     }
 }
 
-// MARK: - Accent
+// MARK: - Theme and accent
 
 extension DS {
-    /// Applied once at each scene root: controls follow the system accent, or
-    /// Fjord when the user picked it in Settings.
-    struct AccentModifier: ViewModifier {
-        @AppStorage(Pref.useBrandAccent) private var useBrandAccent = false
+    /// Dark ("Noir") is Filkollen's default look; people can opt into following
+    /// the system appearance in Settings › General › Appearance.
+    enum Theme: String, CaseIterable, Identifiable {
+        case dark, system
 
+        var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .dark: return String(localized: "Dark")
+            case .system: return String(localized: "Match System")
+            }
+        }
+
+        static var current: Theme {
+            Theme(rawValue: UserDefaults.standard.string(forKey: Pref.theme) ?? "") ?? .dark
+        }
+
+        /// Sets the app-wide appearance, so windows, sheets, alerts, menus and the
+        /// menu bar panel all follow the theme.
+        @MainActor static func apply(_ theme: Theme = .current) {
+            NSApp.appearance = theme == .dark ? NSAppearance(named: .darkAqua) : nil
+        }
+    }
+
+    /// Applied once at each scene root: every control is tinted champagne.
+    struct AccentModifier: ViewModifier {
         func body(content: Content) -> some View {
-            content.tint(useBrandAccent ? DS.Color.brand : nil)
+            content.tint(DS.Color.brand)
         }
     }
 }
 
 extension View {
     func dsAccent() -> some View { modifier(DS.AccentModifier()) }
+}
+
+// MARK: - Backdrop
+
+/// The page background: the canvas with a faint champagne glow from the top,
+/// like light falling on a dark lacquered surface. Static, so it costs nothing
+/// while scrolling.
+struct DSBackdrop: View {
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        ZStack {
+            DS.Color.canvas
+            RadialGradient(colors: [DS.Color.brand.opacity(scheme == .dark ? 0.17 : 0.08), .clear],
+                           center: UnitPoint(x: 0.5, y: -0.1), startRadius: 0, endRadius: 720)
+        }
+        .accessibilityHidden(true)
+    }
 }

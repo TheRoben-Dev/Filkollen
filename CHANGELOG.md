@@ -4,6 +4,18 @@ All notable changes to Filkollen. Format based on [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-26
+
+### Changed
+- New "Noir" look: dark by default with an onyx canvas, champagne-gold accent, gold-edged cards, New York serif titles and figures, and letter-spaced section labels. Settings › General › Appearance can switch to Match System (warm ivory in light mode).
+- New app icon ("Halo"): a champagne ring and star on matte black.
+- Destructive buttons are ruby-outlined; kept duplicate copies show a gold lock; informational notes are a quiet steel instead of blue.
+
+### Fixed
+- The menu bar panel is a rounded, solid panel again instead of a square see-through sheet with the desktop showing around it.
+- App Uninstaller lists apps with a blank display name by their file name instead of an empty row.
+- "1 item" instead of "1 items" in History and the review sheet.
+
 ## [0.2.0] - 2026-10-24
 
 ### Safety

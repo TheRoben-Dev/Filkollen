@@ -6,6 +6,7 @@ import SwiftUI
 /// - `.primary`: the one main action on a screen, filled with the accent.
 /// - `.secondary`: everything else that's a button.
 /// - `.destructive`: **only** Delete Permanently (malware, quarantine) and Empty Trash.
+///   Ruby text on a ruby-tinted fill with a ruby edge.
 /// - `.plain`: text-only actions inside rows and banners.
 struct DSButtonStyle: ButtonStyle {
     enum Kind { case primary, secondary, destructive, plain }
@@ -69,7 +70,8 @@ private struct DSButtonBody: View {
 
     private var foreground: Color {
         switch kind {
-        case .primary, .destructive: return DS.Color.textOnFill
+        case .primary: return DS.Color.textOnAccent
+        case .destructive: return DS.Color.danger
         case .secondary: return DS.Color.textPrimary
         case .plain: return isEnabled ? .accentColor : DS.Color.textSecondary
         }
@@ -79,9 +81,19 @@ private struct DSButtonBody: View {
         let shape = DS.shape(DS.Radius.control)
         switch kind {
         case .primary:
-            shape.fill(.tint).overlay(shape.fill(stateOverlay))
+            // Champagne with a soft top light and a bright hairline, like polished metal.
+            shape.fill(.tint)
+                .overlay(shape.fill(LinearGradient(colors: [.white.opacity(0.22), .clear, .black.opacity(0.10)],
+                                                   startPoint: .top, endPoint: .bottom)))
+                .overlay(shape.strokeBorder(LinearGradient(colors: [.white.opacity(0.45), .white.opacity(0.05)],
+                                                           startPoint: .top, endPoint: .bottom), lineWidth: 0.75))
+                .overlay(shape.fill(stateOverlay))
+                .shadow(color: DS.Color.brand.opacity(scheme == .dark && isEnabled ? 0.28 : 0), radius: 10, y: 2)
         case .destructive:
-            shape.fill(DS.Color.danger).overlay(shape.fill(stateOverlay))
+            // Ruby glass rather than a solid red slab: still unmistakable, never shouting.
+            shape.fill(DS.Color.danger.opacity(0.16))
+                .overlay(shape.strokeBorder(DS.Color.danger.opacity(0.55), lineWidth: 1))
+                .overlay(shape.fill(stateOverlay))
         case .secondary:
             shape.fill(DS.Color.surfaceRaised).overlay(shape.fill(stateOverlay))
         case .plain:

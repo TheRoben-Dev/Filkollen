@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// The hero page. One ring carries the whole story: a quiet outline at idle,
-/// one honest segment per category while scanning, a single settled Fjord ring
+/// one honest segment per category while scanning, a single settled champagne ring
 /// with the total once results are in (DIRECTION.md › The signature moment).
 struct SmartScanView: View {
     @EnvironmentObject private var model: AppModel

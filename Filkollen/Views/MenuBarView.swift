@@ -27,12 +27,25 @@ struct MenuBarView: View {
         }
         .padding(DS.Inset.menuBar)
         .frame(width: DS.Layout.menuBarWidth)
+        .background { panelBackground }
+        .background(MenuBarPanelStyler(cornerRadius: DS.Radius.hero))
         .registersSettingsOpener(app)
         .onAppear {
             app.openMainWindowAction = { openWindow(id: "main") }
             refresh(includeTrash: true)
         }
         .onReceive(tick) { _ in refresh(includeTrash: false) }
+    }
+
+    /// Filkollen draws its own panel: onyx with the champagne glow and a hairline
+    /// that catches light along the top. `MenuBarPanelStyler` clears the system's
+    /// own sheet so only this rounded shape shows.
+    private var panelBackground: some View {
+        let shape = DS.shape(DS.Radius.hero)
+        return DSBackdrop()
+            .clipShape(shape)
+            .overlay(shape.strokeBorder(LinearGradient(colors: [DS.Color.brand.opacity(0.85), DS.Color.brand.opacity(0.10)],
+                                                       startPoint: .top, endPoint: .bottom), lineWidth: 1))
     }
 
     // MARK: Header
@@ -296,5 +309,80 @@ private struct MenuAction: View {
     private var background: Color {
         if destructive { return DS.Color.danger.opacity(0.14) }
         return hovering && isEnabled ? DS.Color.surfaceSunken : .clear
+    }
+}
+
+/// Makes the menu bar panel's window transparent and rounds it, so the panel is
+/// exactly `MenuBarView`'s rounded background. Without it, some macOS releases
+/// show a square, see-through sheet with the desktop bleeding around the content.
+private struct MenuBarPanelStyler: NSViewRepresentable {
+    let cornerRadius: CGFloat
+
+    func makeNSView(context: Context) -> NSView { StylerView(cornerRadius: cornerRadius) }
+    func updateNSView(_ nsView: NSView, context: Context) {}
+
+    private final class StylerView: NSView {
+        let cornerRadius: CGFloat
+
+        init(cornerRadius: CGFloat) {
+            self.cornerRadius = cornerRadius
+            super.init(frame: .zero)
+        }
+
+        @available(*, unavailable)
+        required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+
+        override func viewWillMove(toWindow newWindow: NSWindow?) {
+            super.viewWillMove(toWindow: newWindow)
+            NotificationCenter.default.removeObserver(self, name: NSWindow.didBecomeKeyNotification, object: nil)
+        }
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            guard let window else { return }
+            style(window)
+            // The system can restyle the panel each time it opens.
+            NotificationCenter.default.addObserver(self, selector: #selector(windowDidBecomeKey(_:)),
+                                                   name: NSWindow.didBecomeKeyNotification, object: window)
+        }
+
+        @objc private func windowDidBecomeKey(_ note: Notification) {
+            if let window { style(window) }
+        }
+
+        private func style(_ window: NSWindow) {
+            window.isOpaque = false
+            window.backgroundColor = .clear
+            window.hasShadow = true
+            // Clip everything the system put in the frame (its glass or blur sheet
+            // included) to the same rounded shape as the SwiftUI background.
+            if let frameView = window.contentView?.superview {
+                frameView.wantsLayer = true
+                frameView.layer?.cornerRadius = cornerRadius
+                frameView.layer?.cornerCurve = .continuous
+                frameView.layer?.masksToBounds = true
+                round(frameView)
+            }
+            window.invalidateShadow()
+        }
+
+        private func round(_ view: NSView) {
+            if let effect = view as? NSVisualEffectView {
+                effect.maskImage = Self.mask(radius: cornerRadius)
+            }
+            view.subviews.forEach(round)
+        }
+
+        private static func mask(radius: CGFloat) -> NSImage {
+            let side = radius * 2 + 1
+            let image = NSImage(size: NSSize(width: side, height: side), flipped: false) { rect in
+                NSColor.black.setFill()
+                NSBezierPath(roundedRect: rect, xRadius: radius, yRadius: radius).fill()
+                return true
+            }
+            image.capInsets = NSEdgeInsets(top: radius, left: radius, bottom: radius, right: radius)
+            image.resizingMode = .stretch
+            return image
+        }
     }
 }

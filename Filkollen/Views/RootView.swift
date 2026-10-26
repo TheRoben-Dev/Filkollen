@@ -19,6 +19,9 @@ struct RootView: View {
             }
         }
         .dsAnimation(.smooth, value: model.showOnboarding || holdOnboarding)
+        .dsWindowChrome()
+        // Onboarding has no split view, so hide the toolbar's own material here too.
+        .toolbarBackground(.hidden, for: .windowToolbar)
         .onChange(of: model.showOnboarding) { showing in
             guard !showing, model.hasFullDiskAccess else { return }
             holdOnboarding = true
@@ -49,6 +52,9 @@ struct MainView: View {
             detail
                 .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity, alignment: .top)
                 .clipped()
+                .background(DSBackdrop().ignoresSafeArea())
+                // The glow runs up under the transparent title bar, so there's no seam.
+                .toolbarBackground(.hidden, for: .windowToolbar)
         }
     }
 
@@ -85,6 +91,7 @@ struct SidebarView: View {
                 accessNotice
             }
         }
+        .background(DS.Color.canvasSunken.ignoresSafeArea())
     }
 
     private var list: some View {
@@ -95,7 +102,7 @@ struct SidebarView: View {
             Label("Smart Scan", systemImage: DS.Icon.scan)
                 .tag(AppModel.Section.smartScan)
 
-            Section("Cleanup") {
+            Section {
                 ForEach(JunkCategory.allCases) { category in
                     Label {
                         HStack {
@@ -116,9 +123,11 @@ struct SidebarView: View {
                     .tag(AppModel.Section.uninstaller)
                 Label("History", systemImage: "clock.arrow.circlepath")
                     .tag(AppModel.Section.history)
+            } header: {
+                Text("Cleanup").dsEyebrow()
             }
 
-            Section("Protection") {
+            Section {
                 HStack {
                     Label("Malware Scan", systemImage: "shield.lefthalf.filled")
                     Spacer()
@@ -128,9 +137,11 @@ struct SidebarView: View {
                     }
                 }
                 .tag(AppModel.Section.protection)
+            } header: {
+                Text("Protection").dsEyebrow()
             }
 
-            Section("Maintenance") {
+            Section {
                 ForEach(AppModel.SystemPage.allCases, id: \.self) { page in
                     Label(page.title, systemImage: page.symbol)
                         .tag(AppModel.Section.system(page))
@@ -146,9 +157,12 @@ struct SidebarView: View {
                     }
                 }
                 .tag(AppModel.Section.updates)
+            } header: {
+                Text("Maintenance").dsEyebrow()
             }
         }
         .listStyle(.sidebar)
+        .scrollContentBackground(.hidden)
     }
 
     private var accessNotice: some View {

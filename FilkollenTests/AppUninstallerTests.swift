@@ -46,6 +46,18 @@ final class AppUninstallerTests: XCTestCase {
         XCTAssertTrue(uninstaller.remnants(of: app).allSatisfy { $0.requiresClosed == ["com.vendor.editor"] })
     }
 
+    func testBlankDisplayNameFallsBackToTheFileName() throws {
+        let fx = try Fixture()
+        let appURL = fx.home.appendingPathComponent("Applications/Blank Name.app")
+        let info: [String: Any] = ["CFBundleIdentifier": "com.vendor.blank", "CFBundleDisplayName": " ",
+                                   "CFBundleName": "", "CFBundleExecutable": "Blank"]
+        let data = try PropertyListSerialization.data(fromPropertyList: info, format: .xml, options: 0)
+        try fx.file("Contents/Info.plist", in: appURL, contents: data)
+        try fx.file("Contents/MacOS/Blank", in: appURL, bytes: 64)
+
+        XCTAssertEqual(try AppUninstaller(context: fx.context()).app(at: appURL).name, "Blank Name")
+    }
+
     func testAppOutsideHomeIsNeverListedAsTrashable() throws {
         let fx = try Fixture()
         let appURL = try fx.app("Editor", bundleID: "com.vendor.editor", in: fx.outside)

@@ -69,13 +69,32 @@ extension DS {
         let level: Elevation
         let radius: CGFloat
         @Environment(\.colorScheme) private var scheme
+        @Environment(\.colorSchemeContrast) private var contrast
 
         func body(content: Content) -> some View {
             content
                 .background(level.fill, in: DS.shape(radius))
-                .overlay(DS.shape(radius).strokeBorder(DS.Color.border, lineWidth: 1))
+                .overlay(DS.shape(radius).strokeBorder(border, lineWidth: 1))
                 .shadow(color: DS.Color.shadow.opacity(level.shadowOpacity(scheme)),
                         radius: level.shadowRadius, y: level.shadowY)
+        }
+
+        /// A hairline that catches light along the top edge. Raised surfaces
+        /// (hovered cards, popovers) pick up a champagne edge in the dark theme.
+        private var border: some ShapeStyle {
+            let top: SwiftUI.Color
+            let bottom: SwiftUI.Color
+            switch (level, scheme) {
+            case _ where contrast == .increased:
+                (top, bottom) = (DS.Color.border, DS.Color.border)
+            case (.surface, .dark):
+                (top, bottom) = (.white.opacity(0.12), .white.opacity(0.04))
+            case (_, .dark):
+                (top, bottom) = (DS.Color.brand.opacity(0.55), DS.Color.brand.opacity(0.12))
+            default:
+                (top, bottom) = (DS.Color.border, DS.Color.border)
+            }
+            return LinearGradient(colors: [top, bottom], startPoint: .top, endPoint: .bottom)
         }
     }
 }

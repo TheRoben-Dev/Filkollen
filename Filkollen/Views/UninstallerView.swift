@@ -29,7 +29,7 @@ struct UninstallerView: View {
         HStack(spacing: 0) {
             appList
                 .frame(width: DS.Layout.inspectorWidth)
-                .background(DS.Color.backgroundUnderPage)
+                .background(DS.Color.canvasSunken)
             Divider()
             detail
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -301,6 +301,7 @@ private struct UninstallReviewSheet: View {
                 .accessibilityElement(children: .combine)
             }
             .listStyle(.inset)
+            .scrollContentBackground(.hidden)
             .frame(minHeight: 220)
             HStack(spacing: DS.Space.md) {
                 Spacer()
@@ -315,5 +316,7 @@ private struct UninstallReviewSheet: View {
             .overlay(alignment: .top) { Divider() }
         }
         .frame(width: 640, height: 500)
+        .background(DSBackdrop())
+        .dsAccent()
     }
 }

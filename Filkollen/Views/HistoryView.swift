@@ -102,7 +102,7 @@ struct HistoryView: View {
             HStack(spacing: DS.Space.md) {
                 VStack(alignment: .leading, spacing: DS.Space.xxs) {
                     Text(record.source).font(DS.Font.headline).foregroundStyle(DS.Color.textPrimary)
-                    Text("\(record.date.formatted(date: .abbreviated, time: .shortened)) · \(record.items.count) items · \(record.bytes.formattedBytes)")
+                    Text(verbatim: "\(record.date.formatted(date: .abbreviated, time: .shortened)) · \(DS.itemCount(record.items.count)) · \(record.bytes.formattedBytes)")
                         .font(DS.Font.numericCaption).foregroundStyle(DS.Color.textSecondary)
                 }
                 Spacer()

@@ -20,5 +20,9 @@ enum AboutPanel {
         credits.addAttribute(.paragraphStyle, value: paragraph, range: NSRange(location: 0, length: credits.length))
         NSApp.activate(ignoringOtherApps: true)
         NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
+        // The standard panel is grey; give it the canvas like every other window.
+        Task { @MainActor in
+            if let panel = NSApp.keyWindow, panel is NSPanel { DS.styleChrome(of: panel) }
+        }
     }
 }

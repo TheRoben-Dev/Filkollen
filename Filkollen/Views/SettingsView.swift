@@ -10,6 +10,7 @@ struct SettingsView: View {
             UpdatesSettings().tabItem { Label("Updates", systemImage: "arrow.down.app") }
         }
         .frame(width: DS.Layout.settingsWidth)
+        .dsWindowChrome()
     }
 }
 
@@ -23,7 +24,7 @@ private struct GeneralSettings: View {
     @AppStorage(Pref.alwaysStartHidden) private var startHidden = false
     @AppStorage(Pref.notificationsEnabled) private var notifications = true
     @AppStorage(Pref.autoScanHours) private var autoScanHours = 24
-    @AppStorage(Pref.useBrandAccent) private var useBrandAccent = false
+    @AppStorage(Pref.theme) private var theme: DS.Theme = .dark
 
     @State private var launchAtLogin = LoginItem.isEnabled
     @State private var needsApproval = LoginItem.needsApproval
@@ -32,13 +33,15 @@ private struct GeneralSettings: View {
     var body: some View {
         Form {
             if selfUpdater.isAvailable {
-                Section("Filkollen updates") {
+                Section {
                     Toggle("Check for new versions of Filkollen automatically",
                            isOn: Binding(get: { selfUpdater.automaticallyChecks }, set: { selfUpdater.automaticallyChecks = $0 }))
                     Button("Check Now") { selfUpdater.checkForUpdates() }
+                } header: {
+                    Text("Filkollen updates").dsEyebrow()
                 }
             }
-            Section("Startup") {
+            Section {
                 Toggle("Open Filkollen at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { enabled in
                         guard enabled != LoginItem.isEnabled else { return }
@@ -64,24 +67,33 @@ private struct GeneralSettings: View {
                 }
                 Text("When opened at login, Filkollen starts quietly in the menu bar with no window.")
                     .font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
+            } header: {
+                Text("Startup").dsEyebrow()
             }
 
-            Section("Appearance") {
-                Toggle(isOn: $useBrandAccent) {
-                    Text("Use Filkollen's teal for buttons and controls")
-                    Text("Off: Filkollen follows the accent colour you chose in System Settings › Appearance.")
+            Section {
+                Picker(selection: $theme) {
+                    ForEach(DS.Theme.allCases) { Text($0.title).tag($0) }
+                } label: {
+                    Text("Theme")
+                    Text("Dark is Filkollen's own look. Match System follows light or dark from System Settings › Appearance.")
                 }
+                .onChange(of: theme) { DS.Theme.apply($0) }
+            } header: {
+                Text("Appearance").dsEyebrow()
             }
 
-            Section("Menu bar") {
+            Section {
                 Toggle("Show Filkollen in the menu bar", isOn: $showMenuBarIcon)
                 Toggle("Keep running in the menu bar when the window is closed", isOn: $keepRunning)
                     .disabled(!showMenuBarIcon)
                 Toggle("Always start hidden (menu bar only)", isOn: $startHidden)
                     .disabled(!showMenuBarIcon || !keepRunning)
+            } header: {
+                Text("Menu bar").dsEyebrow()
             }
 
-            Section("Background") {
+            Section {
                 Picker("Automatic Smart Scan", selection: $autoScanHours) {
                     Text("Off").tag(0)
                     Text("Every 6 hours").tag(6)
@@ -93,9 +105,11 @@ private struct GeneralSettings: View {
                     .onChange(of: notifications) { if $0 { Notifier.requestPermission() } }
                 Text("Background scans only look; nothing is cleaned without your review.")
                     .font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
+            } header: {
+                Text("Background").dsEyebrow()
             }
 
-            Section("Permissions") {
+            Section {
                 LabeledContent("Full Disk Access") {
                     HStack {
                         Text(model.hasFullDiskAccess ? "Granted" : "Not granted")
@@ -107,9 +121,13 @@ private struct GeneralSettings: View {
                     UserDefaults.standard.set(false, forKey: "onboardingDismissed")
                     model.onboardingDismissed = false
                 }
+            } header: {
+                Text("Permissions").dsEyebrow()
             }
         }
         .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(DSBackdrop())
         .frame(height: 560)
         .onAppear {
             launchAtLogin = LoginItem.isEnabled
@@ -129,16 +147,20 @@ private struct CleanupSettings: View {
 
     var body: some View {
         Form {
-            Section("System Junk") {
+            Section {
                 Stepper("Only remove temporary files older than \(tempMinAgeDays) day\(tempMinAgeDays == 1 ? "" : "s")",
                         value: $tempMinAgeDays, in: 1...60)
+            } header: {
+                Text("System Junk").dsEyebrow()
             }
-            Section("App Leftovers") {
+            Section {
                 Toggle("Also look for folders named after removed apps", isOn: $leftoverPlainNames)
                 Text("Finds folders like Application Support › Spotify. Matches that can't be confirmed are marked Low confidence and never pre-selected.")
                     .font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
+            } header: {
+                Text("App Leftovers").dsEyebrow()
             }
-            Section("Large & Old Files") {
+            Section {
                 Picker("Show files larger than", selection: $largeFileMB) {
                     Text("100 MB").tag(100)
                     Text("250 MB").tag(250)
@@ -153,6 +175,8 @@ private struct CleanupSettings: View {
                     Text("2 years").tag(24)
                 }
                 Text("Old files are only listed from 50 MB up.").font(DS.Font.caption).foregroundStyle(DS.Color.textSecondary)
+            } header: {
+                Text("Large & Old Files").dsEyebrow()
             }
             Section {
                 TextEditor(text: $excludedPaths)
@@ -169,6 +193,8 @@ private struct CleanupSettings: View {
             }
         }
         .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(DSBackdrop())
         .frame(height: 440)
     }
 
@@ -200,7 +226,7 @@ private struct ProtectionSettings: View {
 
     var body: some View {
         Form {
-            Section("Threat database") {
+            Section {
                 LabeledContent("Known threats", value: "\(protection.databaseCount.formatted()) hashes")
                 LabeledContent("Last updated") {
                     Text(protection.databaseUpdated.map { $0.formatted(.relative(presentation: .named)) } ?? "Never")
@@ -220,8 +246,10 @@ private struct ProtectionSettings: View {
                 if let error = protection.errorMessage {
                     Text(error).font(DS.Font.caption).foregroundStyle(DS.Color.danger)
                 }
+            } header: {
+                Text("Threat database").dsEyebrow()
             }
-            Section("Scanning") {
+            Section {
                 Toggle("Also scan with ClamAV when installed", isOn: $protection.useClamAV)
                     .disabled(!protection.clamAVInstalled)
                 if !protection.clamAVInstalled {
@@ -233,9 +261,13 @@ private struct ProtectionSettings: View {
                     Text("Compares each new file in Downloads with the local threat database and notifies you on a match. Nothing is moved automatically.")
                 }
                 Button("Open Quarantine Folder") { NSWorkspace.shared.open(Quarantine.directory) }
+            } header: {
+                Text("Scanning").dsEyebrow()
             }
         }
         .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(DSBackdrop())
         .frame(height: 500)
     }
 }
@@ -253,7 +285,7 @@ private struct UpdatesSettings: View {
 
     var body: some View {
         Form {
-            Section("Check for updates from") {
+            Section {
                 Toggle("Apps that update themselves (Sparkle)", isOn: $checkSparkle)
                 Toggle(isOn: $checkHomebrew) {
                     Text("Homebrew formulae and casks")
@@ -266,15 +298,21 @@ private struct UpdatesSettings: View {
                     if !updates.masInstalled { Text("Needs mas: brew install mas").foregroundStyle(DS.Color.warning) }
                 }
                 Toggle("macOS software updates", isOn: $checkMacOS)
+            } header: {
+                Text("Check for updates from").dsEyebrow()
             }
-            Section("Schedule") {
+            Section {
                 Toggle("Check daily in the background and notify me", isOn: $autoCheck)
                 LabeledContent("Last checked") {
                     Text(updates.lastChecked.map { $0.formatted(.relative(presentation: .named)) } ?? "Never")
                 }
+            } header: {
+                Text("Schedule").dsEyebrow()
             }
         }
         .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(DSBackdrop())
         .frame(height: 400)
     }
 }

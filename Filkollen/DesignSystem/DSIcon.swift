@@ -54,7 +54,8 @@ extension DS {
     }
 }
 
-/// A category or tool tile: a flat tint with a faint top light and a white glyph.
+/// A category or tool tile: an enamelled tint with a top light and a bright
+/// hairline. White glyph on category colours, ink on champagne.
 /// Decorative; every use sits next to a title that says the same thing.
 struct DSTile: View {
     let symbol: String
@@ -68,13 +69,17 @@ struct DSTile: View {
                 DS.shape(size.radius)
                     .fill(LinearGradient(colors: [.white.opacity(0.18), .clear], startPoint: .top, endPoint: .center))
             )
-            .overlay(DS.shape(size.radius).strokeBorder(.black.opacity(0.08), lineWidth: 0.5))
+            .overlay(
+                DS.shape(size.radius)
+                    .strokeBorder(LinearGradient(colors: [.white.opacity(0.35), .white.opacity(0.04)],
+                                                 startPoint: .top, endPoint: .bottom), lineWidth: 0.75)
+            )
             .frame(width: size.side, height: size.side)
             .overlay(
                 Image(systemName: symbol)
                     .font(size.glyph)
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(DS.Color.textOnFill)
+                    .foregroundStyle(tint == DS.Color.brand ? DS.Color.textOnAccent : DS.Color.textOnFill)
             )
             .accessibilityHidden(true)
     }
