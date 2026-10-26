@@ -101,7 +101,7 @@ struct UpdatesView: View {
 
     private func hint(_ text: String, link: String, url: String) -> some View {
         DSBanner(kind: .info, title: text) {
-            Link(link, destination: URL(string: url)!).font(DS.Font.callout.weight(.semibold))
+            Link(link, destination: URL(string: url)!).font(DS.Font.callout.weight(.semibold)).foregroundStyle(DS.Color.brand)
         }
     }
 
@@ -142,7 +142,7 @@ private struct UpdateRow: View {
             }
             Spacer()
             if let info = update.infoURL {
-                Link(destination: info) { Image(systemName: "doc.text") }
+                Link(destination: info) { Image(systemName: "doc.text") }.foregroundStyle(DS.Color.brand)
                     .help("Release notes")
                     .accessibilityLabel(String(localized: "Release notes for \(update.name)"))
                     .foregroundStyle(DS.Color.textSecondary)

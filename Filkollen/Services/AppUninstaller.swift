@@ -54,7 +54,10 @@ struct AppUninstaller: Sendable {
         let path = SafetyGuard.fold(SafetyGuard.canonicalPath(url.path) ?? url.path)
         return App(
             url: url,
-            name: (info["CFBundleDisplayName"] as? String) ?? (info["CFBundleName"] as? String) ?? url.deletingPathExtension().lastPathComponent,
+            // Some apps ship an empty or blank display name; fall back past those too.
+            name: [info["CFBundleDisplayName"], info["CFBundleName"]]
+                .compactMap { ($0 as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .first { !$0.isEmpty } ?? url.deletingPathExtension().lastPathComponent,
             bundleID: id,
             executable: info["CFBundleExecutable"] as? String,
             version: info["CFBundleShortVersionString"] as? String,

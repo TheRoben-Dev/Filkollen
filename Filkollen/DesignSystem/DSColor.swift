@@ -218,8 +218,8 @@ struct DSBackdrop: View {
     var body: some View {
         ZStack {
             DS.Color.canvas
-            RadialGradient(colors: [DS.Color.brand.opacity(scheme == .dark ? 0.10 : 0.07), .clear],
-                           center: UnitPoint(x: 0.5, y: -0.15), startRadius: 0, endRadius: 620)
+            RadialGradient(colors: [DS.Color.brand.opacity(scheme == .dark ? 0.17 : 0.08), .clear],
+                           center: UnitPoint(x: 0.5, y: -0.1), startRadius: 0, endRadius: 720)
         }
         .accessibilityHidden(true)
     }

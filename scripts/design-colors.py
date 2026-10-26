@@ -37,7 +37,8 @@ colorset("OnAccent", "#FFFFFF", "#17120A", "#FFFFFF", "#000000")
 colorset("Success", "#22784A", "#5DC79B", "#17573A", "#A6EBC8")
 colorset("Warning", "#8E5F00", "#E6B35E", "#6E4A00", "#F7D79A")
 colorset("Danger", "#C2343A", "#F2777C", "#8F1F24", "#FFC2C4")
-colorset("Info", "#0B63CE", "#82AEEB", "#084A9C", "#B5D3FF")
+# Info is a quiet steel in the dark theme, so notes never compete with the champagne accent.
+colorset("Info", "#2F5D8A", "#AFC0D3", "#1F4467", "#DCE6F2")
 
 # Canvas: warm ivory in light mode, onyx in dark. The sidebar sits a step deeper.
 colorset("Canvas", "#F5F2EC", "#0C0D10", "#FFFFFF", "#000000")

@@ -345,7 +345,7 @@ private struct ThreatRow: View {
                         Text(threat.identifier).font(DS.Font.path).foregroundStyle(DS.Color.warning)
                             .textSelection(.enabled)
                     } else if let report = threat.reportURL {
-                        Link("View report", destination: report).font(DS.Font.caption)
+                        Link("View report", destination: report).font(DS.Font.caption).foregroundStyle(DS.Color.brand)
                     }
                 }
             }

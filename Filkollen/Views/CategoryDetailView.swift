@@ -118,9 +118,13 @@ struct CategoryDetailView: View {
             DSScanRing(segments: DSScanSegment.segments(for: [category], scanning: model.scanningCategories,
                                                         finished: Set(model.results.keys)),
                        isWorking: true, settled: false, diameter: 120, lineWidth: 8) {
-                ProgressView().controlSize(.small)
+                Image(systemName: category.dsSymbol)
+                    .font(.system(size: 30, weight: .regular))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(DS.Color.brand)
+                    .accessibilityHidden(true)
             }
-            Text(category.scanningMessage).font(DS.Font.headline).foregroundStyle(DS.Color.textPrimary)
+            Text(category.scanningMessage).font(DS.Font.sectionTitle).foregroundStyle(DS.Color.textPrimary)
             Text(model.scanStatus).dsPath(DS.Font.pathBody).frame(maxWidth: DS.Layout.readableWidth)
             Spacer(minLength: 0)
         }

@@ -4280,6 +4280,16 @@
           }
         }
       }
+    },
+    "Filkollen keeps this copy": {
+      "localizations": {
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filkollen behåller den här kopian"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

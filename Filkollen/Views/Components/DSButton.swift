@@ -6,6 +6,7 @@ import SwiftUI
 /// - `.primary`: the one main action on a screen, filled with the accent.
 /// - `.secondary`: everything else that's a button.
 /// - `.destructive`: **only** Delete Permanently (malware, quarantine) and Empty Trash.
+///   Ruby text on a ruby-tinted fill with a ruby edge.
 /// - `.plain`: text-only actions inside rows and banners.
 struct DSButtonStyle: ButtonStyle {
     enum Kind { case primary, secondary, destructive, plain }
@@ -70,7 +71,7 @@ private struct DSButtonBody: View {
     private var foreground: Color {
         switch kind {
         case .primary: return DS.Color.textOnAccent
-        case .destructive: return DS.Color.textOnFill
+        case .destructive: return DS.Color.danger
         case .secondary: return DS.Color.textPrimary
         case .plain: return isEnabled ? .accentColor : DS.Color.textSecondary
         }
@@ -89,7 +90,10 @@ private struct DSButtonBody: View {
                 .overlay(shape.fill(stateOverlay))
                 .shadow(color: DS.Color.brand.opacity(scheme == .dark && isEnabled ? 0.28 : 0), radius: 10, y: 2)
         case .destructive:
-            shape.fill(DS.Color.danger).overlay(shape.fill(stateOverlay))
+            // Ruby glass rather than a solid red slab: still unmistakable, never shouting.
+            shape.fill(DS.Color.danger.opacity(0.16))
+                .overlay(shape.strokeBorder(DS.Color.danger.opacity(0.55), lineWidth: 1))
+                .overlay(shape.fill(stateOverlay))
         case .secondary:
             shape.fill(DS.Color.surfaceRaised).overlay(shape.fill(stateOverlay))
         case .plain:

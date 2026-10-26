@@ -44,7 +44,7 @@ struct MenuBarView: View {
         let shape = DS.shape(DS.Radius.hero)
         return DSBackdrop()
             .clipShape(shape)
-            .overlay(shape.strokeBorder(LinearGradient(colors: [DS.Color.brand.opacity(0.45), .white.opacity(0.06)],
+            .overlay(shape.strokeBorder(LinearGradient(colors: [DS.Color.brand.opacity(0.85), DS.Color.brand.opacity(0.10)],
                                                        startPoint: .top, endPoint: .bottom), lineWidth: 1))
     }
 

@@ -317,5 +317,6 @@ private struct UninstallReviewSheet: View {
         }
         .frame(width: 640, height: 500)
         .background(DSBackdrop())
+        .dsAccent()
     }
 }
