@@ -20,6 +20,8 @@ struct RootView: View {
         }
         .dsAnimation(.smooth, value: model.showOnboarding || holdOnboarding)
         .dsWindowChrome()
+        // Onboarding has no split view, so hide the toolbar's own material here too.
+        .toolbarBackground(.hidden, for: .windowToolbar)
         .onChange(of: model.showOnboarding) { showing in
             guard !showing, model.hasFullDiskAccess else { return }
             holdOnboarding = true
