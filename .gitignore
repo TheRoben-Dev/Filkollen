@@ -7,3 +7,4 @@ xcuserdata/
 Filkollen/Resources/Info.plist
 Filkollen/Resources/Filkollen.entitlements
 build-*/
+__pycache__/
